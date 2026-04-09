@@ -31,3 +31,21 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Keep your local config safe
+application-local.properties
+application-secret.properties
+application-prod.properties
+.env
+.env.*
+*.key
+*.pem
+
+# OS generated files (Just in case you switch between Mac and Windows)
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
