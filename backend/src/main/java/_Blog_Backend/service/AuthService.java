@@ -29,13 +29,8 @@ public class AuthService {
                 .username(username)
                 .email(email)
                 .passwordHash(hashedPassword)
-                .authProvider("LOCAL")
-                .role("USER")
-                .isActive(true)
-                .isBlocked(false)
                 .build();
 
         return userRepository.save(newUser);
-
     }
 }
