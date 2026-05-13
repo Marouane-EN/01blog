@@ -5,15 +5,22 @@ import org.springframework.stereotype.Service;
 
 import _Blog_Backend.entity.User;
 import _Blog_Backend.repository.UserRepository;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 @Service
 public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
+            AuthenticationManager authenticationManager, JwtService jwtService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
     }
 
     public User RegisterLocalUser(String username, String email, String password) {
@@ -32,5 +39,12 @@ public class AuthService {
                 .build();
 
         return userRepository.save(newUser);
+    }
+
+    public String loginLocalUser(String identifier, String password) {
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(identifier, password));
+        User user = userRepository.findByUsernameOrEmail(identifier, identifier)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return jwtService.generateToken(user);
     }
 }
