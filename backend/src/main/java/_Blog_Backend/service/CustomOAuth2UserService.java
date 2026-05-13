@@ -29,17 +29,22 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         String username = oAuth2User.getAttribute("login");
 
+        String providerId = oAuth2User.getName();
+
         if (username == null) {
             username = oAuth2User.getAttribute("name");
         }
-        
-        String providerId = oAuth2User.getName();
+
+        if (email == null) {
+            email = providerId + "+" + username + "@users.noreply.github.com";
+        }
 
         Optional<User> existingUser = userRepository.findByEmail(email);
-
-        if (existingUser.isEmpty() && email != null) {
+        String cleanUsername = username.replaceAll("//s+", "").toLowerCase();
+        if (existingUser.isEmpty()) {
+            String uniqueUsername = generateUniqueUsername(cleanUsername);
             User newUser = User.builder()
-                    .username(username.replaceAll("//s+", "").toLowerCase())
+                    .username(uniqueUsername)
                     .email(email)
                     .authProvider(provider)
                     .providerId(providerId)
@@ -50,4 +55,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return oAuth2User;
     }
 
+    private String generateUniqueUsername(String username) {
+        String finalUsername = username;
+        int suffix = 1;
+        while (userRepository.existsByUsername(finalUsername)) {
+            finalUsername = username + suffix;
+            suffix++;
+        }
+        return finalUsername;
+    }
 }
