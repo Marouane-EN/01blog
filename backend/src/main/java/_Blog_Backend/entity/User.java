@@ -1,6 +1,13 @@
 package _Blog_Backend.entity;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,11 +21,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import java.util.Collection;
-import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -41,7 +43,14 @@ public class User implements UserDetails {
 
     @Column(nullable = false, unique = true)
     private String email;
+    
+    private String profilePictureUrl; 
+    
+    private LocalDate birthDate;
 
+    @Column(length = 500)
+    private String bio;
+    
     @Column(nullable = true)
     private String passwordHash;
 
@@ -59,6 +68,7 @@ public class User implements UserDetails {
     @Builder.Default
     @Column(nullable = false)
     private boolean isBlocked = false;
+
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
