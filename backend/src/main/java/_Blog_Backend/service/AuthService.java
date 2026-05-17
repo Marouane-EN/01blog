@@ -1,12 +1,13 @@
 package _Blog_Backend.service;
 
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import _Blog_Backend.dto.RegisterRequest;
 import _Blog_Backend.entity.User;
 import _Blog_Backend.repository.UserRepository;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 @Service
 public class AuthService {
@@ -23,19 +24,24 @@ public class AuthService {
         this.jwtService = jwtService;
     }
 
-    public User RegisterLocalUser(String username, String email, String password) {
-        if (userRepository.existsByUsername(username)) {
+    public User registerLocalUser(RegisterRequest request) {
+        if (userRepository.existsByUsername(request.username())) {
             throw new RuntimeException("Error: Username is already taken!");
         }
-        if (userRepository.existsByEmail(email)) {
+        if (userRepository.existsByEmail(request.email())) {
             throw new RuntimeException("Error: Email is already in use!");
         }
-        String hashedPassword = passwordEncoder.encode(password);
+
+        String hashedPassword = passwordEncoder.encode(request.password());
 
         User newUser = User.builder()
-                .username(username)
-                .email(email)
+                .username(request.username())
+                .email(request.email())
                 .passwordHash(hashedPassword)
+                .bio(request.bio())
+                .birthDate(request.birthDate())
+                .role("USER")
+                .authProvider("LOCAL")
                 .build();
 
         return userRepository.save(newUser);

@@ -8,7 +8,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import _Blog_Backend.repository.UserRepository;
-
 @Configuration
 public class ApplicationConfig {
 
