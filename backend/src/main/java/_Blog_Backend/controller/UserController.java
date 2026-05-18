@@ -31,8 +31,8 @@ public class UserController {
             @AuthenticationPrincipal UserDetails currentUser) {
         try {
             String imageUrl = fileStorageService.saveProfilePicture(file);
-
-            User user = userRepository.findByEmail(currentUser.getUsername()).orElseThrow();
+            String jwtIdentifier = currentUser.getUsername();
+            User user = userRepository.findByUsernameOrEmail(jwtIdentifier,jwtIdentifier).orElseThrow(() -> new RuntimeException("User not found in database!"));
             user.setProfilePictureUrl(imageUrl);
             userRepository.save(user);
 
