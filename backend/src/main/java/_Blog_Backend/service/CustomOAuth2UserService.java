@@ -10,14 +10,12 @@ import org.springframework.stereotype.Service;
 
 import _Blog_Backend.entity.User;
 import _Blog_Backend.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private final UserRepository userRepository;
-
-    public CustomOAuth2UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {

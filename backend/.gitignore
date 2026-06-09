@@ -1,5 +1,6 @@
 HELP.md
 target/
+uploads/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
@@ -36,6 +37,7 @@ build/
 application-local.properties
 application-secret.properties
 application-prod.properties
+application.properties
 .env
 .env.*
 *.key

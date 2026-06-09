@@ -8,14 +8,13 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import _Blog_Backend.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+
 @Configuration
+@RequiredArgsConstructor
 public class ApplicationConfig {
 
     private final UserRepository userRepository;
-
-    public ApplicationConfig(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     @Bean
     public UserDetailsService userDetailsService() {

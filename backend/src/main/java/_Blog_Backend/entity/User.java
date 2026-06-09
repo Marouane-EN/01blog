@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,6 +15,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -23,12 +25,15 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", indexes = {
+        @Index(name = "idx_profile_pic", columnList = "profile_picture_url")
+})
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@SQLRestriction("is_Active = true")
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,14 +48,14 @@ public class User implements UserDetails {
 
     @Column(nullable = false, unique = true)
     private String email;
-    
-    private String profilePictureUrl; 
-    
+
+    private String profilePictureUrl;
+
     private LocalDate birthDate;
 
     @Column(length = 500)
     private String bio;
-    
+
     @Column(nullable = true)
     private String passwordHash;
 
@@ -68,7 +73,6 @@ public class User implements UserDetails {
     @Builder.Default
     @Column(nullable = false)
     private boolean isBlocked = false;
-
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
