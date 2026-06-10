@@ -6,8 +6,10 @@ import java.util.UUID;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import _Blog_Backend.dto.CursorResponse;
 import _Blog_Backend.dto.PostDto;
@@ -56,6 +58,12 @@ public class PostService {
         Post savedPost = postRepository.save(newPost);
 
         return mapToDto(savedPost);
+    }
+
+    public PostDto getPostBySlug(String slug) {
+        Post post = postRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Article not found"));
+        return mapToDto(post);
     }
 
     public CursorResponse<PostDto> getPostFeed(Long cursor) {

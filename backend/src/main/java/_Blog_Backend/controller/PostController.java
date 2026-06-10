@@ -7,13 +7,13 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
 import _Blog_Backend.dto.PostDto;
 import _Blog_Backend.dto.PostRequest;
 import _Blog_Backend.entity.User;
@@ -60,5 +60,20 @@ public class PostController {
         }
 
         return ResponseEntity.ok(postService.getPostFeed(cursor));
+    }
+
+    @GetMapping("/{slug}")
+    public ResponseEntity<?> getPostBySlug(@PathVariable String slug, HttpServletRequest httpRequest) {
+        String ipAddress = rateLimiter.getClientIp(httpRequest);
+
+        Bucket bucket = rateLimiter.resolveBucket(ipAddress);
+        if (!bucket.tryConsume(1)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("Too many attempts. Please try again in 15 minutes.");
+        }
+
+        PostDto postDto = postService.getPostBySlug(slug);
+
+        return ResponseEntity.ok(postDto);
     }
 }
