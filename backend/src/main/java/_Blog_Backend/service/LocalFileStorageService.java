@@ -69,6 +69,21 @@ public class LocalFileStorageService {
         return "/uploads/posts/" + safeFilename;
     }
 
+    public void deleteFile(String fileUrl) {
+        try {
+
+            String relativePath = fileUrl.startsWith("/") ? fileUrl.substring(1) : fileUrl;
+
+            Path filePath = Paths.get(relativePath).normalize();
+
+            Files.deleteIfExists(filePath);
+
+        } catch (Exception e) {
+
+            System.err.println("Failed to delete physical file: " + e.getMessage());
+        }
+    }
+
     public Resource loadFileAsResource(String directory, String filename) {
         try {
             Path filePath = Paths.get(directory).resolve(filename).normalize();
