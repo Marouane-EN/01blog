@@ -15,6 +15,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
@@ -44,13 +46,16 @@ public class Post {
     @JoinColumn(name = "user_id", nullable = false)
     private User author;
 
-    @Column(nullable = true, unique = true, length = 30)
-    private String tag;
+    @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    @JoinTable(name = "post_tags",
+            joinColumns = @JoinColumn(name = "post_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
+    @Builder.Default
+    private List<Tag> tags = new ArrayList<>();
 
     @Column(nullable = false, length = 128)
     private String title;
 
-    @Column(nullable = false, unique = true, length = 128)
+    @Column(nullable = false, unique = true, length = 128, updatable = false)
     private String slug;
 
     @Column(columnDefinition = "TEXT", nullable = false)
@@ -70,5 +75,10 @@ public class Post {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+    }
+
+    public void addMedia(PostMedia media) {
+        this.mediaList.add(media);
+        media.setPost(this);
     }
 }

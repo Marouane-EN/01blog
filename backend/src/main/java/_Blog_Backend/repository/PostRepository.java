@@ -18,4 +18,5 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findByIdLessThanOrderByIdDesc(Long cursor, Pageable pageable);
 
     Optional<Post> findBySlug(String slug);
+
 }
