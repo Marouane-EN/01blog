@@ -1,5 +1,6 @@
 package _Blog_Backend.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,7 +31,7 @@ public class UserController {
             user.setProfilePictureUrl(imageUrl);
             userRepository.save(user);
 
-            return ResponseEntity.ok("Profile picture updated successfully! URL: " + imageUrl);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Profile picture updated successfully!");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Failed to upload image: " + e.getMessage());
         }

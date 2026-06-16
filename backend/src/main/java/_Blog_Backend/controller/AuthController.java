@@ -37,7 +37,8 @@ public class AuthController {
         }
         User savedUser = authService.registerLocalUser(request);
         return ResponseEntity
-                .ok(new UserProfileDTO(savedUser.getId(), savedUser.getUsername(), savedUser.getProfilePictureUrl()));
+                .status(HttpStatus.CREATED)
+                .body(new UserProfileDTO(savedUser.getId(), savedUser.getUsername(), savedUser.getProfilePictureUrl()));
     }
 
     @PostMapping("/login")

@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import _Blog_Backend.dto.CursorResponse;
+import _Blog_Backend.dto.ImageUploadResponse;
 import _Blog_Backend.dto.PostDto;
 import _Blog_Backend.dto.PostRequest;
 import _Blog_Backend.dto.UserProfileDTO;
@@ -79,7 +80,10 @@ public class PostService {
 
         existingPost.setTitle(request.title());
         existingPost.setDescription(request.content());
-        existingPost.setTags(stringsToTags(request.tags()));
+        List<Tag> updatedTags = stringsToTags(request.tags());
+
+        existingPost.getTags().clear();
+        existingPost.getTags().addAll(updatedTags);
 
         Post savedPost = postRepository.save(existingPost);
 
@@ -121,7 +125,7 @@ public class PostService {
         postRepository.save(post);
     }
 
-    public String addImageToPost(Long postId, MultipartFile file, User currentUser) {
+    public ImageUploadResponse addImageToPost(Long postId, MultipartFile file, User currentUser) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
 
@@ -137,14 +141,13 @@ public class PostService {
             post.addMedia(postMedia);
             postRepository.save(post);
 
-            return imageUrl;
+            return new ImageUploadResponse(postMedia.getId(), imageUrl);
         } catch (IOException e) {
             throw new RuntimeException("Failed to process image: " + file.getOriginalFilename(), e);
         }
     }
 
-    public void deleteImageFromPost(Long postId, String mediaName, User currentUser) {
-        String path = "/uploads/posts/" + mediaName;
+    public void deleteImageFromPost(Long postId, Long imageId, User currentUser) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
 
@@ -152,12 +155,12 @@ public class PostService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to edit this post.");
         }
         PostMedia mediaToRemove = post.getMediaList().stream()
-                .filter(media -> media.getMediaUrl().equals(path))
+                .filter(media -> media.getId().equals(imageId))
                 .findFirst()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Media not found in this post"));
 
         post.getMediaList().remove(mediaToRemove);
-        fileStorageService.deleteFile(path);
+        fileStorageService.deleteFile("/" + mediaToRemove.getMediaUrl());
         postRepository.save(post);
     }
 
@@ -194,7 +197,7 @@ public class PostService {
                 .toList();
 
         return new PostDto(post.getId(), auther, post.getTitle(), post.getDescription(), tags,
-                mediaUrls, post.getCreatedAt());
+                mediaUrls, post.getCreatedAt(), post.getUpdatedAt());
     }
 
     private static String generateUniqueSlug(String title) {

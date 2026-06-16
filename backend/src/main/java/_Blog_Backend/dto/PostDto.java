@@ -10,6 +10,7 @@ public record PostDto(
                 String content,
                 List<String> tag,
                 List<String> mediaUrls,
-                LocalDateTime createAt) {
+                LocalDateTime createAt,
+                LocalDateTime updatedAt) {
 
 }
