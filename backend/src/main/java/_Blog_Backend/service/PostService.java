@@ -1,8 +1,11 @@
 package _Blog_Backend.service;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -80,10 +83,22 @@ public class PostService {
 
         existingPost.setTitle(request.title());
         existingPost.setDescription(request.content());
-        List<Tag> updatedTags = stringsToTags(request.tags());
+        Set<String> newTags = Set.of(request.tags()).stream()
+                .filter(tag -> tag != null && !tag.isBlank())
+                .map(tag -> tag.toLowerCase().trim())
+                .collect(Collectors.toSet());
 
-        existingPost.getTags().clear();
-        existingPost.getTags().addAll(updatedTags);
+        Set<String> existingTags = existingPost.getTags().stream()
+                .map(Tag::getName)
+                .collect(Collectors.toSet());
+
+        if (!existingTags.equals(newTags)) {
+            List<Tag> updatedTags = stringsToTags(request.tags());
+            existingPost.getTags().clear();
+            existingPost.getTags().addAll(updatedTags);
+
+            existingPost.setUpdatedAt(LocalDateTime.now());
+        }
 
         Post savedPost = postRepository.save(existingPost);
 

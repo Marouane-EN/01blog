@@ -10,8 +10,8 @@ import _Blog_Backend.entity.Comment;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
     @EntityGraph(attributePaths = { "author" })
-    List<Comment> findByPostIdAndParentCommentIsNullOrderByIdDesc(Long postId, Pageable pageable);
+    List<Comment> findByPostIdAndParentIsNullOrderByIdDesc(Long postId, Pageable pageable);
 
     @EntityGraph(attributePaths = { "author" })
-    List<Comment> findByPostIdAndParentCommentIsNullAndIdLessThanOrderByIdDesc(Long postId, Long id, Pageable pageable);
+    List<Comment> findByPostIdAndParentIsNullAndIdLessThanOrderByIdDesc(Long postId, Long id, Pageable pageable);
 }

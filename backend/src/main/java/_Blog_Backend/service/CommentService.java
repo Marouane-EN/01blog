@@ -54,9 +54,9 @@ public class CommentService {
         Pageable pageRequest = PageRequest.of(0, 10);
 
         if (cursor == null) {
-            comments = commentRepository.findByPostIdAndParentCommentIsNullOrderByIdDesc(postId, pageRequest);
+            comments = commentRepository.findByPostIdAndParentIsNullOrderByIdDesc(postId, pageRequest);
         } else {
-            comments = commentRepository.findByPostIdAndParentCommentIsNullAndIdLessThanOrderByIdDesc(postId, cursor,
+            comments = commentRepository.findByPostIdAndParentIsNullAndIdLessThanOrderByIdDesc(postId, cursor,
                     pageRequest);
         }
 

@@ -60,7 +60,7 @@ public class CommentController {
     }
 
     @PutMapping("/{commentId}")
-    public ResponseEntity<?> updateComment(@Valid @RequestBody CommentRequest request,
+    public ResponseEntity<?> updateComment(@RequestBody String content,
             @PathVariable Long commentId,
             @AuthenticationPrincipal User currentUser, HttpServletRequest httpRequest) {
         String ipAddress = rateLimiter.getClientIp(httpRequest);
@@ -70,9 +70,7 @@ public class CommentController {
                     .body("Too many attempts. Please try again in 15 minutes.");
         }
 
-        commentService.updateComment(commentId, request.content(), currentUser);
-
-        return ResponseEntity.ok("Comment updated successfully!");
+        return ResponseEntity.ok(commentService.updateComment(commentId, content, currentUser));
     }
 
     @DeleteMapping("/{commentId}")

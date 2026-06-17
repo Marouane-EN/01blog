@@ -33,7 +33,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@SQLRestriction("is_Active = true")
+@SQLRestriction("is_Active = true AND is_Blocked = false")
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
