@@ -22,6 +22,7 @@ import _Blog_Backend.dto.ImageUploadResponse;
 import _Blog_Backend.dto.PostDto;
 import _Blog_Backend.dto.PostRequest;
 import _Blog_Backend.entity.User;
+import _Blog_Backend.service.LikeService;
 import _Blog_Backend.service.PostService;
 import _Blog_Backend.service.RateLimitingService;
 import io.github.bucket4j.Bucket;
@@ -34,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PostController {
     private final PostService postService;
+    private final LikeService likeService;
     private final RateLimitingService rateLimiter;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -147,4 +149,17 @@ public class PostController {
         return ResponseEntity.ok("Image deleted successfully");
     }
 
+    @PostMapping("/{postId}/like")
+    public ResponseEntity<?> likePost(@PathVariable Long postId, @AuthenticationPrincipal User currentUser,
+            HttpServletRequest httpRequest) {
+        String ipAddress = rateLimiter.getClientIp(httpRequest);
+
+        Bucket bucket = rateLimiter.resolveBucket(ipAddress);
+        if (!bucket.tryConsume(1)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("Too many attempts. Please try again in 15 minutes.");
+        }
+
+        return ResponseEntity.ok(likeService.togglePostLike(postId, currentUser));
+    }
 }
