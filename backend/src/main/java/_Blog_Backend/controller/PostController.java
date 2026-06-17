@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import _Blog_Backend.dto.ImageUploadResponse;
 import _Blog_Backend.dto.PostDto;
 import _Blog_Backend.dto.PostRequest;
 import _Blog_Backend.entity.User;
@@ -78,7 +79,7 @@ public class PostController {
 
         PostDto postDto = postService.getPostBySlug(slug);
 
-        return ResponseEntity.ok(postDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(postDto);
     }
 
     @DeleteMapping("/{id}")
@@ -115,7 +116,7 @@ public class PostController {
     }
 
     @PostMapping("/{postId}/images")
-    public ResponseEntity<String> addImageToPost(
+    public ResponseEntity<?> addImageToPost(
             @PathVariable Long postId,
             @RequestParam("file") MultipartFile file,
             @AuthenticationPrincipal User currentUser, HttpServletRequest httpRequest) {
@@ -126,14 +127,14 @@ public class PostController {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body("Too many attempts. Please try again in 15 minutes.");
         }
-        String imageUrl = postService.addImageToPost(postId, file, currentUser);
-        return ResponseEntity.ok(imageUrl);
+        ImageUploadResponse imageResponse = postService.addImageToPost(postId, file, currentUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(imageResponse);
     }
 
-    @DeleteMapping("/{postId}/images/{imageName}")
+    @DeleteMapping("/{postId}/images/{imageId}")
     public ResponseEntity<?> deleteImageFromPost(
             @PathVariable Long postId,
-            @PathVariable String imageName,
+            @PathVariable Long imageId,
             @AuthenticationPrincipal User currentUser, HttpServletRequest httpRequest) {
         String ipAddress = rateLimiter.getClientIp(httpRequest);
 
@@ -142,7 +143,7 @@ public class PostController {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body("Too many attempts. Please try again in 15 minutes.");
         }
-        postService.deleteImageFromPost(postId, imageName, currentUser);
+        postService.deleteImageFromPost(postId, imageId, currentUser);
         return ResponseEntity.ok("Image deleted successfully");
     }
 
