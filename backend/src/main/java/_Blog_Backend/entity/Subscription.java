@@ -35,11 +35,11 @@ public class Subscription {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subscriber_id", nullable = false)
-    private User follower;
+    private User subscriber;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "target_user_id", nullable = false)
-    private User followed;
+    private User targetUser;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
