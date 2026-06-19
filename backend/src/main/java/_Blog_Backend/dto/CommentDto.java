@@ -6,8 +6,10 @@ import java.util.List;
 public record CommentDto(
         Long id,
         String content,
-        UserProfileDTO author,
+        AuthorDto author,
+        List<CommentDto> replies,
+        int likeCount,
+        boolean likedByCurrentUser,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt,
-        List<CommentDto> replies) {
+        LocalDateTime updatedAt) {
 }

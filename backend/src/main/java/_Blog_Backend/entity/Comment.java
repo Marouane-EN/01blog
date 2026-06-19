@@ -54,6 +54,10 @@ public class Comment {
     @Builder.Default
     private List<Comment> replies = new ArrayList<>();
 
+    @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Like> likes = new ArrayList<>();
+
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 

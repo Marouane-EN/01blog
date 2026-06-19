@@ -1,6 +1,7 @@
 package _Blog_Backend.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -9,14 +10,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import _Blog_Backend.dto.AuthorDto;
 import _Blog_Backend.dto.CommentDto;
 import _Blog_Backend.dto.CommentRequest;
 import _Blog_Backend.dto.CursorResponse;
-import _Blog_Backend.dto.UserProfileDTO;
+import _Blog_Backend.dto.LikeResponse;
 import _Blog_Backend.entity.Comment;
+import _Blog_Backend.entity.Like;
 import _Blog_Backend.entity.Post;
 import _Blog_Backend.entity.User;
 import _Blog_Backend.repository.CommentRepository;
+import _Blog_Backend.repository.LikeRepository;
 import _Blog_Backend.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -25,7 +29,9 @@ import lombok.RequiredArgsConstructor;
 public class CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
+    private final LikeRepository likeRepository;
 
+    @Transactional
     public CommentDto createComment(CommentRequest request, Long postId, User user) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
@@ -42,16 +48,16 @@ public class CommentService {
         }
 
         commentRepository.save(comment);
-        return mapToDto(comment);
+        return mapToDto(comment, user.getId());
     }
 
     @Transactional(readOnly = true)
-    public CursorResponse<CommentDto> getCommentsForPost(Long postId, Long cursor) {
+    public CursorResponse<CommentDto> getCommentsForPost(Long postId, Long cursor, User currentUser) {
         if (!postRepository.existsById(postId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
         }
         List<Comment> comments;
-        Pageable pageRequest = PageRequest.of(0, 10);
+        Pageable pageRequest = PageRequest.of(0, 11);
 
         if (cursor == null) {
             comments = commentRepository.findByPostIdAndParentIsNullOrderByIdDesc(postId, pageRequest);
@@ -61,17 +67,19 @@ public class CommentService {
         }
 
         Long nextCursor = null;
-        boolean hasMore = false;
+        boolean hasMore = comments.size() > 10;
 
-        if (!comments.isEmpty()) {
+        if (hasMore) {
+            comments.remove(comments.size() - 1);
             nextCursor = comments.get(comments.size() - 1).getId();
-            hasMore = 10 == comments.size();
         }
 
-        List<CommentDto> cleanComments = comments.stream().map(this::mapToDto).toList();
+        List<CommentDto> cleanComments = comments.stream().map(comment -> mapToDto(comment, currentUser.getId()))
+                .toList();
         return new CursorResponse<>(cleanComments, nextCursor, hasMore);
     }
 
+    @Transactional
     public CommentDto updateComment(Long commentId, String content, User currentUser) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Comment not found"));
@@ -86,7 +94,7 @@ public class CommentService {
         comment.setContent(content);
         Comment savedComment = commentRepository.save(comment);
 
-        return mapToDto(savedComment);
+        return mapToDto(savedComment, currentUser.getId());
     }
 
     @Transactional
@@ -113,23 +121,31 @@ public class CommentService {
         }
     }
 
-    private CommentDto mapToDto(Comment comment) {
-        UserProfileDTO authorDto = new UserProfileDTO(
+    private CommentDto mapToDto(Comment comment, Long currentUserId) {
+        AuthorDto authorDto = new AuthorDto(
                 comment.getAuthor().getId(),
                 comment.getAuthor().getUsername(),
                 comment.getAuthor().getProfilePictureUrl());
 
         List<CommentDto> replyDtos = comment.getReplies().stream()
-                .map(this::mapToDto)
+                .map(reply -> mapToDto(reply, currentUserId))
                 .toList();
+
+        boolean likedByCurrentUser = false;
+        if (comment.getLikes() != null) {
+            likedByCurrentUser = comment.getLikes().stream()
+                    .anyMatch(like -> like.getUser().getId().equals(currentUserId));
+        }
 
         return new CommentDto(
                 comment.getId(),
                 comment.getContent(),
                 authorDto,
+                replyDtos,
+                comment.getLikes().size(),
+                likedByCurrentUser,
                 comment.getCreatedAt(),
-                comment.getUpdatedAt(),
-                replyDtos);
+                comment.getUpdatedAt());
     }
 
 }

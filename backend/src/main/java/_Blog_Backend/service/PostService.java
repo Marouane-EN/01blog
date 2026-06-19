@@ -11,21 +11,21 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import _Blog_Backend.dto.AuthorDto;
 import _Blog_Backend.dto.CursorResponse;
 import _Blog_Backend.dto.ImageUploadResponse;
 import _Blog_Backend.dto.PostDto;
 import _Blog_Backend.dto.PostRequest;
-import _Blog_Backend.dto.UserProfileDTO;
 import _Blog_Backend.entity.Post;
 import _Blog_Backend.entity.PostMedia;
 import _Blog_Backend.entity.Tag;
 import _Blog_Backend.entity.User;
 import _Blog_Backend.repository.PostRepository;
 import _Blog_Backend.repository.TagRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -34,7 +34,9 @@ public class PostService {
     private final PostRepository postRepository;
     private final TagRepository tagRepository;
     private final LocalFileStorageService fileStorageService;
+    private final NotificationService notificationService;
 
+    @Transactional
     public PostDto createPost(PostRequest request, List<MultipartFile> images, User author) {
         String slug = generateUniqueSlug(request.title());
 
@@ -61,14 +63,15 @@ public class PostService {
             }
         }
         Post savedPost = postRepository.save(newPost);
-
-        return mapToDto(savedPost);
+        notificationService.notifyFollowersOfNewPost(author, savedPost);
+        return mapToDto(savedPost, author.getId());
     }
 
-    public PostDto getPostBySlug(String slug) {
+    @Transactional(readOnly = true)
+    public PostDto getPostBySlug(String slug, User currentUser) {
         Post post = postRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Article not found"));
-        return mapToDto(post);
+        return mapToDto(post, currentUser.getId());
     }
 
     @Transactional
@@ -102,29 +105,31 @@ public class PostService {
 
         Post savedPost = postRepository.save(existingPost);
 
-        return mapToDto(savedPost);
+        return mapToDto(savedPost, currentUser.getId());
     }
 
-    public CursorResponse<PostDto> getPostFeed(Long cursor) {
+    @Transactional(readOnly = true)
+    public CursorResponse<PostDto> getPostFeed(Long cursor, User currentUser) {
         List<Post> posts;
-        Pageable pageRequest = PageRequest.of(0, 10);
+        Pageable pageRequest = PageRequest.of(0, 11);
         if (cursor == null) {
             posts = postRepository.findAllByOrderByIdDesc(pageRequest);
         } else {
             posts = postRepository.findByIdLessThanOrderByIdDesc(cursor, pageRequest);
         }
         Long nextCursor = null;
-        boolean hasMore = false;
+        boolean hasMore = posts.size() > 10;
 
-        if (!posts.isEmpty()) {
+        if (hasMore) {
+            posts.remove(posts.size() - 1);
             nextCursor = posts.get(posts.size() - 1).getId();
-
-            hasMore = posts.size() == 10;
         }
-        List<PostDto> cleanPosts = posts.stream().map(this::mapToDto).toList();
+
+        List<PostDto> cleanPosts = posts.stream().map(post -> this.mapToDto(post, currentUser.getId())).toList();
         return new CursorResponse<>(cleanPosts, nextCursor, hasMore);
     }
 
+    @Transactional
     public void deletePost(Long postId, User currentUser) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
@@ -136,10 +141,10 @@ public class PostService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to delete this post.");
         }
         post.setHidden(true);
-
         postRepository.save(post);
     }
 
+    @Transactional
     public ImageUploadResponse addImageToPost(Long postId, MultipartFile file, User currentUser) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
@@ -162,6 +167,7 @@ public class PostService {
         }
     }
 
+    @Transactional
     public void deleteImageFromPost(Long postId, Long imageId, User currentUser) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
@@ -200,8 +206,10 @@ public class PostService {
                 .toList();
     }
 
-    private PostDto mapToDto(Post post) {
-        UserProfileDTO auther = new UserProfileDTO(post.getAuthor().getId(), post.getAuthor().getUsername(),
+    private PostDto mapToDto(Post post, Long currentUserId) {
+        AuthorDto authorDto = new AuthorDto(
+                post.getAuthor().getId(),
+                post.getAuthor().getUsername(),
                 post.getAuthor().getProfilePictureUrl());
 
         List<String> mediaUrls = post.getMediaList().stream()
@@ -211,8 +219,16 @@ public class PostService {
                 .map(Tag::getName)
                 .toList();
 
-        return new PostDto(post.getId(), auther, post.getTitle(), post.getDescription(), tags,
-                mediaUrls, post.getCreatedAt(), post.getUpdatedAt());
+        boolean likedByCurrentUser = false;
+        if (post.getLikes() != null) {
+            likedByCurrentUser = post.getLikes().stream()
+                    .anyMatch(like -> like.getUser().getId().equals(currentUserId));
+        }
+
+        return new PostDto(post.getId(), authorDto, post.getTitle(), post.getDescription(), tags,
+                mediaUrls, post.getLikes().size(),
+                likedByCurrentUser,
+                post.getCreatedAt(), post.getUpdatedAt());
     }
 
     private static String generateUniqueSlug(String title) {

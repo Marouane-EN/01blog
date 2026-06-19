@@ -2,27 +2,15 @@ package _Blog_Backend.entity;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import org.hibernate.annotations.SQLRestriction;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Table(name = "users", indexes = {
@@ -65,6 +53,14 @@ public class User implements UserDetails {
 
     @Column(nullable = true)
     private String providerId;
+
+    @OneToMany(mappedBy = "targetUser", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Subscription> followers = new ArrayList<>();
+
+    @OneToMany(mappedBy = "subscriber", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Subscription> following = new ArrayList<>();
 
     @Builder.Default
     @Column(nullable = false)
@@ -115,5 +111,15 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return isActive;
+    }
+
+    public void addSubscription(Subscription subscription) {
+        this.following.add(subscription);
+        subscription.getTargetUser().getFollowers().add(subscription);
+    }
+
+    public void removeSubscription(Subscription subscription) {
+        this.following.remove(subscription);
+        subscription.getTargetUser().getFollowers().remove(subscription);
     }
 }

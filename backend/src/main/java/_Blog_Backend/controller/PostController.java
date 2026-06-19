@@ -57,7 +57,8 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getPosts(@RequestParam(required = false) Long cursor, HttpServletRequest httpRequest) {
+    public ResponseEntity<?> getPosts(@RequestParam(required = false) Long cursor,
+            @AuthenticationPrincipal User currentUser, HttpServletRequest httpRequest) {
         String ipAddress = rateLimiter.getClientIp(httpRequest);
 
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
@@ -66,11 +67,12 @@ public class PostController {
                     .body("Too many attempts. Please try again in 15 minutes.");
         }
 
-        return ResponseEntity.ok(postService.getPostFeed(cursor));
+        return ResponseEntity.ok(postService.getPostFeed(cursor, currentUser));
     }
 
     @GetMapping("/{slug}")
-    public ResponseEntity<?> getPostBySlug(@PathVariable String slug, HttpServletRequest httpRequest) {
+    public ResponseEntity<?> getPostBySlug(@PathVariable String slug, @AuthenticationPrincipal User currentUser,
+            HttpServletRequest httpRequest) {
         String ipAddress = rateLimiter.getClientIp(httpRequest);
 
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
@@ -79,7 +81,7 @@ public class PostController {
                     .body("Too many attempts. Please try again in 15 minutes.");
         }
 
-        PostDto postDto = postService.getPostBySlug(slug);
+        PostDto postDto = postService.getPostBySlug(slug, currentUser);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(postDto);
     }

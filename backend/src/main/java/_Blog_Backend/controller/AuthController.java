@@ -38,7 +38,9 @@ public class AuthController {
         User savedUser = authService.registerLocalUser(request);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(new UserProfileDTO(savedUser.getId(), savedUser.getUsername(), savedUser.getProfilePictureUrl()));
+                .body(new UserProfileDTO(savedUser.getId(), savedUser.getUsername(), savedUser.getProfilePictureUrl(),
+                        savedUser.getBio(),
+                        savedUser.getFollowers().size(), savedUser.getFollowing().size(), false));
     }
 
     @PostMapping("/login")

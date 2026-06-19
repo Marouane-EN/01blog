@@ -17,7 +17,10 @@ import _Blog_Backend.entity.PostMedia;
 import _Blog_Backend.repository.PostMediaRepository;
 import _Blog_Backend.repository.UserRepository;
 import _Blog_Backend.service.LocalFileStorageService;
+import _Blog_Backend.service.RateLimitingService;
+import io.github.bucket4j.Bucket;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,9 +33,17 @@ public class MediaController {
     private final LocalFileStorageService fileStorageService;
     private final PostMediaRepository postMediaRepository;
     private final UserRepository userRepository;
+    private final RateLimitingService rateLimiter;
 
     @GetMapping("/uploads/posts/{filename}")
-    public ResponseEntity<Resource> getPostImage(@PathVariable String filename) {
+    public ResponseEntity<?> getPostImage(@PathVariable String filename, HttpServletRequest httpRequest) {
+        String ipAddress = rateLimiter.getClientIp(httpRequest);
+
+        Bucket bucket = rateLimiter.resolveBucket(ipAddress);
+        if (!bucket.tryConsume(1)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("Too many attempts. Please try again in 15 minutes.");
+        }
 
         String dbUrl = "/uploads/posts/" + filename;
 
@@ -63,7 +74,14 @@ public class MediaController {
     }
 
     @GetMapping("/uploads/profiles/{filename}")
-    public ResponseEntity<Resource> getProfileImage(@PathVariable String filename) {
+    public ResponseEntity<?> getProfileImage(@PathVariable String filename, HttpServletRequest httpRequest) {
+        String ipAddress = rateLimiter.getClientIp(httpRequest);
+
+        Bucket bucket = rateLimiter.resolveBucket(ipAddress);
+        if (!bucket.tryConsume(1)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("Too many attempts. Please try again in 15 minutes.");
+        }
 
         String dbUrl = "/uploads/profiles/" + filename;
 
