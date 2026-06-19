@@ -1,7 +1,11 @@
 package _Blog_Backend.dto;
 
 public record UserProfileDTO(
-                Long id,
-                String username,
-                String profileImage) {
+        Long id,
+        String username,
+        String profileImage,
+        String bio,
+        int followerCount,
+        int followingCount,
+        boolean isFollowedByCurrentUser) {
 }

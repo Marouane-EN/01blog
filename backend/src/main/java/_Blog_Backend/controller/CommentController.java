@@ -17,6 +17,7 @@ import _Blog_Backend.dto.CommentDto;
 import _Blog_Backend.dto.CommentRequest;
 import _Blog_Backend.entity.User;
 import _Blog_Backend.service.CommentService;
+import _Blog_Backend.service.LikeService;
 import _Blog_Backend.service.RateLimitingService;
 import io.github.bucket4j.Bucket;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 public class CommentController {
     private final RateLimitingService rateLimiter;
     private final CommentService commentService;
+    private final LikeService likeService;
 
     @PostMapping
     public ResponseEntity<?> createComment(@Valid @RequestBody CommentRequest request, @PathVariable Long postId,
@@ -48,6 +50,7 @@ public class CommentController {
 
     @GetMapping
     public ResponseEntity<?> getComments(@PathVariable Long postId, @RequestParam(required = false) Long cursor,
+            @AuthenticationPrincipal User currentUser,
             HttpServletRequest httpRequest) {
         String ipAddress = rateLimiter.getClientIp(httpRequest);
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
@@ -56,7 +59,7 @@ public class CommentController {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body("Too many attempts. Please try again in 15 minutes.");
         }
-        return ResponseEntity.ok(commentService.getCommentsForPost(postId, cursor));
+        return ResponseEntity.ok(commentService.getCommentsForPost(postId, cursor, currentUser));
     }
 
     @PutMapping("/{commentId}")
@@ -80,5 +83,18 @@ public class CommentController {
 
         commentService.deleteComment(commentId, currentUser);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{commentId}/likes")
+    public ResponseEntity<?> likeComment(@PathVariable Long commentId, @AuthenticationPrincipal User currentUser,
+            HttpServletRequest httpRequest) {
+        String ipAddress = rateLimiter.getClientIp(httpRequest);
+        Bucket bucket = rateLimiter.resolveBucket(ipAddress);
+        if (!bucket.tryConsume(1)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("Too many attempts. Please try again in 15 minutes.");
+        }
+
+        return ResponseEntity.ok(likeService.toggleCommentLike(commentId, currentUser));
     }
 }

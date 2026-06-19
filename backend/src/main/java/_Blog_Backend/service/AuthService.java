@@ -6,6 +6,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import _Blog_Backend.dto.RegisterRequest;
@@ -21,6 +22,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
 
+    @Transactional
     public User registerLocalUser(RegisterRequest request) {
         if (userRepository.existsByUsername(request.username())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Error: Username is already taken!");
@@ -45,6 +47,7 @@ public class AuthService {
         return userRepository.save(newUser);
     }
 
+    @Transactional(readOnly = true)
     public String loginLocalUser(String identifier, String password) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(identifier, password));
