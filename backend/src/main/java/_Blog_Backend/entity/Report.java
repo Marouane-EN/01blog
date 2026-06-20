@@ -2,6 +2,7 @@ package _Blog_Backend.entity;
 
 import java.time.LocalDateTime;
 
+import _Blog_Backend.types.ReportType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -19,12 +20,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-enum ReportType {
-    USER,
-    POST,
-    COMMENT
-}
 
 @Entity
 @Table(name = "reports")
