@@ -61,6 +61,10 @@ public class Comment {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean isDeleted = false;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

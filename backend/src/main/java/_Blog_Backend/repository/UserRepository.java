@@ -2,7 +2,10 @@ package _Blog_Backend.repository;
 
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import _Blog_Backend.entity.User;
@@ -20,4 +23,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByUsername(String username);
 
     boolean existsByEmail(String email);
+
+    // Bypasses the "is_blocked = false" restriction
+    @Query(value = "SELECT * FROM users ORDER BY created_at DESC", 
+           countQuery = "SELECT count(*) FROM users", 
+           nativeQuery = true)
+    Page<User> findAllForAdmin(Pageable pageable);
 }

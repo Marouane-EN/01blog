@@ -1,8 +1,8 @@
 package _Blog_Backend.service;
 
 import java.util.List;
-import java.util.Optional;
 
+import org.hibernate.Hibernate;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -14,22 +14,22 @@ import _Blog_Backend.dto.AuthorDto;
 import _Blog_Backend.dto.CommentDto;
 import _Blog_Backend.dto.CommentRequest;
 import _Blog_Backend.dto.CursorResponse;
-import _Blog_Backend.dto.LikeResponse;
 import _Blog_Backend.entity.Comment;
-import _Blog_Backend.entity.Like;
 import _Blog_Backend.entity.Post;
 import _Blog_Backend.entity.User;
 import _Blog_Backend.repository.CommentRepository;
-import _Blog_Backend.repository.LikeRepository;
 import _Blog_Backend.repository.PostRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 
 @Service
 @RequiredArgsConstructor
 public class CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
-    private final LikeRepository likeRepository;
 
     @Transactional
     public CommentDto createComment(CommentRequest request, Long postId, User user) {
@@ -86,7 +86,9 @@ public class CommentService {
         if (!comment.getAuthor().getId().equals(currentUser.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to edit this comment.");
         }
-        if (comment.getPost().isHidden()) {
+        try {
+            comment.getPost();
+        } catch (EntityNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                     "This discussion is locked. Comments cannot be edited.");
         }
@@ -107,13 +109,16 @@ public class CommentService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only delete your own comments.");
         }
 
-        if (comment.getPost().isHidden()) {
+        try {
+            Hibernate.initialize(comment.getPost());
+
+        } catch (EntityNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                     "This discussion is locked. Comments cannot be edited.");
         }
 
         if (comment.getReplies().isEmpty()) {
-            commentRepository.delete(comment);
+            comment.setDeleted(true);
         } else {
             comment.setContent("[This comment has been deleted]");
 

@@ -2,7 +2,7 @@ package _Blog_Backend.controller;
 
 import java.util.concurrent.TimeUnit;
 
-import org.hibernate.ObjectNotFoundException;
+import org.hibernate.Hibernate;
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
@@ -51,11 +51,8 @@ public class MediaController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Image not found"));
 
         try {
-            if (media.getPost() == null || media.getPost().isHidden()) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                        "This image belongs to a banned or deleted post.");
-            }
-        } catch (EntityNotFoundException | ObjectNotFoundException e) {
+            Hibernate.initialize(media.getPost());
+        } catch (EntityNotFoundException e) {
 
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "This image belongs to a banned or deleted post.");
         }
