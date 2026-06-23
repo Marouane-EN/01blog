@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -26,11 +27,13 @@ import _Blog_Backend.entity.Tag;
 import _Blog_Backend.entity.User;
 import _Blog_Backend.repository.PostRepository;
 import _Blog_Backend.repository.TagRepository;
+import _Blog_Backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class PostService {
+    private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final TagRepository tagRepository;
     private final LocalFileStorageService fileStorageService;
@@ -71,6 +74,10 @@ public class PostService {
     public PostDto getPostBySlug(String slug, User currentUser) {
         Post post = postRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Article not found"));
+
+        if (post.getAuthor().isBlocked() || !post.getAuthor().isActive()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This article is no longer available.");
+        }
         return mapToDto(post, currentUser.getId());
     }
 
@@ -111,12 +118,15 @@ public class PostService {
     @Transactional(readOnly = true)
     public CursorResponse<PostDto> getPostFeed(Long cursor, User currentUser) {
         List<Post> posts;
+
         Pageable pageRequest = PageRequest.of(0, 11);
+
         if (cursor == null) {
-            posts = postRepository.findAllByOrderByIdDesc(pageRequest);
+            posts = postRepository.findPublicFeed(pageRequest);
         } else {
-            posts = postRepository.findByIdLessThanOrderByIdDesc(cursor, pageRequest);
+            posts = postRepository.findPublicFeedByCursor(cursor, pageRequest);
         }
+
         Long nextCursor = null;
         boolean hasMore = posts.size() > 10;
 
@@ -125,7 +135,36 @@ public class PostService {
             nextCursor = posts.get(posts.size() - 1).getId();
         }
 
-        List<PostDto> cleanPosts = posts.stream().map(post -> this.mapToDto(post, currentUser.getId())).toList();
+        List<PostDto> cleanPosts = posts.stream()
+                .map(post -> this.mapToDto(post, currentUser.getId()))
+                .toList();
+
+        return new CursorResponse<>(cleanPosts, nextCursor, hasMore);
+    }
+
+    @Transactional(readOnly = true)
+    public CursorResponse<PostDto> getPostsByUser(Long authorId, int page, int size, Long currentUserId) {
+
+        // Barricade: If the author is blocked, pretend they have no posts.
+        User author = userRepository.findById(authorId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (author.isBlocked() || !author.isActive()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User unavailable");
+        }
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Post> postsPage = postRepository.findByAuthorIdOrderByCreatedAtDesc(authorId, pageable);
+
+        List<PostDto> cleanPosts = postsPage.stream()
+                .map(post -> mapToDto(post, currentUserId))
+                .toList();
+
+        // Standard Page-to-Cursor conversion (or just return a Page if your frontend
+        // prefers!)
+        boolean hasMore = postsPage.hasNext();
+        Long nextCursor = hasMore ? cleanPosts.get(cleanPosts.size() - 1).id() : null;
+
         return new CursorResponse<>(cleanPosts, nextCursor, hasMore);
     }
 
@@ -135,9 +174,8 @@ public class PostService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
 
         boolean isAuthor = post.getAuthor().getId().equals(currentUser.getId());
-        boolean isAdmin = currentUser.getRole().equals("ADMIN");
 
-        if (!(isAuthor || isAdmin)) {
+        if (!isAuthor) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to delete this post.");
         }
         post.setHidden(true);

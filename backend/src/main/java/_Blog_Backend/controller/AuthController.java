@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import _Blog_Backend.dto.AuthResponse;
 import _Blog_Backend.dto.LoginRequest;
 import _Blog_Backend.dto.RegisterRequest;
+import _Blog_Backend.dto.RegisterResponse;
 import _Blog_Backend.dto.UserProfileDTO;
 import _Blog_Backend.entity.User;
 import _Blog_Backend.service.AuthService;
@@ -35,12 +36,11 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body("Too many attempts. Please try again in 15 minutes.");
         }
-        User savedUser = authService.registerLocalUser(request);
+        UserProfileDTO savedUser = authService.registerLocalUser(request);
+        String token = authService.loginLocalUser(request.username(), request.password());
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(new UserProfileDTO(savedUser.getId(), savedUser.getUsername(), savedUser.getProfilePictureUrl(),
-                        savedUser.getBio(),
-                        savedUser.getFollowers().size(), savedUser.getFollowing().size(), false));
+                .body(new RegisterResponse(token, savedUser));
     }
 
     @PostMapping("/login")

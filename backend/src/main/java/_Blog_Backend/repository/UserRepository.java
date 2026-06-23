@@ -29,4 +29,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
            countQuery = "SELECT count(*) FROM users", 
            nativeQuery = true)
     Page<User> findAllForAdmin(Pageable pageable);
+
+    Page<User> findByUsernameContainingIgnoreCase(String keyword, Pageable pageable);
 }

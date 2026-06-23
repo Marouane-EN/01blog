@@ -86,6 +86,22 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.CREATED).body(postDto);
     }
 
+    @GetMapping("/user/{authorId}")
+    public ResponseEntity<?> getPostsByUser(@PathVariable Long authorId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @AuthenticationPrincipal User currentUser, HttpServletRequest httpRequest) {
+        String ipAddress = rateLimiter.getClientIp(httpRequest);
+
+        Bucket bucket = rateLimiter.resolveBucket(ipAddress);
+        if (!bucket.tryConsume(1)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("Too many attempts. Please try again in 15 minutes.");
+        }
+
+        return ResponseEntity.ok(postService.getPostsByUser(authorId, page, size, currentUser.getId()));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deletePost(@PathVariable Long id, @AuthenticationPrincipal User currentUser,
             HttpServletRequest httpRequest) {
