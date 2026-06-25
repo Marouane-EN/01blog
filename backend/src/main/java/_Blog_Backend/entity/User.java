@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.hibernate.annotations.Formula;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -75,6 +76,15 @@ public class User implements UserDetails {
     @Builder.Default
     private List<Subscription> following = new ArrayList<>();
 
+    @Formula("(SELECT COUNT(*) FROM posts p WHERE p.author_id = id AND p.is_hidden = false)")
+    private int postsCount;
+
+    @Formula("(SELECT COUNT(*) FROM follows f WHERE f.following_id = id)")
+    private int followersCount;
+
+    @Formula("(SELECT COUNT(*) FROM follows f WHERE f.follower_id = id)")
+    private int followingCount;
+
     @Builder.Default
     @Column(nullable = false)
     private boolean isActive = true;
@@ -124,6 +134,18 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return isActive;
+    }
+
+    public int getPostsCount() {
+        return postsCount;
+    }
+
+    public int getFollowersCount() {
+        return followersCount;
+    }
+
+    public int getFollowingCount() {
+        return followingCount;
     }
 
     public void addSubscription(Subscription subscription) {

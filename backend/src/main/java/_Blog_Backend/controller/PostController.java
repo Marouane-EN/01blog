@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import _Blog_Backend.dto.CursorResponse;
 import _Blog_Backend.dto.ImageUploadResponse;
 import _Blog_Backend.dto.PostDto;
 import _Blog_Backend.dto.PostRequest;
@@ -88,8 +89,7 @@ public class PostController {
 
     @GetMapping("/user/{authorId}")
     public ResponseEntity<?> getPostsByUser(@PathVariable Long authorId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) Long cursor,
             @AuthenticationPrincipal User currentUser, HttpServletRequest httpRequest) {
         String ipAddress = rateLimiter.getClientIp(httpRequest);
 
@@ -99,7 +99,42 @@ public class PostController {
                     .body("Too many attempts. Please try again in 15 minutes.");
         }
 
-        return ResponseEntity.ok(postService.getPostsByUser(authorId, page, size, currentUser.getId()));
+        return ResponseEntity.ok(postService.getPostsByUser(authorId, cursor, currentUser.getId()));
+    }
+
+    @GetMapping("/subscriptions")
+    public ResponseEntity<?> getSubscriptionsFeed(
+            @RequestParam(required = false) Long cursor,
+            @AuthenticationPrincipal User currentUser, HttpServletRequest httpRequest) {
+        String ipAddress = rateLimiter.getClientIp(httpRequest);
+
+        Bucket bucket = rateLimiter.resolveBucket(ipAddress);
+        if (!bucket.tryConsume(1)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("Too many attempts. Please try again in 15 minutes.");
+        }
+
+        return ResponseEntity.ok(postService.getSubscriptionsFeed(cursor, currentUser));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> searchPosts(
+            @RequestParam(name = "q") String keyword,
+            @RequestParam(required = false) Long cursor,
+            @AuthenticationPrincipal User currentUser, HttpServletRequest httpRequest) {
+        String ipAddress = rateLimiter.getClientIp(httpRequest);
+
+        Bucket bucket = rateLimiter.resolveBucket(ipAddress);
+        if (!bucket.tryConsume(1)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("Too many attempts. Please try again in 15 minutes.");
+        }
+
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok(postService.searchPosts(keyword, cursor, currentUser));
     }
 
     @DeleteMapping("/{id}")

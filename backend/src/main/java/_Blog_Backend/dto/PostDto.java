@@ -4,15 +4,17 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record PostDto(
-                long id,
-                AuthorDto author,
-                String title,
-                String content,
-                List<String> tag,
-                List<String> mediaUrls,
-                int totalLikes,
-                boolean likedByCurrentUser,
-                LocalDateTime createAt,
-                LocalDateTime updatedAt) {
+        long id,
+        String slug,
+        AuthorDto author,
+        String title,
+        String content,
+        List<String> tag,
+        List<String> mediaUrls,
+        int totalLikes,
+        int totalComments,
+        boolean likedByCurrentUser,
+        LocalDateTime createAt,
+        LocalDateTime updatedAt) {
 
 }

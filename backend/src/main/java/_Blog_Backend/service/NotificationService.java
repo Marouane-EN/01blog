@@ -3,20 +3,22 @@ package _Blog_Backend.service;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import lombok.RequiredArgsConstructor;
-
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import _Blog_Backend.dto.CursorResponse;
 import _Blog_Backend.dto.NotificationDto;
-import _Blog_Backend.entity.*;
-import _Blog_Backend.repository.*;
+import _Blog_Backend.entity.Notification;
+import _Blog_Backend.entity.Post;
+import _Blog_Backend.entity.Subscription;
+import _Blog_Backend.entity.User;
+import _Blog_Backend.repository.NotificationRepository;
+import _Blog_Backend.repository.SubscriptionRepository;
 import _Blog_Backend.types.NotificationType;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +40,11 @@ public class NotificationService {
                 .build();
 
         notificationRepository.save(notification);
+    }
+
+    @Transactional(readOnly = true)
+    public int getUnreadNotificationsCount(User currentUser) {
+        return notificationRepository.countByReceiverIdAndIsReadFalse(currentUser.getId());
     }
 
     @Transactional(readOnly = true)
@@ -76,9 +83,13 @@ public class NotificationService {
     }
 
     @Transactional
-    public void markAsReadOrUnread(Long notificationId) {
+    public void markAsReadOrUnread(Long notificationId, User currentUser) {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new RuntimeException("Notification not found"));
+        if (!notification.getReceiver().getId().equals(currentUser.getId())) {
+            throw new RuntimeException("You are not authorized to mark this notification");
+        }
+
         if (!notification.isRead()) {
             notification.setRead(true);
         } else {

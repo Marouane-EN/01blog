@@ -1,7 +1,7 @@
 package _Blog_Backend.dto;
 
 public record RegisterResponse(
-        String token,
-        UserProfileDTO userProfile) {
+                String token,
+                UserDto userProfile) {
 
 }

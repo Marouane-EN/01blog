@@ -90,7 +90,7 @@ public class AdminController {
         return ResponseEntity.ok(Map.of("message", message));
     }
 
-    @PutMapping("/users/{userId}/delete")
+    @DeleteMapping("/users/{userId}")
     public ResponseEntity<?> toggleUserDelete(@PathVariable Long userId) {
         String message = adminService.toggleUserDelete(userId);
         return ResponseEntity.ok(Map.of("message", message));
@@ -106,6 +106,12 @@ public class AdminController {
     public ResponseEntity<?> hardDeletePost(@PathVariable Long postId) {
         String message = adminService.hardDeletePost(postId);
         return ResponseEntity.ok(Map.of("message", message));
+    }
+
+    @DeleteMapping("/comments/{commentId}")
+    public ResponseEntity<String> deleteComment(@PathVariable Long commentId) {
+        adminService.deleteCommentAsAdmin(commentId);
+        return ResponseEntity.ok("Comment has been scrubbed.");
     }
 
 }

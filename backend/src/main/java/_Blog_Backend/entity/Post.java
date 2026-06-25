@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.SQLRestriction;
 
 import jakarta.persistence.CascadeType;
@@ -69,9 +70,11 @@ public class Post {
     @Builder.Default
     private List<PostMedia> mediaList = new ArrayList<>();
 
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<Like> likes = new ArrayList<>();
+    @Formula("(SELECT COUNT(*) FROM likes l WHERE l.post_id = id)")
+    private int likesCount;
+
+    @Formula("(SELECT COUNT(*) FROM comments c WHERE c.post_id = id AND c.is_deleted = false)")
+    private int commentsCount;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -86,6 +89,14 @@ public class Post {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    public int getLikesCount() {
+        return likesCount;
+    }
+
+    public int getCommentsCount() {
+        return commentsCount;
     }
 
     public void addMedia(PostMedia media) {

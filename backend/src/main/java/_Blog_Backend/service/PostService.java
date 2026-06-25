@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -25,6 +24,7 @@ import _Blog_Backend.entity.Post;
 import _Blog_Backend.entity.PostMedia;
 import _Blog_Backend.entity.Tag;
 import _Blog_Backend.entity.User;
+import _Blog_Backend.repository.LikeRepository;
 import _Blog_Backend.repository.PostRepository;
 import _Blog_Backend.repository.TagRepository;
 import _Blog_Backend.repository.UserRepository;
@@ -35,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 public class PostService {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
+    private final LikeRepository likeRepository;
     private final TagRepository tagRepository;
     private final LocalFileStorageService fileStorageService;
     private final NotificationService notificationService;
@@ -67,7 +68,8 @@ public class PostService {
         }
         Post savedPost = postRepository.save(newPost);
         notificationService.notifyFollowersOfNewPost(author, savedPost);
-        return mapToDto(savedPost, author.getId());
+        List<Long> likedPostIds = likeRepository.findLikedPostIdsByUser(author.getId(), List.of(savedPost.getId()));
+        return mapToDto(savedPost, likedPostIds);
     }
 
     @Transactional(readOnly = true)
@@ -78,7 +80,8 @@ public class PostService {
         if (post.getAuthor().isBlocked() || !post.getAuthor().isActive()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This article is no longer available.");
         }
-        return mapToDto(post, currentUser.getId());
+        List<Long> likedPostIds = likeRepository.findLikedPostIdsByUser(currentUser.getId(), List.of(post.getId()));
+        return mapToDto(post, likedPostIds);
     }
 
     @Transactional
@@ -112,7 +115,10 @@ public class PostService {
 
         Post savedPost = postRepository.save(existingPost);
 
-        return mapToDto(savedPost, currentUser.getId());
+        List<Long> likedPostIds = likeRepository.findLikedPostIdsByUser(currentUser.getId(),
+                List.of(savedPost.getId()));
+
+        return mapToDto(savedPost, likedPostIds);
     }
 
     @Transactional(readOnly = true)
@@ -135,17 +141,20 @@ public class PostService {
             nextCursor = posts.get(posts.size() - 1).getId();
         }
 
+        List<Long> postIds = posts.stream().map(Post::getId).toList();
+
+        List<Long> likedPostIds = likeRepository.findLikedPostIdsByUser(currentUser.getId(), postIds);
+
         List<PostDto> cleanPosts = posts.stream()
-                .map(post -> this.mapToDto(post, currentUser.getId()))
+                .map(post -> this.mapToDto(post, likedPostIds))
                 .toList();
 
         return new CursorResponse<>(cleanPosts, nextCursor, hasMore);
     }
 
     @Transactional(readOnly = true)
-    public CursorResponse<PostDto> getPostsByUser(Long authorId, int page, int size, Long currentUserId) {
+    public CursorResponse<PostDto> getPostsByUser(Long authorId, Long cursor, Long currentUserId) {
 
-        // Barricade: If the author is blocked, pretend they have no posts.
         User author = userRepository.findById(authorId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
@@ -153,17 +162,89 @@ public class PostService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User unavailable");
         }
 
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Post> postsPage = postRepository.findByAuthorIdOrderByCreatedAtDesc(authorId, pageable);
+        Pageable pageRequest = PageRequest.of(0, 11);
+        List<Post> posts;
 
-        List<PostDto> cleanPosts = postsPage.stream()
-                .map(post -> mapToDto(post, currentUserId))
+        if (cursor == null) {
+            posts = postRepository.findByAuthorId(authorId, pageRequest);
+        } else {
+            posts = postRepository.findByAuthorIdAndCursor(authorId, cursor, pageRequest);
+        }
+
+        boolean hasMore = posts.size() > 10;
+        Long nextCursor = null;
+
+        if (hasMore) {
+            posts.remove(posts.size() - 1);
+            nextCursor = posts.get(posts.size() - 1).getId();
+        }
+
+        List<Long> postIds = posts.stream().map(Post::getId).toList();
+        List<Long> likedPostIds = likeRepository.findLikedPostIdsByUser(currentUserId, postIds);
+
+        List<PostDto> cleanPosts = posts.stream()
+                .map(post -> mapToDto(post, likedPostIds))
                 .toList();
 
-        // Standard Page-to-Cursor conversion (or just return a Page if your frontend
-        // prefers!)
-        boolean hasMore = postsPage.hasNext();
-        Long nextCursor = hasMore ? cleanPosts.get(cleanPosts.size() - 1).id() : null;
+        return new CursorResponse<>(cleanPosts, nextCursor, hasMore);
+    }
+
+    @Transactional(readOnly = true)
+    public CursorResponse<PostDto> getSubscriptionsFeed(Long cursor, User currentUser) {
+
+        Pageable pageRequest = PageRequest.of(0, 11);
+        List<Post> posts;
+
+        if (cursor == null) {
+            posts = postRepository.findSubscriptionsFeed(currentUser.getId(), pageRequest);
+        } else {
+            posts = postRepository.findSubscriptionsFeedByCursor(currentUser.getId(), cursor, pageRequest);
+        }
+
+        boolean hasMore = posts.size() > 10;
+        Long nextCursor = null;
+
+        if (hasMore) {
+            posts.remove(posts.size() - 1);
+            nextCursor = posts.get(posts.size() - 1).getId();
+        }
+
+        List<Long> postIds = posts.stream().map(Post::getId).toList();
+        List<Long> likedPostIds = likeRepository.findLikedPostIdsByUser(currentUser.getId(), postIds);
+
+        List<PostDto> cleanPosts = posts.stream()
+                .map(post -> mapToDto(post, likedPostIds))
+                .toList();
+
+        return new CursorResponse<>(cleanPosts, nextCursor, hasMore);
+    }
+
+    @Transactional(readOnly = true)
+    public CursorResponse<PostDto> searchPosts(String keyword, Long cursor, User currentUser) {
+
+        Pageable pageRequest = PageRequest.of(0, 11);
+        List<Post> posts;
+
+        if (cursor == null) {
+            posts = postRepository.searchPublicPosts(keyword, pageRequest);
+        } else {
+            posts = postRepository.searchPublicPostsByCursor(keyword, cursor, pageRequest);
+        }
+
+        boolean hasMore = posts.size() > 10;
+        Long nextCursor = null;
+
+        if (hasMore) {
+            posts.remove(posts.size() - 1);
+            nextCursor = posts.get(posts.size() - 1).getId();
+        }
+
+        List<Long> postIds = posts.stream().map(Post::getId).toList();
+        List<Long> likedPostIds = likeRepository.findLikedPostIdsByUser(currentUser.getId(), postIds);
+
+        List<PostDto> cleanPosts = posts.stream()
+                .map(post -> mapToDto(post, likedPostIds))
+                .toList();
 
         return new CursorResponse<>(cleanPosts, nextCursor, hasMore);
     }
@@ -244,11 +325,12 @@ public class PostService {
                 .toList();
     }
 
-    private PostDto mapToDto(Post post, Long currentUserId) {
-        AuthorDto authorDto = new AuthorDto(
-                post.getAuthor().getId(),
-                post.getAuthor().getUsername(),
-                post.getAuthor().getProfilePictureUrl());
+    private PostDto mapToDto(Post post, List<Long> likedPostIds) {
+
+        AuthorDto authorDto = (post.getAuthor().isBlocked() || !post.getAuthor().isActive())
+                ? new AuthorDto(0L, "[Suspended Account]", null)
+                : new AuthorDto(post.getAuthor().getId(), post.getAuthor().getUsername(),
+                        post.getAuthor().getProfilePictureUrl());
 
         List<String> mediaUrls = post.getMediaList().stream()
                 .map(PostMedia::getMediaUrl)
@@ -256,17 +338,21 @@ public class PostService {
         List<String> tags = post.getTags().stream()
                 .map(Tag::getName)
                 .toList();
+        boolean likedByCurrentUser = likedPostIds.contains(post.getId());
 
-        boolean likedByCurrentUser = false;
-        if (post.getLikes() != null) {
-            likedByCurrentUser = post.getLikes().stream()
-                    .anyMatch(like -> like.getUser().getId().equals(currentUserId));
-        }
-
-        return new PostDto(post.getId(), authorDto, post.getTitle(), post.getDescription(), tags,
-                mediaUrls, post.getLikes().size(),
+        return new PostDto(
+                post.getId(),
+                post.getSlug(),
+                authorDto,
+                post.getTitle(),
+                post.getDescription(),
+                tags,
+                mediaUrls,
+                post.getLikesCount(),
+                post.getCommentsCount(),
                 likedByCurrentUser,
-                post.getCreatedAt(), post.getUpdatedAt());
+                post.getCreatedAt(),
+                post.getUpdatedAt());
     }
 
     private static String generateUniqueSlug(String title) {

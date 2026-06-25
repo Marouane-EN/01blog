@@ -13,12 +13,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import _Blog_Backend.dto.AuthorDto;
 import _Blog_Backend.dto.CursorResponse;
+import _Blog_Backend.dto.PublicProfileDto;
 import _Blog_Backend.dto.SubscriptionResponse;
 import _Blog_Backend.entity.User;
 import _Blog_Backend.repository.UserRepository;
 import _Blog_Backend.service.LocalFileStorageService;
 import _Blog_Backend.service.RateLimitingService;
 import _Blog_Backend.service.SubscriptionService;
+import _Blog_Backend.service.UserService;
 import io.github.bucket4j.Bucket;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +33,7 @@ public class UserController {
     private final LocalFileStorageService fileStorageService;
     private final UserRepository userRepository;
     private final SubscriptionService subscriptionService;
+    private final UserService userService;
     private final RateLimitingService rateLimiter;
 
     @PostMapping("/me/profile-picture")
@@ -104,6 +107,37 @@ public class UserController {
         CursorResponse<AuthorDto> response = subscriptionService.getFollowing(userId, cursor);
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{username}")
+    public ResponseEntity<?> getProfile(
+            @PathVariable String username, HttpServletRequest httpRequest) {
+        String ipAddress = rateLimiter.getClientIp(httpRequest);
+        Bucket bucket = rateLimiter.resolveBucket(ipAddress);
+        if (!bucket.tryConsume(1)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("Too many attempts. Please try again in 15 minutes.");
+        }
+
+        return ResponseEntity.ok(userService.getPublicProfile(username));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> searchUsers(
+            @RequestParam(name = "q") String keyword,
+            @RequestParam(required = false) Long cursor, HttpServletRequest httpRequest) {
+        String ipAddress = rateLimiter.getClientIp(httpRequest);
+        Bucket bucket = rateLimiter.resolveBucket(ipAddress);
+        if (!bucket.tryConsume(1)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("Too many attempts. Please try again in 15 minutes.");
+        }
+
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok(userService.searchUsers(keyword, cursor));
     }
 
 }

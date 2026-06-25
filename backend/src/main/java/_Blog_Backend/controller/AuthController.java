@@ -11,8 +11,7 @@ import _Blog_Backend.dto.AuthResponse;
 import _Blog_Backend.dto.LoginRequest;
 import _Blog_Backend.dto.RegisterRequest;
 import _Blog_Backend.dto.RegisterResponse;
-import _Blog_Backend.dto.UserProfileDTO;
-import _Blog_Backend.entity.User;
+import _Blog_Backend.dto.UserDto;
 import _Blog_Backend.service.AuthService;
 import _Blog_Backend.service.RateLimitingService;
 import io.github.bucket4j.Bucket;
@@ -36,7 +35,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body("Too many attempts. Please try again in 15 minutes.");
         }
-        UserProfileDTO savedUser = authService.registerLocalUser(request);
+        UserDto savedUser = authService.registerLocalUser(request);
         String token = authService.loginLocalUser(request.username(), request.password());
         return ResponseEntity
                 .status(HttpStatus.CREATED)

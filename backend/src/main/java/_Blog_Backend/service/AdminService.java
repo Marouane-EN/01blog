@@ -130,7 +130,7 @@ public class AdminService {
                 post.getAuthor().getUsername(),
                 post.getAuthor().getProfilePictureUrl(),
                 post.isHidden(),
-                post.getLikes() != null ? post.getLikes().size() : 0,
+                post.getLikesCount(),
                 post.getCreatedAt()));
     }
 
@@ -155,7 +155,7 @@ public class AdminService {
                 post.isHidden(),
                 tags,
                 mediaUrls,
-                post.getLikes() != null ? post.getLikes().size() : 0,
+                post.getLikesCount(),
                 post.getCreatedAt());
     }
 
@@ -185,7 +185,7 @@ public class AdminService {
                 post.getAuthor().getUsername(),
                 post.getAuthor().getProfilePictureUrl(),
                 post.isHidden(),
-                post.getLikes() != null ? post.getLikes().size() : 0,
+                post.getLikesCount(),
                 post.getCreatedAt()));
     }
 

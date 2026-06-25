@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import _Blog_Backend.dto.RegisterRequest;
-import _Blog_Backend.dto.UserProfileDTO;
+import _Blog_Backend.dto.UserDto;
 import _Blog_Backend.entity.User;
 import _Blog_Backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,12 +22,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthService {
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
 
     @Transactional
-    public UserProfileDTO registerLocalUser(RegisterRequest request) {
+    public UserDto registerLocalUser(RegisterRequest request) {
         if (userRepository.existsByUsername(request.username())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Error: Username is already taken!");
         }
@@ -74,8 +75,10 @@ public class AuthService {
         return jwtService.generateToken(authenticatedUser);
     }
 
-    private UserProfileDTO mapToDto(User user) {
-        return new UserProfileDTO(user.getId(), user.getUsername(), user.getProfilePictureUrl(), user.getBio(),
-                user.getFollowers().size(), user.getFollowing().size(), false);
+    private UserDto mapToDto(User user) {
+        return new UserDto(
+                user.getId(),
+                user.getUsername(),
+                user.getProfilePictureUrl());
     }
 }

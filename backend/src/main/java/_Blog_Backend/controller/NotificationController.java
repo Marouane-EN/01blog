@@ -40,9 +40,31 @@ public class NotificationController {
         return ResponseEntity.ok(notificationService.getUserNotifications(currentUser, cursor));
     }
 
+    @GetMapping("/unreadCount")
+    public ResponseEntity<?> getUnreadNotificationsCount(@AuthenticationPrincipal User currentUser,
+            HttpServletRequest httpRequest) {
+        String ipAddress = rateLimiter.getClientIp(httpRequest);
+
+        Bucket bucket = rateLimiter.resolveBucket(ipAddress);
+        if (!bucket.tryConsume(1)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("Too many attempts. Please try again in 15 minutes.");
+        }
+        int unreadCount = notificationService.getUnreadNotificationsCount(currentUser);
+        return ResponseEntity.ok(unreadCount);
+    }
+
     @PutMapping("/{id}/readOrUnread")
-    public ResponseEntity<Void> markAsRead(@PathVariable Long id) {
-        notificationService.markAsReadOrUnread(id);
+    public ResponseEntity<?> markAsRead(@PathVariable Long id, @AuthenticationPrincipal User currentUser,
+            HttpServletRequest httpRequest) {
+        String ipAddress = rateLimiter.getClientIp(httpRequest);
+
+        Bucket bucket = rateLimiter.resolveBucket(ipAddress);
+        if (!bucket.tryConsume(1)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("Too many attempts. Please try again in 15 minutes.");
+        }
+        notificationService.markAsReadOrUnread(id, currentUser);
         return ResponseEntity.ok().build();
     }
 }
