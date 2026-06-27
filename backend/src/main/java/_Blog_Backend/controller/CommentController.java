@@ -77,12 +77,12 @@ public class CommentController {
     }
 
     @DeleteMapping("/{commentId}")
-    public ResponseEntity<Void> deleteComment(
+    public ResponseEntity<?> deleteComment(
             @PathVariable Long commentId,
             @AuthenticationPrincipal User currentUser) {
 
         commentService.deleteComment(commentId, currentUser);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("Comment deleted successfully");
     }
 
     @PostMapping("/{commentId}/likes")

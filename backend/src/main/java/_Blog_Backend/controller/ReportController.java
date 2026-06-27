@@ -1,0 +1,77 @@
+package _Blog_Backend.controller;
+
+import _Blog_Backend.dto.ReportRequest;
+import _Blog_Backend.entity.User;
+import _Blog_Backend.service.RateLimitingService;
+import _Blog_Backend.service.ReportService;
+import _Blog_Backend.types.ReportType;
+import io.github.bucket4j.Bucket;
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+import jakarta.servlet.http.HttpServletRequest;
+
+@RestController
+@RequestMapping("/api")
+@RequiredArgsConstructor
+public class ReportController {
+
+    private final ReportService reportService;
+    private final RateLimitingService rateLimiter;
+
+    @PostMapping("/posts/{postId}/reports")
+    public ResponseEntity<?> reportPost(
+            @PathVariable Long postId,
+            @RequestBody ReportRequest request,
+            @AuthenticationPrincipal User currentUser, HttpServletRequest httpRequest) {
+        String ipAddress = rateLimiter.getClientIp(httpRequest);
+
+        Bucket bucket = rateLimiter.resolveBucket(ipAddress);
+        if (!bucket.tryConsume(1)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("Too many attempts. Please try again in 15 minutes.");
+        }
+
+        reportService.submitReport(currentUser, postId, ReportType.POST, request.reason());
+        return ResponseEntity.ok("Post reported successfully.");
+    }
+
+    @PostMapping("/comments/{commentId}/reports")
+    public ResponseEntity<?> reportComment(
+            @PathVariable Long commentId,
+            @RequestBody ReportRequest request,
+            @AuthenticationPrincipal User currentUser, HttpServletRequest httpRequest) {
+        String ipAddress = rateLimiter.getClientIp(httpRequest);
+
+        Bucket bucket = rateLimiter.resolveBucket(ipAddress);
+        if (!bucket.tryConsume(1)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("Too many attempts. Please try again in 15 minutes.");
+        }
+
+        reportService.submitReport(currentUser, commentId, ReportType.COMMENT, request.reason());
+        return ResponseEntity.ok("Comment reported successfully.");
+    }
+
+    @PostMapping("/users/{userId}/reports")
+    public ResponseEntity<?> reportUser(
+            @PathVariable Long userId,
+            @RequestBody ReportRequest request,
+            @AuthenticationPrincipal User currentUser, HttpServletRequest httpRequest) {
+        String ipAddress = rateLimiter.getClientIp(httpRequest);
+
+        Bucket bucket = rateLimiter.resolveBucket(ipAddress);
+        if (!bucket.tryConsume(1)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("Too many attempts. Please try again in 15 minutes.");
+        }
+
+        reportService.submitReport(currentUser, userId, ReportType.USER, request.reason());
+        return ResponseEntity.ok("Profile reported successfully.");
+    }
+
+}

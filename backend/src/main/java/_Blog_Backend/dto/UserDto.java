@@ -1,7 +1,7 @@
 package _Blog_Backend.dto;
 
-public record AuthorDto(
+public record UserDto(
         Long id,
         String username,
-        String profileImage) {
+        String profileImageUrl) {
 }

@@ -2,6 +2,7 @@ package _Blog_Backend.service;
 
 import java.util.Optional;
 
+import org.hibernate.Hibernate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,7 @@ import _Blog_Backend.entity.User;
 import _Blog_Backend.repository.CommentRepository;
 import _Blog_Backend.repository.LikeRepository;
 import _Blog_Backend.repository.PostRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -29,10 +31,6 @@ public class LikeService {
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
-
-        if (post.isHidden()) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot like a hidden post.");
-        }
 
         Optional<Like> existingLike = likeRepository.findByPostIdAndUserId(postId, currentUser.getId());
 
@@ -60,8 +58,17 @@ public class LikeService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Comment not found"));
 
-        if (comment.getPost().isHidden()) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot like a hidden comment.");
+        if (comment.isDeleted()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You can not react on deleted comment");
+
+        }
+
+        try {
+            Hibernate.initialize(comment.getPost());
+
+        } catch (EntityNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Cannot like a comment that belongs to a banned or deleted post.");
         }
 
         Optional<Like> existingLike = likeRepository.findByCommentIdAndUserId(comment.getId(), currentUser.getId());

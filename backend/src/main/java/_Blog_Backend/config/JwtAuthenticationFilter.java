@@ -11,6 +11,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import _Blog_Backend.entity.User;
 import _Blog_Backend.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -50,7 +51,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (identifier != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(identifier);
+                User currentUser = (User) userDetails;
 
+                if (currentUser.isBlocked() || !currentUser.isActive()) {
+                    log.warn("Blocked or inactive user attempted to use a valid JWT: {}", identifier);
+
+                    // Kill the request and build a manual JSON error response!
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json");
+                    response.getWriter().write(
+                            "{\"error\": \"Forbidden\", \"message\": \"This account has been suspended or is inactive.\"}");
+                    return;
+                }
                 if (jwtService.isTokenValid(jwt, userDetails)) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,

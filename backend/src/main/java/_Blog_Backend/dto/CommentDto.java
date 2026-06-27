@@ -6,7 +6,7 @@ import java.util.List;
 public record CommentDto(
         Long id,
         String content,
-        AuthorDto author,
+        UserDto author,
         List<CommentDto> replies,
         int likeCount,
         boolean likedByCurrentUser,

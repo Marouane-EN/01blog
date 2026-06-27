@@ -2,15 +2,30 @@ package _Blog_Backend.entity;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
-import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.annotations.Formula;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "users", indexes = {
@@ -21,7 +36,6 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@SQLRestriction("is_Active = true AND is_Blocked = false")
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -61,6 +75,15 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "subscriber", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Subscription> following = new ArrayList<>();
+
+    @Formula("(SELECT COUNT(*) FROM posts p WHERE p.user_id = id AND p.is_hidden = false)")
+    private int postsCount;
+
+    @Formula("(SELECT COUNT(*) FROM subscriptions s WHERE s.subscriber_id = id)")
+    private int followersCount;
+
+    @Formula("(SELECT COUNT(*) FROM subscriptions s WHERE s.target_user_id = id)")
+    private int followingCount;
 
     @Builder.Default
     @Column(nullable = false)
@@ -111,6 +134,18 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return isActive;
+    }
+
+    public int getPostsCount() {
+        return postsCount;
+    }
+
+    public int getFollowersCount() {
+        return followersCount;
+    }
+
+    public int getFollowingCount() {
+        return followingCount;
     }
 
     public void addSubscription(Subscription subscription) {

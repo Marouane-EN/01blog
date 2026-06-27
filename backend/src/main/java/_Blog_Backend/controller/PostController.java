@@ -1,30 +1,20 @@
 package _Blog_Backend.controller;
 
+import java.io.IOException;
 import java.util.List;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
+
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import org.springframework.web.multipart.MultipartFile;
 
-import _Blog_Backend.dto.ImageUploadResponse;
-import _Blog_Backend.dto.PostDto;
-import _Blog_Backend.dto.PostRequest;
+import _Blog_Backend.dto.*;
+
 import _Blog_Backend.entity.User;
-import _Blog_Backend.service.LikeService;
-import _Blog_Backend.service.PostService;
-import _Blog_Backend.service.RateLimitingService;
+import _Blog_Backend.service.*;
+
 import io.github.bucket4j.Bucket;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -40,7 +30,7 @@ public class PostController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createPost(@RequestPart("postData") @Valid PostRequest request,
-            @RequestPart(value = "images", required = false) List<MultipartFile> images,
+            @RequestPart(value = "files", required = false) List<MultipartFile> files,
             @AuthenticationPrincipal User author,
             HttpServletRequest httpRequest) {
 
@@ -52,7 +42,7 @@ public class PostController {
                     .body("Too many attempts. Please try again in 15 minutes.");
         }
 
-        PostDto createdPost = postService.createPost(request, images, author);
+        PostDto createdPost = postService.createPost(request, files, author);
         return ResponseEntity.status(201).body(createdPost);
     }
 
@@ -84,6 +74,56 @@ public class PostController {
         PostDto postDto = postService.getPostBySlug(slug, currentUser);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(postDto);
+    }
+
+    @GetMapping("/user/{authorId}")
+    public ResponseEntity<?> getPostsByUser(@PathVariable Long authorId,
+            @RequestParam(required = false) Long cursor,
+            @AuthenticationPrincipal User currentUser, HttpServletRequest httpRequest) {
+        String ipAddress = rateLimiter.getClientIp(httpRequest);
+
+        Bucket bucket = rateLimiter.resolveBucket(ipAddress);
+        if (!bucket.tryConsume(1)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("Too many attempts. Please try again in 15 minutes.");
+        }
+
+        return ResponseEntity.ok(postService.getPostsByUser(authorId, cursor, currentUser.getId()));
+    }
+
+    @GetMapping("/subscriptions")
+    public ResponseEntity<?> getSubscriptionsFeed(
+            @RequestParam(required = false) Long cursor,
+            @AuthenticationPrincipal User currentUser, HttpServletRequest httpRequest) {
+        String ipAddress = rateLimiter.getClientIp(httpRequest);
+
+        Bucket bucket = rateLimiter.resolveBucket(ipAddress);
+        if (!bucket.tryConsume(1)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("Too many attempts. Please try again in 15 minutes.");
+        }
+
+        return ResponseEntity.ok(postService.getSubscriptionsFeed(cursor, currentUser));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> searchPosts(
+            @RequestParam(name = "q") String keyword,
+            @RequestParam(required = false) Long cursor,
+            @AuthenticationPrincipal User currentUser, HttpServletRequest httpRequest) {
+        String ipAddress = rateLimiter.getClientIp(httpRequest);
+
+        Bucket bucket = rateLimiter.resolveBucket(ipAddress);
+        if (!bucket.tryConsume(1)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("Too many attempts. Please try again in 15 minutes.");
+        }
+
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok(postService.searchPosts(keyword, cursor, currentUser));
     }
 
     @DeleteMapping("/{id}")
@@ -119,11 +159,11 @@ public class PostController {
         return ResponseEntity.ok(updatedPost);
     }
 
-    @PostMapping("/{postId}/images")
-    public ResponseEntity<?> addImageToPost(
+    @PostMapping("/{postId}/files")
+    public ResponseEntity<?> addFileToPost(
             @PathVariable Long postId,
             @RequestParam("file") MultipartFile file,
-            @AuthenticationPrincipal User currentUser, HttpServletRequest httpRequest) {
+            @AuthenticationPrincipal User currentUser, HttpServletRequest httpRequest) throws IOException {
         String ipAddress = rateLimiter.getClientIp(httpRequest);
 
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
@@ -131,14 +171,14 @@ public class PostController {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body("Too many attempts. Please try again in 15 minutes.");
         }
-        ImageUploadResponse imageResponse = postService.addImageToPost(postId, file, currentUser);
-        return ResponseEntity.status(HttpStatus.CREATED).body(imageResponse);
+        FileUploadResponse mediaResponse = postService.addFileToPost(postId, file, currentUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(mediaResponse);
     }
 
-    @DeleteMapping("/{postId}/images/{imageId}")
-    public ResponseEntity<?> deleteImageFromPost(
+    @DeleteMapping("/{postId}/files/{mediaId}")
+    public ResponseEntity<?> deleteFileFromPost(
             @PathVariable Long postId,
-            @PathVariable Long imageId,
+            @PathVariable Long mediaId,
             @AuthenticationPrincipal User currentUser, HttpServletRequest httpRequest) {
         String ipAddress = rateLimiter.getClientIp(httpRequest);
 
@@ -147,8 +187,8 @@ public class PostController {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body("Too many attempts. Please try again in 15 minutes.");
         }
-        postService.deleteImageFromPost(postId, imageId, currentUser);
-        return ResponseEntity.ok("Image deleted successfully");
+        postService.deleteFileFromPost(postId, mediaId, currentUser);
+        return ResponseEntity.ok("Media deleted successfully");
     }
 
     @PostMapping("/{postId}/like")

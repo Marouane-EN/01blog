@@ -39,7 +39,7 @@ public class SecurityConfig {
                                                         response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
                                                                         "Unauthorized");
                                                 }))
-                                .authorizeHttpRequests(auth -> auth
+                                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/admin/**").hasRole("ADMIN")
                                                 .requestMatchers("/api/auth/**", "/oauth2/**", "/error").permitAll()
                                                 .anyRequest().authenticated())
                                 .oauth2Login(oauth2 -> oauth2
