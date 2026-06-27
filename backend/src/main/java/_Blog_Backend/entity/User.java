@@ -76,13 +76,13 @@ public class User implements UserDetails {
     @Builder.Default
     private List<Subscription> following = new ArrayList<>();
 
-    @Formula("(SELECT COUNT(*) FROM posts p WHERE p.author_id = id AND p.is_hidden = false)")
+    @Formula("(SELECT COUNT(*) FROM posts p WHERE p.user_id = id AND p.is_hidden = false)")
     private int postsCount;
 
-    @Formula("(SELECT COUNT(*) FROM follows f WHERE f.following_id = id)")
+    @Formula("(SELECT COUNT(*) FROM subscriptions s WHERE s.subscriber_id = id)")
     private int followersCount;
 
-    @Formula("(SELECT COUNT(*) FROM follows f WHERE f.follower_id = id)")
+    @Formula("(SELECT COUNT(*) FROM subscriptions s WHERE s.target_user_id = id)")
     private int followingCount;
 
     @Builder.Default

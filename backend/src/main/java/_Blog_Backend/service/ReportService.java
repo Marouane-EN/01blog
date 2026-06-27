@@ -46,6 +46,10 @@ public class ReportService {
             default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid report type");
         }
 
+        if ("ADMIN".equals(String.valueOf(reportedUser.getRole()))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You cannot report an admin.");
+        }
+
         if (reporter.getId().equals(reportedUser.getId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You cannot report yourself.");
         }

@@ -40,7 +40,7 @@ public class NotificationController {
         return ResponseEntity.ok(notificationService.getUserNotifications(currentUser, cursor));
     }
 
-    @GetMapping("/unreadCount")
+    @GetMapping("/unreadcount")
     public ResponseEntity<?> getUnreadNotificationsCount(@AuthenticationPrincipal User currentUser,
             HttpServletRequest httpRequest) {
         String ipAddress = rateLimiter.getClientIp(httpRequest);
@@ -64,7 +64,6 @@ public class NotificationController {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body("Too many attempts. Please try again in 15 minutes.");
         }
-        notificationService.markAsReadOrUnread(id, currentUser);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(notificationService.markAsReadOrUnread(id, currentUser));
     }
 }

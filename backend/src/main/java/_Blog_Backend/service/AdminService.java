@@ -196,6 +196,9 @@ public class AdminService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
+        if ("ADMIN".equals(String.valueOf(user.getRole()))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You cannot ban an admin.");
+        }
         user.setBlocked(!user.isBlocked());
 
         // Hibernate automatically saves the change when the transaction ends!
@@ -242,6 +245,9 @@ public class AdminService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
+        if ("ADMIN".equals(String.valueOf(user.getRole()))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You cannot delete an admin.");
+        }
         user.setActive(!user.isActive());
 
         return user.isActive() ? "User account has been restored." : "User account has been deactivated.";

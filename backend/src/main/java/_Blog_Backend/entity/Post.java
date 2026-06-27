@@ -103,4 +103,9 @@ public class Post {
         this.mediaList.add(media);
         media.setPost(this);
     }
+
+    public void removeMedia(PostMedia media) {
+        this.mediaList.remove(media);
+        media.setPost(null);
+    }
 }

@@ -2,16 +2,10 @@ package _Blog_Backend.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import _Blog_Backend.dto.AuthResponse;
-import _Blog_Backend.dto.LoginRequest;
-import _Blog_Backend.dto.RegisterRequest;
-import _Blog_Backend.dto.RegisterResponse;
-import _Blog_Backend.dto.UserDto;
+import _Blog_Backend.dto.*;
+
 import _Blog_Backend.service.AuthService;
 import _Blog_Backend.service.RateLimitingService;
 import io.github.bucket4j.Bucket;
@@ -35,11 +29,11 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body("Too many attempts. Please try again in 15 minutes.");
         }
-        UserDto savedUser = authService.registerLocalUser(request);
-        String token = authService.loginLocalUser(request.username(), request.password());
+        authService.registerLocalUser(request);
+        AuthResponse authResponse = authService.loginLocalUser(request.username(), request.password());
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(new RegisterResponse(token, savedUser));
+                .body(authResponse);
     }
 
     @PostMapping("/login")
@@ -52,8 +46,8 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body("Too many attempts. Please try again in 15 minutes.");
         }
-        String token = authService.loginLocalUser(request.identifier(), request.password());
-        return ResponseEntity.ok(new AuthResponse(token));
+        AuthResponse authResponse = authService.loginLocalUser(request.identifier(), request.password());
+        return ResponseEntity.ok(authResponse);
     }
 
 }

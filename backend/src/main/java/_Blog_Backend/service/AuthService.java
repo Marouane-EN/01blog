@@ -12,8 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import _Blog_Backend.dto.RegisterRequest;
-import _Blog_Backend.dto.UserDto;
+import _Blog_Backend.dto.*;
 import _Blog_Backend.entity.User;
 import _Blog_Backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +27,7 @@ public class AuthService {
     private final JwtService jwtService;
 
     @Transactional
-    public UserDto registerLocalUser(RegisterRequest request) {
+    public void registerLocalUser(RegisterRequest request) {
         if (userRepository.existsByUsername(request.username())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Error: Username is already taken!");
         }
@@ -50,11 +49,10 @@ public class AuthService {
                 .build();
 
         userRepository.save(newUser);
-        return mapToDto(newUser);
     }
 
     @Transactional(readOnly = true)
-    public String loginLocalUser(String identifier, String password) {
+    public AuthResponse loginLocalUser(String identifier, String password) {
 
         Authentication authentication;
 
@@ -71,8 +69,9 @@ public class AuthService {
         }
 
         User authenticatedUser = (User) authentication.getPrincipal();
-
-        return jwtService.generateToken(authenticatedUser);
+        String token = jwtService.generateToken(authenticatedUser);
+        UserDto userDto = mapToDto(authenticatedUser);
+        return new AuthResponse(token, userDto);
     }
 
     private UserDto mapToDto(User user) {

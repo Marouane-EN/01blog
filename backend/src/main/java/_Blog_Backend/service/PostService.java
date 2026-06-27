@@ -2,9 +2,7 @@ package _Blog_Backend.service;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.PageRequest;
@@ -15,19 +13,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import _Blog_Backend.dto.AuthorDto;
-import _Blog_Backend.dto.CursorResponse;
-import _Blog_Backend.dto.ImageUploadResponse;
-import _Blog_Backend.dto.PostDto;
-import _Blog_Backend.dto.PostRequest;
-import _Blog_Backend.entity.Post;
-import _Blog_Backend.entity.PostMedia;
-import _Blog_Backend.entity.Tag;
-import _Blog_Backend.entity.User;
-import _Blog_Backend.repository.LikeRepository;
-import _Blog_Backend.repository.PostRepository;
-import _Blog_Backend.repository.TagRepository;
-import _Blog_Backend.repository.UserRepository;
+import _Blog_Backend.dto.*;
+
+import _Blog_Backend.entity.*;
+
+import _Blog_Backend.repository.*;
+
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -37,39 +28,29 @@ public class PostService {
     private final PostRepository postRepository;
     private final LikeRepository likeRepository;
     private final TagRepository tagRepository;
-    private final LocalFileStorageService fileStorageService;
+    private final FileUploadService fileUploadService;
     private final NotificationService notificationService;
 
     @Transactional
-    public PostDto createPost(PostRequest request, List<MultipartFile> images, User author) {
+    public PostDto createPost(PostRequest request, List<MultipartFile> files, User author) {
+
+        List<String> uploadedMediaUrls = fileUploadService.uploadMultipleFiles(files);
         String slug = generateUniqueSlug(request.title());
 
         Post newPost = Post.builder().title(request.title()).description(request.content())
                 .author(author).slug(slug).build();
         newPost.setTags(stringsToTags(request.tags()));
 
-        if (images != null && !images.isEmpty()) {
-            for (MultipartFile file : images) {
-                if (!file.isEmpty()) {
-                    try {
-                        String mediaUrl = fileStorageService.savePostMedia(file);
+        for (String url : uploadedMediaUrls) {
+            PostMedia media = PostMedia.builder()
+                    .mediaUrl(url)
+                    .build();
 
-                        PostMedia postMedia = PostMedia.builder()
-                                .post(newPost)
-                                .mediaUrl(mediaUrl)
-                                .build();
-
-                        newPost.getMediaList().add(postMedia);
-                    } catch (IOException e) {
-                        throw new RuntimeException("Failed to process image: " + file.getOriginalFilename(), e);
-                    }
-                }
-            }
+            newPost.addMedia(media);
         }
         Post savedPost = postRepository.save(newPost);
         notificationService.notifyFollowersOfNewPost(author, savedPost);
-        List<Long> likedPostIds = likeRepository.findLikedPostIdsByUser(author.getId(), List.of(savedPost.getId()));
-        return mapToDto(savedPost, likedPostIds);
+        return mapToDto(savedPost, new ArrayList<>());
     }
 
     @Transactional(readOnly = true)
@@ -220,7 +201,7 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public CursorResponse<PostDto> searchPosts(String keyword, Long cursor, User currentUser) {
+    public CursorResponse<PostSearchDto> searchPosts(String keyword, Long cursor, User currentUser) {
 
         Pageable pageRequest = PageRequest.of(0, 11);
         List<Post> posts;
@@ -239,11 +220,13 @@ public class PostService {
             nextCursor = posts.get(posts.size() - 1).getId();
         }
 
-        List<Long> postIds = posts.stream().map(Post::getId).toList();
-        List<Long> likedPostIds = likeRepository.findLikedPostIdsByUser(currentUser.getId(), postIds);
-
-        List<PostDto> cleanPosts = posts.stream()
-                .map(post -> mapToDto(post, likedPostIds))
+        List<PostSearchDto> cleanPosts = posts.stream()
+                .map(post -> {
+                    String author = (post.getAuthor().isBlocked() || !post.getAuthor().isActive())
+                            ? "[Suspended Account]"
+                            : post.getAuthor().getUsername();
+                    return new PostSearchDto(author, post.getTitle(), post.getCreatedAt());
+                })
                 .toList();
 
         return new CursorResponse<>(cleanPosts, nextCursor, hasMore);
@@ -264,7 +247,7 @@ public class PostService {
     }
 
     @Transactional
-    public ImageUploadResponse addImageToPost(Long postId, MultipartFile file, User currentUser) {
+    public FileUploadResponse addFileToPost(Long postId, MultipartFile file, User currentUser) throws IOException {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
 
@@ -272,22 +255,18 @@ public class PostService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to edit this post.");
         }
 
-        try {
-            String imageUrl = fileStorageService.savePostMedia(file);
+        String mediaUrl = fileUploadService.uploadFile(file);
 
-            PostMedia postMedia = new PostMedia();
-            postMedia.setMediaUrl(imageUrl);
-            post.addMedia(postMedia);
-            postRepository.save(post);
+        PostMedia postMedia = new PostMedia();
+        postMedia.setMediaUrl(mediaUrl);
+        post.addMedia(postMedia);
+        postRepository.save(post);
 
-            return new ImageUploadResponse(postMedia.getId(), imageUrl);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to process image: " + file.getOriginalFilename(), e);
-        }
+        return new FileUploadResponse(postMedia.getId(), mediaUrl);
     }
 
     @Transactional
-    public void deleteImageFromPost(Long postId, Long imageId, User currentUser) {
+    public void deleteFileFromPost(Long postId, Long mediaId, User currentUser) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
 
@@ -295,12 +274,12 @@ public class PostService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to edit this post.");
         }
         PostMedia mediaToRemove = post.getMediaList().stream()
-                .filter(media -> media.getId().equals(imageId))
+                .filter(media -> media.getId().equals(mediaId))
                 .findFirst()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Media not found in this post"));
 
-        post.getMediaList().remove(mediaToRemove);
-        fileStorageService.deleteFile("/" + mediaToRemove.getMediaUrl());
+        post.removeMedia(mediaToRemove);
+        fileUploadService.deleteFileByUrl(mediaToRemove.getMediaUrl());
         postRepository.save(post);
     }
 
@@ -327,9 +306,9 @@ public class PostService {
 
     private PostDto mapToDto(Post post, List<Long> likedPostIds) {
 
-        AuthorDto authorDto = (post.getAuthor().isBlocked() || !post.getAuthor().isActive())
-                ? new AuthorDto(0L, "[Suspended Account]", null)
-                : new AuthorDto(post.getAuthor().getId(), post.getAuthor().getUsername(),
+        UserDto UserDto = (post.getAuthor().isBlocked() || !post.getAuthor().isActive())
+                ? new UserDto(0L, "[Suspended Account]", null)
+                : new UserDto(post.getAuthor().getId(), post.getAuthor().getUsername(),
                         post.getAuthor().getProfilePictureUrl());
 
         List<String> mediaUrls = post.getMediaList().stream()
@@ -338,12 +317,15 @@ public class PostService {
         List<String> tags = post.getTags().stream()
                 .map(Tag::getName)
                 .toList();
-        boolean likedByCurrentUser = likedPostIds.contains(post.getId());
+        boolean likedByCurrentUser = false;
+        if (!likedPostIds.isEmpty()) {
+            likedByCurrentUser = likedPostIds.contains(post.getId());
+        }
 
         return new PostDto(
                 post.getId(),
                 post.getSlug(),
-                authorDto,
+                UserDto,
                 post.getTitle(),
                 post.getDescription(),
                 tags,
@@ -377,4 +359,5 @@ public class PostService {
 
         return baseSlug + suffix;
     }
+
 }

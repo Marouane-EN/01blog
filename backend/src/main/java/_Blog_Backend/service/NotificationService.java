@@ -5,9 +5,11 @@ import java.util.List;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import _Blog_Backend.dto.CursorResponse;
 import _Blog_Backend.dto.NotificationDto;
@@ -83,19 +85,23 @@ public class NotificationService {
     }
 
     @Transactional
-    public void markAsReadOrUnread(Long notificationId, User currentUser) {
+    public String markAsReadOrUnread(Long notificationId, User currentUser) {
+
         Notification notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new RuntimeException("Notification not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notification not found"));
+
         if (!notification.getReceiver().getId().equals(currentUser.getId())) {
-            throw new RuntimeException("You are not authorized to mark this notification");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "You do not have permission to modify this notification.");
         }
 
-        if (!notification.isRead()) {
-            notification.setRead(true);
-        } else {
-            notification.setRead(false);
-        }
+        notification.setRead(!notification.isRead());
+
         notificationRepository.save(notification);
+
+        return notification.isRead()
+                ? "Notification marked as read successfully."
+                : "Notification marked as unread successfully.";
     }
 
     @Transactional

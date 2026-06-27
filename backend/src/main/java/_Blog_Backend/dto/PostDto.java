@@ -6,7 +6,7 @@ import java.util.List;
 public record PostDto(
         long id,
         String slug,
-        AuthorDto author,
+        UserDto author,
         String title,
         String content,
         List<String> tag,

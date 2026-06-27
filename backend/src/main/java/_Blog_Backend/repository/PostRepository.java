@@ -16,13 +16,13 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         @Query(value = "SELECT * FROM posts WHERE is_hidden = true AND  id < ? ORDRE BY id DESC LIMIT 10", nativeQuery = true)
         List<Post> findAllHiddenPostsForAdmin();
 
-        @Query("SELECT p FROM posts p JOIN FETCH p.author a " +
+        @Query("SELECT p FROM Post p JOIN FETCH p.author a " +
                         "WHERE p.isHidden = false " +
                         "AND a.isBlocked = false AND a.isActive = true " +
                         "ORDER BY p.id DESC")
         List<Post> findPublicFeed(Pageable pageable);
 
-        @Query("SELECT p FROM posts p JOIN FETCH p.author a " +
+        @Query("SELECT p FROM Post p JOIN FETCH p.author a " +
                         "WHERE p.id < :cursor " +
                         "AND p.isHidden = false " +
                         "AND a.isBlocked = false AND a.isActive = true " +
@@ -54,30 +54,30 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         @Query(value = "SELECT * FROM posts WHERE author_id = :authorId ORDER BY created_at DESC", countQuery = "SELECT count(*) FROM posts WHERE author_id = :authorId", nativeQuery = true)
         Page<Post> findByAuthorIdForAdmin(@Param("authorId") Long authorId, Pageable pageable);
 
-        @Query("SELECT p FROM posts p WHERE p.author.id = :authorId ORDER BY p.id DESC")
+        @Query("SELECT p FROM Post p WHERE p.author.id = :authorId ORDER BY p.id DESC")
         List<Post> findByAuthorId(@Param("authorId") Long authorId, Pageable pageable);
 
-        @Query("SELECT p FROM posts p WHERE p.author.id = :authorId AND p.id < :cursor ORDER BY p.id DESC")
+        @Query("SELECT p FROM Post p WHERE p.author.id = :authorId AND p.id < :cursor ORDER BY p.id DESC")
         List<Post> findByAuthorIdAndCursor(@Param("authorId") Long authorId, @Param("cursor") Long cursor,
                         Pageable pageable);
 
-        @Query("SELECT p FROM posts p WHERE p.author.id IN " +
+        @Query("SELECT p FROM Post p WHERE p.author.id IN " +
                         "(SELECT s.targetUser.id FROM Subscription s WHERE s.subscriber.id = :userId) " +
                         "ORDER BY p.id DESC")
         List<Post> findSubscriptionsFeed(@Param("userId") Long userId, Pageable pageable);
 
-        @Query("SELECT p FROM posts p WHERE p.author.id IN " +
+        @Query("SELECT p FROM Post p WHERE p.author.id IN " +
                         "(SELECT s.targetUser.id FROM Subscription s WHERE s.subscriber.id = :userId) " +
                         "AND p.id < :cursor ORDER BY p.id DESC")
         List<Post> findSubscriptionsFeedByCursor(@Param("userId") Long userId, @Param("cursor") Long cursor,
                         Pageable pageable);
 
-        @Query("SELECT p FROM posts p WHERE " +
+        @Query("SELECT p FROM Post p WHERE " +
                         "(p.title ILIKE %:keyword% OR p.description ILIKE %:keyword%) " +
                         "ORDER BY p.id DESC")
         List<Post> searchPublicPosts(@Param("keyword") String keyword, Pageable pageable);
 
-        @Query("SELECT p FROM posts p WHERE " +
+        @Query("SELECT p FROM Post p WHERE " +
                         "(p.title ILIKE %:keyword% OR p.description ILIKE %:keyword%) " +
                         "AND p.id < :cursor ORDER BY p.id DESC")
         List<Post> searchPublicPostsByCursor(@Param("keyword") String keyword, @Param("cursor") Long cursor,

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import _Blog_Backend.dto.AuthorDto;
+import _Blog_Backend.dto.UserDto;
 import _Blog_Backend.dto.CursorResponse;
 import _Blog_Backend.dto.SubscriptionResponse;
 import _Blog_Backend.entity.Subscription;
@@ -28,8 +28,9 @@ public class SubscriptionService {
     private final NotificationService notificationService;
 
     @Transactional
-    public SubscriptionResponse toggleSubscription(String targetUsername, User currentUser) {
-
+    public SubscriptionResponse toggleSubscription(String targetUsername, User detachedCurrentUser) {
+        User currentUser = userRepository.findById(detachedCurrentUser.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Current user not found"));
         User targetUser = userRepository.findByUsername(targetUsername)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
@@ -68,7 +69,7 @@ public class SubscriptionService {
     }
 
     @Transactional(readOnly = true)
-    public CursorResponse<AuthorDto> getFollowers(Long userId, Long cursor) {
+    public CursorResponse<UserDto> getFollowers(Long userId, Long cursor) {
 
         if (!userRepository.existsById(userId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
@@ -92,7 +93,7 @@ public class SubscriptionService {
             nextCursor = subscriptions.get(subscriptions.size() - 1).getId();
         }
 
-        List<AuthorDto> followerDtos = subscriptions.stream()
+        List<UserDto> followerDtos = subscriptions.stream()
                 .map(sub -> mapToProfileDto(sub.getSubscriber()))
                 .toList();
 
@@ -100,7 +101,7 @@ public class SubscriptionService {
     }
 
     @Transactional(readOnly = true)
-    public CursorResponse<AuthorDto> getFollowing(Long userId, Long cursor) {
+    public CursorResponse<UserDto> getFollowing(Long userId, Long cursor) {
 
         if (!userRepository.existsById(userId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
@@ -124,15 +125,15 @@ public class SubscriptionService {
             nextCursor = subscriptions.get(subscriptions.size() - 1).getId();
         }
 
-        List<AuthorDto> followingDtos = subscriptions.stream()
+        List<UserDto> followingDtos = subscriptions.stream()
                 .map(sub -> mapToProfileDto(sub.getTargetUser()))
                 .toList();
 
         return new CursorResponse<>(followingDtos, nextCursor, hasMore);
     }
 
-    private AuthorDto mapToProfileDto(User user) {
-        return new AuthorDto(
+    private UserDto mapToProfileDto(User user) {
+        return new UserDto(
                 user.getId(),
                 user.getUsername(),
                 user.getProfilePictureUrl());

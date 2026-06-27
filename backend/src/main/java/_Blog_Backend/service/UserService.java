@@ -1,14 +1,16 @@
 package _Blog_Backend.service;
 
+import java.io.IOException;
 import java.util.*;
 
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import _Blog_Backend.dto.AuthorDto;
+import _Blog_Backend.dto.UserDto;
 import _Blog_Backend.dto.CursorResponse;
 import _Blog_Backend.dto.PublicProfileDto;
 import _Blog_Backend.entity.User;
@@ -19,6 +21,22 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final FileUploadService fileUploadService;
+
+    @Transactional
+    public String updateAvatar(MultipartFile file, User currentUser) throws IOException {
+
+        if (currentUser.getProfilePictureUrl() != null) {
+            fileUploadService.deleteFileByUrl(currentUser.getProfilePictureUrl());
+        }
+
+        String secureUrl = fileUploadService.uploadFile(file);
+
+        currentUser.setProfilePictureUrl(secureUrl);
+        userRepository.save(currentUser);
+
+        return currentUser.getProfilePictureUrl();
+    }
 
     @Transactional(readOnly = true)
     public PublicProfileDto getPublicProfile(String username) {
@@ -42,7 +60,7 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public CursorResponse<AuthorDto> searchUsers(String keyword, Long cursor) {
+    public CursorResponse<UserDto> searchUsers(String keyword, Long cursor) {
 
         Pageable pageRequest = PageRequest.of(0, 11);
         List<User> users;
@@ -61,8 +79,8 @@ public class UserService {
             nextCursor = users.get(users.size() - 1).getId();
         }
 
-        List<AuthorDto> cleanUsers = users.stream()
-                .map(user -> new AuthorDto(
+        List<UserDto> cleanUsers = users.stream()
+                .map(user -> new UserDto(
                         user.getId(),
                         user.getUsername(),
                         user.getProfilePictureUrl()))
