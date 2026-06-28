@@ -1,12 +1,21 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
-import { provideRouter } from '@angular/router';
-
+import { ApplicationConfig, provideZonelessChangeDetection } from '@angular/core';
+import { provideRouter, withComponentInputBinding, withViewTransitions } from '@angular/router';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { routes } from './app.routes';
-import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
+// Use YOUR existing interceptor — no changes to that file needed
+import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideBrowserGlobalErrorListeners(),
-    provideRouter(routes), provideClientHydration(withEventReplay())
-  ]
+    provideZonelessChangeDetection(),
+
+    provideRouter(
+      routes,
+      withComponentInputBinding(), // lets route params map to @Input() automatically
+      withViewTransitions(), // smooth page transitions
+    ),
+
+    // Register your existing jwt interceptor here
+    provideHttpClient(withInterceptors([jwtInterceptor])),
+  ],
 };

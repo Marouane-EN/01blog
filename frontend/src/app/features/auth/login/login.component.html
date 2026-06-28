@@ -6,32 +6,68 @@
     </mat-card-header>
 
     <mat-card-content>
+      <div class="social-login-container">
+        <button
+          mat-stroked-button
+          type="button"
+          class="social-btn google-btn"
+          (click)="loginWithGoogle()"
+        >
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
+            alt="Google"
+            class="social-icon"
+          />
+          Continue with Google
+        </button>
+
+        <button
+          mat-stroked-button
+          type="button"
+          class="social-btn github-btn"
+          (click)="loginWithGithub()"
+        >
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg"
+            alt="GitHub"
+            class="social-icon"
+          />
+          Continue with GitHub
+        </button>
+      </div>
+
+      <div class="divider">
+        <span>OR</span>
+      </div>
+
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
-        <div class="error-alert" *ngIf="errorMessage">
-          {{ errorMessage }}
-        </div>
+        @if (errorMessage()) {
+          <div class="error-alert">
+            {{ errorMessage() }}
+          </div>
+        }
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Username or Email</mat-label>
-          <input
-            matInput
-            formControlName="identifier"
-            placeholder="Enter your username or email"
-          />
-          <mat-error *ngIf="loginForm.controls.identifier.hasError('required')">
-            Username or email is required
-          </mat-error>
+          <input matInput formControlName="identifier" placeholder="Enter your username or email" />
+          @if (loginForm.controls.identifier.hasError('required')) {
+            <mat-error>Username or email is required</mat-error>
+          }
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Password</mat-label>
-          <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" />
-          <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
-            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          <input
+            matInput
+            [type]="hidePassword() ? 'password' : 'text'"
+            formControlName="password"
+          />
+          <button mat-icon-button matSuffix (click)="hidePassword.update((v) => !v)" type="button">
+            <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>
-          <mat-error *ngIf="loginForm.controls.password.hasError('required')">
-            Password is required
-          </mat-error>
+          @if (loginForm.controls.password.hasError('required')) {
+            <mat-error>Password is required</mat-error>
+          }
         </mat-form-field>
 
         <button
@@ -39,10 +75,13 @@
           color="primary"
           type="submit"
           class="submit-button"
-          [disabled]="loginForm.invalid || isLoading"
+          [disabled]="loginForm.invalid || isLoading()"
         >
-          <mat-spinner diameter="20" *ngIf="isLoading"></mat-spinner>
-          <span *ngIf="!isLoading">Log In</span>
+          @if (isLoading()) {
+            <mat-spinner diameter="20"></mat-spinner>
+          } @else {
+            <span>Log In</span>
+          }
         </button>
       </form>
     </mat-card-content>

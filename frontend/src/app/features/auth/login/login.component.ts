@@ -1,8 +1,9 @@
-import { Component, inject, ChangeDetectorRef } from '@angular/core'; // <-- Add ChangeDetectorRef
-import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, inject, signal } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+// CHANGE 1: inject AuthStore so the signal updates immediately on login
+import { AuthStore } from '../../../core/store/auth.store';
 
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -14,7 +15,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   selector: 'app-login',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     RouterModule,
     MatInputModule,
@@ -30,48 +30,48 @@ export class LoginComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);
-
-  // THE FIX: Inject the Change Detector
-  private cdr = inject(ChangeDetectorRef);
+  // CHANGE 1: inject AuthStore
+  private authStore = inject(AuthStore);
 
   loginForm = this.fb.nonNullable.group({
     identifier: ['', [Validators.required]],
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
-  hidePassword = true;
-  isLoading = false;
-  errorMessage = '';
+  hidePassword = signal(true);
+  isLoading = signal(false);
+  errorMessage = signal('');
+
+  private readonly BACKEND_URL = 'http://localhost:8080';
+
+  loginWithGoogle() {
+    window.location.href = `${this.BACKEND_URL}/oauth2/authorization/google`;
+  }
+
+  loginWithGithub() {
+    window.location.href = `${this.BACKEND_URL}/oauth2/authorization/github`;
+  }
 
   onSubmit() {
     if (this.loginForm.invalid) return;
 
-    this.isLoading = true;
-    this.errorMessage = '';
+    this.isLoading.set(true);
+    this.errorMessage.set('');
 
     this.authService.login(this.loginForm.getRawValue()).subscribe({
       next: () => {
-        // 1. Stop the spinner
-        this.isLoading = false;
-
-        // 2. Show a success message instead of trying to route
-        this.errorMessage = '✅ Login successful! JWT Token saved.';
-
-        // 3. Force the UI to update instantly
-        this.cdr.detectChanges();
+        this.isLoading.set(false);
+        // CHANGE 2: navigate to home after successful login
+        this.router.navigate(['/']);
       },
       error: (err) => {
-        // 3. Stop the spinner on error
-        this.isLoading = false;
+        this.isLoading.set(false);
 
         if (err.status === 401 || err.status === 403) {
-          this.errorMessage = 'Invalid username or password.';
+          this.errorMessage.set('Invalid username or password.');
         } else {
-          this.errorMessage = 'An unexpected error occurred. Please try again later.';
+          this.errorMessage.set('An unexpected error occurred. Please try again later.');
         }
-
-        // THE FIX: Manually wake up Angular to show the error instantly
-        this.cdr.detectChanges();
       },
     });
   }

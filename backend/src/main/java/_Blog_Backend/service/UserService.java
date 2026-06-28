@@ -1,18 +1,19 @@
 package _Blog_Backend.service;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
 
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import _Blog_Backend.dto.UserDto;
 import _Blog_Backend.dto.CursorResponse;
 import _Blog_Backend.dto.PublicProfileDto;
+import _Blog_Backend.dto.UserDto;
 import _Blog_Backend.entity.User;
 import _Blog_Backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,21 @@ import lombok.RequiredArgsConstructor;
 public class UserService {
     private final UserRepository userRepository;
     private final FileUploadService fileUploadService;
+
+    @Transactional(readOnly = true)
+    public UserDto getCurrentUser(User currentUser) {
+        User user = userRepository.findById(currentUser.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (user.isBlocked() || !user.isActive()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
+
+        return new UserDto(
+                user.getId(),
+                user.getUsername(),
+                user.getProfilePictureUrl());
+    }
 
     @Transactional
     public String updateAvatar(MultipartFile file, User currentUser) throws IOException {

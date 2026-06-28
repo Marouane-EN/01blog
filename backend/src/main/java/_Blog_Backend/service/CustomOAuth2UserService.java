@@ -24,10 +24,15 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String provider = userRequest.getClientRegistration().getRegistrationId().toUpperCase();
 
         String email = oAuth2User.getAttribute("email");
-
         String username = oAuth2User.getAttribute("login");
-
         String providerId = oAuth2User.getName();
+
+        String profilePictureUrl = null;
+        if ("GITHUB".equals(provider)) {
+            profilePictureUrl = oAuth2User.getAttribute("avatar_url");
+        } else if ("GOOGLE".equals(provider)) {
+            profilePictureUrl = oAuth2User.getAttribute("picture");
+        }
 
         if (username == null) {
             username = oAuth2User.getAttribute("name");
@@ -38,14 +43,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
 
         Optional<User> existingUser = userRepository.findByEmail(email);
-        String cleanUsername = username.replaceAll("//s+", "").toLowerCase();
+        String cleanUsername = username.replaceAll("\\s+", "").toLowerCase(); // Fixed regex for whitespace
+
         if (existingUser.isEmpty()) {
             String uniqueUsername = generateUniqueUsername(cleanUsername);
+
             User newUser = User.builder()
                     .username(uniqueUsername)
                     .email(email)
                     .authProvider(provider)
                     .providerId(providerId)
+                    .profilePictureUrl(profilePictureUrl)
                     .build();
             userRepository.save(newUser);
         }

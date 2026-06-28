@@ -73,3 +73,65 @@ mat-card-footer {
     }
   }
 }
+
+.social-login-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.social-btn {
+  height: 48px;
+  font-size: 1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+
+  /* Angular Material buttons use internal spans for content, this helps center the icon/text */
+  ::ng-deep .mat-mdc-button-touch-target {
+    display: none;
+  }
+}
+
+.social-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 12px;
+}
+
+/* The GitHub logo is black, so it looks better on standard buttons. 
+   Google usually enforces strict branding, so a clean stroked button is best. */
+.google-btn,
+.github-btn {
+  background-color: white;
+  color: #333;
+}
+
+/* The Classic "OR" Divider */
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #717171;
+  font-size: 0.85rem;
+  font-weight: 500;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  &::before {
+    margin-right: 0.5em;
+  }
+
+  &::after {
+    margin-left: 0.5em;
+  }
+}
