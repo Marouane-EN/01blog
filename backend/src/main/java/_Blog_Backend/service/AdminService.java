@@ -14,6 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 import _Blog_Backend.dto.AdminCommentDto;
 import _Blog_Backend.dto.AdminPostDetailsDto;
 import _Blog_Backend.dto.AdminPostDto;
+import _Blog_Backend.dto.AdminPostProjection;
 import _Blog_Backend.dto.AdminReportDto;
 import _Blog_Backend.dto.AdminUserDto;
 import _Blog_Backend.entity.Comment;
@@ -116,7 +117,7 @@ public class AdminService {
     public Page<AdminPostDto> getAllPostsForAdmin(int page, int size, String searchKeyword) {
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<Post> postsPage;
+        Page<AdminPostProjection> postsPage;
 
         if (searchKeyword != null && !searchKeyword.isBlank()) {
             postsPage = postRepository.searchAllForAdmin(searchKeyword, pageable);
@@ -124,14 +125,15 @@ public class AdminService {
             postsPage = postRepository.findAllForAdmin(pageable);
         }
 
-        return postsPage.map(post -> new AdminPostDto(
-                post.getId(),
-                post.getTitle(),
-                post.getAuthor().getUsername(),
-                post.getAuthor().getProfilePictureUrl(),
-                post.isHidden(),
-                post.getLikesCount(),
-                post.getCreatedAt()));
+        return postsPage.map(proj -> new AdminPostDto(
+                proj.getId(),
+                proj.getTitle(),
+                proj.getAuthorUsername(),
+                proj.getAuthorProfilePictureUrl(),
+                proj.getIsHidden(),
+                proj.getLikesCount(),
+                proj.getCommentsCount(),
+                proj.getCreatedAt()));
     }
 
     @Transactional(readOnly = true)
@@ -177,16 +179,17 @@ public class AdminService {
         Pageable pageable = PageRequest.of(page, size);
 
         // Uses the Native SQL Skeleton Key!
-        Page<Post> postsPage = postRepository.findByAuthorIdForAdmin(authorId, pageable);
+        Page<AdminPostProjection> postsPage = postRepository.findByAuthorIdForAdmin(authorId, pageable);
 
-        return postsPage.map(post -> new AdminPostDto(
-                post.getId(),
-                post.getTitle(),
-                post.getAuthor().getUsername(),
-                post.getAuthor().getProfilePictureUrl(),
-                post.isHidden(),
-                post.getLikesCount(),
-                post.getCreatedAt()));
+        return postsPage.map(proj -> new AdminPostDto(
+                proj.getId(),
+                proj.getTitle(),
+                proj.getAuthorUsername(),
+                proj.getAuthorProfilePictureUrl(),
+                proj.getIsHidden(),
+                proj.getLikesCount(),
+                proj.getCommentsCount(),
+                proj.getCreatedAt()));
     }
 
     // --- TAKING ACTION ---
@@ -207,16 +210,25 @@ public class AdminService {
 
     @Transactional
     public String togglePostVisibility(Long postId) {
-        Post post = postRepository.findPostById(postId)
+        Post post = postRepository.findPostEntityByIdForAdmin(postId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
 
-        post.setHidden(!post.isHidden());
+        boolean newVisibility = !post.isHidden();
 
-        // Because we fetched this with Native SQL, it is safer to explicitly call
-        // save()
-        postRepository.save(post);
+        postRepository.updatePostVisibilityForAdmin(postId, newVisibility);
 
-        return post.isHidden() ? "Post has been hidden from the public." : "Post has been restored.";
+        return newVisibility ? "Post has been hidden from the public." : "Post has been restored.";
+    }
+
+    @Transactional
+    public String hardDeletePost(Long postId) {
+
+        Post post = postRepository.findPostEntityByIdForAdmin(postId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
+
+        postRepository.delete(post);
+
+        return "Post has been permanently deleted from the database.";
     }
 
     @Transactional
@@ -228,16 +240,6 @@ public class AdminService {
         comment.setDeleted(true);
         comment.setContent("[This comment was removed by an Administrator]");
         commentRepository.save(comment);
-    }
-
-    @Transactional
-    public String hardDeletePost(Long postId) {
-        Post post = postRepository.findPostById(postId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
-
-        postRepository.delete(post);
-
-        return "Post has been permanently deleted from the database.";
     }
 
     @Transactional
