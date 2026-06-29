@@ -1,0 +1,19 @@
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Ensures the app fills the screen height */
+  background-color: #f5f5f5; /* Classic light-gray background for blogs */
+}
+
+.main-content {
+  flex: 1; /* Instructs this div to take up all remaining vertical space */
+  width: 100%;
+  max-width: 1200px; /* Matches the Navbar's max-width for perfect alignment */
+  margin: 0 auto; /* Centers the content container */
+  padding: 2rem 1rem; /* Adds breathing room around the edges */
+
+  // Optional: if you want a more fluid responsive layout on mobile
+  @media (max-width: 768px) {
+    padding: 1rem 0.5rem;
+  }
+}

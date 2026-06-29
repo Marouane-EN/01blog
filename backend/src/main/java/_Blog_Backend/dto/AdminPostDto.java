@@ -9,5 +9,6 @@ public record AdminPostDto(
         String authorProfilePictureUrl,
         boolean isHidden,
         int likesCount,
+        int commentsCount,
         LocalDateTime createdAt) {
 }

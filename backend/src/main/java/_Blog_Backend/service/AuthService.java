@@ -12,7 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import _Blog_Backend.dto.*;
+import _Blog_Backend.dto.AuthResponse;
+import _Blog_Backend.dto.RegisterRequest;
+import _Blog_Backend.dto.UserDto;
 import _Blog_Backend.entity.User;
 import _Blog_Backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +23,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthService {
     private final UserRepository userRepository;
-    private final NotificationService notificationService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;

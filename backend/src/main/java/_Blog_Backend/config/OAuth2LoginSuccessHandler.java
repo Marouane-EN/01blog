@@ -5,9 +5,10 @@ import java.io.IOException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import _Blog_Backend.entity.User;
 import _Blog_Backend.repository.UserRepository;
@@ -19,9 +20,13 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
+public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+
     private final JwtService jwtService;
     private final UserRepository userRepository;
+
+    // This is the URL of your Angular Application!
+    private final String FRONTEND_REDIRECT_URL = "http://localhost:4200/oauth2/redirect";
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -42,9 +47,12 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         String token = jwtService.generateToken(dbUser);
 
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        response.getWriter().write(
-                "{\n  \"message\": \"Login Successful! Copy your token below.\",\n  \"token\": \"" + token + "\"\n}");
+        // Build the redirect URL with the token attached as a query parameter
+        String targetUrl = UriComponentsBuilder.fromUriString(FRONTEND_REDIRECT_URL)
+                .queryParam("token", token)
+                .build().toUriString();
+
+        // Send the user's browser back to Angular!
+        getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }
