@@ -52,7 +52,7 @@ export class Oauth2RedirectComponent implements OnInit {
       this.authService.fetchMe().subscribe({
         next: () => {
           // Success! The user profile is loaded. Send them to the Home Page.
-          // this.router.navigate(['/']);
+          this.router.navigate(['/']);
           console.log('OAuth2 login successful! User profile fetched.');
         },
         error: (err) => {

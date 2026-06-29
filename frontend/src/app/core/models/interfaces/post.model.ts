@@ -1,31 +1,32 @@
-import { UserPreview } from './user.model';
-
-export interface Tag {
-  readonly id: string;
-  readonly name: string;
-  readonly color: string | null; // optional hex like '#3b82f6'
-}
-
-export interface Post {
-  readonly id: string;
-  readonly slug: string;
-  readonly title: string;
-  readonly excerpt: string | null;
-  readonly coverImageUrl: string | null;
-  readonly author: UserPreview;
-  readonly tags: readonly Tag[];
-  readonly likesCount: number;
-  readonly commentsCount: number;
-  readonly readingTimeMinutes: number;
-  readonly publishedAt: string; // ISO 8601
-  readonly isLikedByMe: boolean;
-  readonly isBookmarkedByMe: boolean;
-}
-
-export interface PostFeed {
-  readonly posts: readonly Post[];
-  readonly nextCursor: string | null;
+// ── Generic Wrapper ──────────────────────────────────────────────────
+export interface CursorResponse<T> {
+  readonly data: readonly T[];
+  readonly nextCursor: number | null;
   readonly hasMore: boolean;
 }
 
-export type FeedTab = 'for-you' | 'following' | 'latest';
+// ── User Models ──────────────────────────────────────────────────────
+export interface UserPreview {
+  readonly id: number;
+  readonly username: string;
+  readonly profileImageUrl: string | null;
+}
+
+// ── Post Models ──────────────────────────────────────────────────────
+export interface Post {
+  readonly id: number;
+  readonly slug: string;
+  readonly title: string;
+  readonly content: string;
+  readonly author: UserPreview;
+  readonly tag: readonly string[]; // Backend sends an array of strings
+  readonly mediaUrls: readonly string[];
+  readonly totalLikes: number; // Updated from likesCount
+  readonly totalComments: number; // Updated from commentsCount
+  readonly likedByCurrentUser: boolean; // Updated from isLikedByMe
+  readonly createAt: string; // ISO-8601 string
+  readonly updatedAt: string;
+}
+
+// Feed Tab Types
+export type FeedTab = 'latest' | 'following';

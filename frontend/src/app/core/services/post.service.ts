@@ -1,34 +1,27 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { FeedTab, PostFeed } from '../models';
+import { Post, CursorResponse, FeedTab } from '../models/interfaces/post.model';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root',
+})
 export class PostService {
-  readonly #http = inject(HttpClient);
-  readonly #baseUrl = '/api/posts';
+  private http = inject(HttpClient);
+  private readonly API_URL = 'http://localhost:8080/api/posts';
 
-  getFeed(tab: FeedTab, cursor?: string | null): Observable<PostFeed> {
-    let params = new HttpParams().set('tab', tab);
+  getFeed(tab: FeedTab, cursor?: number | null): Observable<CursorResponse<Post>> {
+    let params = new HttpParams();
     if (cursor) {
-      params = params.set('cursor', cursor);
+      params = params.set('cursor', cursor.toString());
     }
-    return this.#http.get<PostFeed>(this.#baseUrl, { params });
-  }
 
-  likePost(postId: string): Observable<{ likesCount: number }> {
-    return this.#http.post<{ likesCount: number }>(`${this.#baseUrl}/${postId}/like`, {});
-  }
+    // Route to the correct endpoint based on the tab
+    if (tab === 'following') {
+      return this.http.get<CursorResponse<Post>>(`${this.API_URL}/subscriptions`, { params });
+    }
 
-  unlikePost(postId: string): Observable<{ likesCount: number }> {
-    return this.#http.delete<{ likesCount: number }>(`${this.#baseUrl}/${postId}/like`);
-  }
-
-  bookmarkPost(postId: string): Observable<void> {
-    return this.#http.post<void>(`${this.#baseUrl}/${postId}/bookmark`, {});
-  }
-
-  removeBookmark(postId: string): Observable<void> {
-    return this.#http.delete<void>(`${this.#baseUrl}/${postId}/bookmark`);
+    // Default to latest
+    return this.http.get<CursorResponse<Post>>(this.API_URL, { params });
   }
 }

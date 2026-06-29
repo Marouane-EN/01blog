@@ -1,9 +1,9 @@
 <button
   type="button"
   class="tag-badge"
-  [style.--tag-color]="tag.color ?? '#6b7280'"
+  [style.--tag-color]="'#6b7280'"
   (click)="tagClick.emit(tag)"
-  [attr.aria-label]="'Filter by ' + tag.name"
+  [attr.aria-label]="'Filter by ' + tag"
 >
-  #{{ tag.name }}
+  #{{ tag }}
 </button>

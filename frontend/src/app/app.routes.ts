@@ -1,14 +1,24 @@
 import { Routes } from '@angular/router';
+import { MainLayoutComponent } from './core/layout/main-layout/main-layout.component';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
-  // ── Home (the page we just built) ────────────────────────────────────
+  // ── 1. App Shell (Pages that HAVE a Navbar and Footer) ──
   {
     path: '',
-    loadComponent: () =>
-      import('./features/home/home-page.component').then((m) => m.HomePageComponent),
+    component: MainLayoutComponent, // The wrapper!
+    children: [
+      {
+        path: '', // Root URL (Home Page)
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./features/home/home-page.component').then((m) => m.HomePageComponent),
+      },
+      // Future pages like 'posts/:slug' or 'profile/:username' will go here
+    ],
   },
 
-  // ── Auth feature (your existing components — paths match your folder layout) ──
+  // ── 2. Standalone Pages (No Navbar - usually Auth) ──
   {
     path: 'login',
     loadComponent: () =>
@@ -20,7 +30,6 @@ export const routes: Routes = [
       import('./features/auth/register/register.component').then((m) => m.RegisterComponent),
   },
   {
-    // Your existing OAuth2 redirect handler
     path: 'oauth2/redirect',
     loadComponent: () =>
       import('./features/auth/oauth2-redirect/oauth2-redirect.component').then(
@@ -28,37 +37,6 @@ export const routes: Routes = [
       ),
   },
 
-  // ── Future pages (lazy-loaded, add as you build them) ────────────────
-  // {
-  //   path: 'posts/:slug',
-  //   loadComponent: () =>
-  //     import('./features/post-detail/post-detail.component').then((m) => m.PostDetailComponent),
-  // },
-  // {
-  //   path: 'profile/:username',
-  //   loadComponent: () =>
-  //     import('./features/profile/profile.component').then((m) => m.ProfileComponent),
-  // },
-  // {
-  //   path: 'create-post',
-  //   loadComponent: () =>
-  //     import('./features/create-post/create-post.component').then((m) => m.CreatePostComponent),
-  // },
-  // {
-  //   path: 'search',
-  //   loadComponent: () =>
-  //     import('./features/search/search.component').then((m) => m.SearchComponent),
-  // },
-  // {
-  //   path: 't/:tag',
-  //   loadComponent: () =>
-  //     import('./features/tag-feed/tag-feed.component').then((m) => m.TagFeedComponent),
-  // },
-
-  // // ── Catch-all 404 ────────────────────────────────────────────────────
-  // {
-  //   path: '**',
-  //   loadComponent: () =>
-  //     import('./features/not-found/not-found.component').then((m) => m.NotFoundComponent),
-  // },
+  // Catch-all route (fallback)
+  { path: '**', redirectTo: '' },
 ];

@@ -48,6 +48,7 @@ export class AuthStore implements OnDestroy {
    * Avatar URL — returns null when no user or no picture set.
    */
   readonly avatarUrl: Signal<string | null> = computed(
+    // Changed from profilePictureUrl to profileImageUrl to match the backend
     () => this.#user()?.profilePictureUrl ?? null,
   );
 

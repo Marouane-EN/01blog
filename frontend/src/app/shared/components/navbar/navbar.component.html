@@ -1,0 +1,51 @@
+<mat-toolbar class="navbar">
+  <div class="nav-container">
+    <!-- Logo -->
+    <a routerLink="/" class="brand-logo">
+      <mat-icon>integration_instructions</mat-icon>
+      <span class="brand-text">DevBlog</span>
+    </a>
+
+    <!-- The New Search Bar -->
+    <div class="search-container">
+      <input type="text" placeholder="Search..." class="search-input" aria-label="Search posts" />
+      <button type="button" class="search-icon-btn">
+        <mat-icon>search</mat-icon>
+      </button>
+    </div>
+
+    <span class="spacer"></span>
+
+    @if (authStore.isAuthenticated()) {
+      <button mat-stroked-button color="primary" class="write-btn" routerLink="/create-post">
+        Write a Post
+      </button>
+
+      <button mat-button [matMenuTriggerFor]="userMenu" class="user-btn">
+        @if (authStore.avatarUrl()) {
+          <img [src]="authStore.avatarUrl()" alt="Avatar" class="avatar-img" />
+        } @else {
+          <mat-icon>account_circle</mat-icon>
+        }
+      </button>
+
+      <mat-menu #userMenu="matMenu" xPosition="before">
+        <div class="menu-header">
+          <strong>{{ authStore.displayName() }}</strong>
+        </div>
+        <mat-divider></mat-divider>
+        <a mat-menu-item routerLink="/profile">
+          <mat-icon>person</mat-icon>
+          <span>Dashboard</span>
+        </a>
+        <button mat-menu-item (click)="authStore.logout()">
+          <mat-icon>logout</mat-icon>
+          <span>Sign Out</span>
+        </button>
+      </mat-menu>
+    } @else {
+      <a mat-button routerLink="/login">Log in</a>
+      <a mat-flat-button color="primary" routerLink="/register">Create account</a>
+    }
+  </div>
+</mat-toolbar>

@@ -1,101 +1,40 @@
-import { Injectable, Signal, computed, signal } from '@angular/core';
-import { FeedTab, Post } from '../models/interfaces/post.model';
+import { Injectable, inject, signal } from '@angular/core';
+import { PostService } from '../services/post.service';
+import { Post, FeedTab } from '../models/interfaces/post.model';
 
-export type FeedStatus = 'idle' | 'loading' | 'loadingMore' | 'loaded' | 'error';
-
-interface FeedState {
-  readonly posts: readonly Post[];
-  readonly status: FeedStatus;
-  readonly error: string | null;
-  readonly nextCursor: string | null;
-  readonly hasMore: boolean;
-  readonly activeTab: FeedTab;
-}
-
-const INITIAL_STATE: FeedState = {
-  posts: [],
-  status: 'idle',
-  error: null,
-  nextCursor: null,
-  hasMore: false,
-  activeTab: 'for-you',
-};
-
-/**
- * Signal-first post feed store.
- * Holds paginated post lists and the active feed tab.
- */
 @Injectable({ providedIn: 'root' })
 export class FeedStore {
-  readonly #state = signal<FeedState>(INITIAL_STATE);
+  private postService = inject(PostService);
 
-  // ── Public derived signals ─────────────────────────────────────────────
-  readonly posts: Signal<readonly Post[]> = computed(() => this.#state().posts);
-  readonly status: Signal<FeedStatus> = computed(() => this.#state().status);
-  readonly error: Signal<string | null> = computed(() => this.#state().error);
-  readonly hasMore: Signal<boolean> = computed(() => this.#state().hasMore);
-  readonly nextCursor: Signal<string | null> = computed(() => this.#state().nextCursor);
-  readonly activeTab: Signal<FeedTab> = computed(() => this.#state().activeTab);
-  readonly isLoading: Signal<boolean> = computed(
-    () => this.#state().status === 'loading' || this.#state().status === 'loadingMore'
-  );
-  readonly isEmpty: Signal<boolean> = computed(
-    () => this.#state().status === 'loaded' && this.#state().posts.length === 0
-  );
+  // ── Private Writable Signals ──
+  readonly #posts = signal<readonly Post[]>([]);
+  readonly #isLoading = signal<boolean>(false);
+  readonly #activeTab = signal<FeedTab>('latest');
+  readonly #error = signal<string | null>(null);
 
-  // ── Mutations ──────────────────────────────────────────────────────────
-  setLoading(): void {
-    this.#state.update(s => ({ ...s, status: 'loading', posts: [], nextCursor: null }));
-  }
+  // ── Public Read-Only Signals ──
+  readonly posts = this.#posts.asReadonly();
+  readonly isLoading = this.#isLoading.asReadonly();
+  readonly activeTab = this.#activeTab.asReadonly();
+  readonly error = this.#error.asReadonly();
 
-  setLoadingMore(): void {
-    this.#state.update(s => ({ ...s, status: 'loadingMore' }));
-  }
+  // ── Actions (Mutations) ──
+  loadFeed(tab: FeedTab) {
+    this.#isLoading.set(true);
+    this.#error.set(null);
+    this.#activeTab.set(tab);
 
-  setPosts(posts: readonly Post[], nextCursor: string | null, hasMore: boolean): void {
-    this.#state.update(s => ({ ...s, posts, nextCursor, hasMore, status: 'loaded', error: null }));
-  }
-
-  appendPosts(posts: readonly Post[], nextCursor: string | null, hasMore: boolean): void {
-    this.#state.update(s => ({
-      ...s,
-      posts: [...s.posts, ...posts],
-      nextCursor,
-      hasMore,
-      status: 'loaded',
-      error: null,
-    }));
-  }
-
-  setError(error: string): void {
-    this.#state.update(s => ({ ...s, status: 'error', error }));
-  }
-
-  setTab(tab: FeedTab): void {
-    this.#state.update(s => ({ ...s, activeTab: tab }));
-  }
-
-  toggleLike(postId: string): void {
-    this.#state.update(s => ({
-      ...s,
-      posts: s.posts.map(p =>
-        p.id === postId
-          ? {
-              ...p,
-              isLikedByMe: !p.isLikedByMe,
-              likesCount: p.isLikedByMe ? p.likesCount - 1 : p.likesCount + 1,
-            }
-          : p
-      ),
-    }));
-  }
-
-  toggleBookmark(postId: string): void {
-    this.#state.update(s => ({
-      ...s,
-      posts: s.posts.map(p =>
-        p.id === postId ? { ...p, isBookmarkedByMe: !p.isBookmarkedByMe } : p
-      ),
-    }));
+    this.postService.getFeed(tab).subscribe({
+      next: (feedData) => {
+        this.#posts.set(feedData.data);
+        this.#isLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Error fetching feed:', err);
+        this.#error.set('Failed to load posts. Please try again later.');
+        this.#posts.set([]);
+        this.#isLoading.set(false);
+      },
+    });
   }
 }

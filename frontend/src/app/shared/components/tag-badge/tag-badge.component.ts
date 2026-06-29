@@ -1,5 +1,4 @@
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
-import { Tag } from '../../../core/models/interfaces/post.model';
 
 @Component({
   selector: 'app-tag-badge',
@@ -9,6 +8,6 @@ import { Tag } from '../../../core/models/interfaces/post.model';
   styleUrl: './tag-badge.component.scss',
 })
 export class TagBadgeComponent {
-  @Input({ required: true }) tag!: Tag;
-  @Output() tagClick = new EventEmitter<Tag>();
+  @Input({ required: true }) tag!: string;
+  @Output() tagClick = new EventEmitter<string>();
 }

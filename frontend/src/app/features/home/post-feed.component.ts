@@ -1,6 +1,5 @@
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
-import { FeedStatus } from '../../core/store/feed.store';
-import { FeedTab, Post, Tag } from '../../core/models/interfaces/post.model';
+import { FeedTab, Post } from '../../core/models/interfaces/post.model';
 import { PostCardComponent } from '../../shared/components/post-card/post-card.component';
 
 @Component({
@@ -24,8 +23,8 @@ import { PostCardComponent } from '../../shared/components/post-card/post-card.c
           @for (post of posts; track post.id) {
             <app-post-card
               [post]="post"
-              (likeClick)="likeClick.emit($event)"
-              (bookmarkClick)="bookmarkClick.emit($event)"
+              (likeClick)="likeClick.emit(post.id)"
+              (bookmarkClick)="bookmarkClick.emit(post.id)"
               (tagClick)="tagClick.emit($event)"
             />
           }
@@ -110,15 +109,14 @@ import { PostCardComponent } from '../../shared/components/post-card/post-card.c
 })
 export class PostFeedComponent {
   @Input() posts: readonly Post[] = [];
-  @Input() status: FeedStatus = 'idle';
   @Input() error: string | null = null;
   @Input() hasMore = false;
   @Input() isEmpty = false;
   @Input({ required: true }) activeTab!: FeedTab;
-
-  @Output() likeClick = new EventEmitter<string>();
-  @Output() bookmarkClick = new EventEmitter<string>();
-  @Output() tagClick = new EventEmitter<Tag>();
+  @Input() status: 'idle' | 'loading' | 'loadingMore' | 'error' = 'idle';
+  @Output() likeClick = new EventEmitter<number>();
+  @Output() bookmarkClick = new EventEmitter<number>();
+  @Output() tagClick = new EventEmitter<string>();
   @Output() loadMore = new EventEmitter<void>();
   @Output() retry = new EventEmitter<void>();
 }

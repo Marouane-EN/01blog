@@ -1,0 +1,60 @@
+<article class="post-card">
+  @if (post.mediaUrls && post.mediaUrls.length > 0) {
+    <a [routerLink]="['/posts', post.slug]" class="cover-image-link">
+      <img [src]="post.mediaUrls[0]" [alt]="post.title" class="cover-image" loading="lazy" />
+    </a>
+  }
+
+  <div class="card-content">
+    <div class="post-header">
+      <a [routerLink]="['/profile', post.author.username]" class="author-meta">
+        <img
+          [src]="post.author.profileImageUrl || 'assets/default-avatar.png'"
+          alt="Author avatar"
+          class="author-avatar"
+        />
+        <div class="author-info">
+          <span class="author-name">{{ post.author.username }}</span>
+          <span class="publish-date">{{ post.createAt | date: 'MMM d' }}</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="post-body">
+      <h2 class="post-title">
+        <a [routerLink]="['/posts', post.slug]">{{ post.title }}</a>
+      </h2>
+
+      <div class="post-tags">
+        @for (tagName of post.tag; track tagName) {
+          <a [routerLink]="['/t', tagName]" class="tag">
+            <span class="hash">#</span>{{ tagName }}
+          </a>
+        }
+      </div>
+    </div>
+
+    <div class="post-footer">
+      <div class="metrics">
+        <button
+          mat-button
+          class="metric-btn"
+          (click)="toggleLike($event)"
+          [class.active-like]="post.likedByCurrentUser"
+        >
+          <mat-icon>{{ post.likedByCurrentUser ? 'favorite' : 'favorite_border' }}</mat-icon>
+          <span>{{ post.totalLikes }} <span class="hide-mobile">Reactions</span></span>
+        </button>
+
+        <a mat-button class="metric-btn" [routerLink]="['/posts', post.slug]" fragment="comments">
+          <mat-icon>chat_bubble_outline</mat-icon>
+          <span>{{ post.totalComments }} <span class="hide-mobile">Comments</span></span>
+        </a>
+      </div>
+
+      <div class="actions">
+        <span class="read-time">{{ calculateReadingTime(post.content) }} min read</span>
+      </div>
+    </div>
+  </div>
+</article>

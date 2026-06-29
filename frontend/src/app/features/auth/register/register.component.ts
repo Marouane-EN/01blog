@@ -53,7 +53,7 @@ export class RegisterComponent {
     this.authService.register(registrationData).subscribe({
       next: () => {
         this.isLoading.set(false);
-        this.router.navigate(['/login']);
+        this.router.navigate(['/']);
       },
       error: (err) => {
         this.isLoading.set(false);

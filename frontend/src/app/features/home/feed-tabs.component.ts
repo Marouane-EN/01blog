@@ -74,7 +74,6 @@ export class FeedTabsComponent {
   @Output() tabChange = new EventEmitter<FeedTab>();
 
   readonly tabs: TabOption[] = [
-    { id: 'for-you', label: 'For you' },
     { id: 'following', label: 'Following' },
     { id: 'latest', label: 'Latest' },
   ];

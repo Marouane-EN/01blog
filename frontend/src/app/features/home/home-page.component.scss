@@ -1,0 +1,124 @@
+.home-container {
+  display: grid;
+  // 3 Columns: Left Nav (240px), Main Feed (Flexible, max 2fr), Right Sidebar (1fr)
+  grid-template-columns: 240px minmax(0, 2fr) 1fr;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+// ── Sidebars ──────────────────────────────────────────────
+.left-sidebar,
+.right-sidebar {
+  display: flex;
+  flex-direction: column;
+}
+
+.side-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .nav-item {
+    justify-content: flex-start;
+    text-align: left;
+    font-weight: 400;
+    color: #404040;
+    border-radius: 6px;
+
+    mat-icon {
+      margin-right: 8px;
+    }
+
+    &:hover {
+      color: #3b49df;
+      background-color: rgba(59, 73, 223, 0.1);
+    }
+
+    &.active {
+      font-weight: 600;
+    }
+  }
+}
+
+.widget-card {
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid #e5e5e5;
+
+  h4 {
+    margin-top: 0;
+    font-size: 1.1rem;
+    color: #242424;
+  }
+}
+
+// ── Feed Section ──────────────────────────────────────────
+.feed-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.feed-header {
+  display: flex;
+  gap: 0.5rem;
+
+  .feed-tab {
+    background: transparent;
+    border: none;
+    padding: 0.5rem 0.75rem;
+    font-size: 1.15rem;
+    cursor: pointer;
+    border-radius: 6px;
+    color: #575757;
+    font-weight: 400;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: #3b49df;
+      background-color: #ffffff;
+    }
+
+    &.active {
+      font-weight: 700;
+      color: #090909;
+    }
+  }
+}
+
+.post-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.placeholder-card {
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  color: #717171;
+}
+
+// ── Responsive Design ─────────────────────────────────────
+@media (max-width: 1024px) {
+  // Drop the right sidebar on medium screens
+  .home-container {
+    grid-template-columns: 240px 1fr;
+  }
+  .right-sidebar {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  // Drop the left sidebar on mobile and just show the feed
+  .home-container {
+    grid-template-columns: 1fr;
+  }
+  .left-sidebar {
+    display: none;
+  }
+}

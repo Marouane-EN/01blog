@@ -3,15 +3,13 @@ export interface User {
   readonly username: string;
   readonly email: string;
   readonly displayName: string;
-  readonly avatarUrl: string | null;
+  readonly profilePictureUrl: string | null;
   readonly bio: string | null;
   readonly followersCount: number;
   readonly followingCount: number;
-  readonly createdAt: string; // ISO 8601
+  readonly createdAt: string;
 }
 
 export interface AuthUser extends User {
   readonly token: string;
 }
-
-export type UserPreview = Pick<User, 'id' | 'username' | 'displayName' | 'avatarUrl'>;

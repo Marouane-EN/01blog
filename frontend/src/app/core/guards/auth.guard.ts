@@ -2,20 +2,15 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthStore } from '../store/auth.store';
 
-/**
- * Protects routes that require authentication.
- * Redirects to /login and preserves the attempted URL as returnUrl.
- */
-export const authGuard: CanActivateFn = (route) => {
+export const authGuard: CanActivateFn = () => {
   const authStore = inject(AuthStore);
   const router = inject(Router);
 
+  // If the user is logged in, allow them to pass
   if (authStore.isAuthenticated()) {
     return true;
   }
 
-  const returnUrl = route.url.map((s) => s.toString()).join('/');
-  return router.createUrlTree(['/login'], {
-    queryParams: { returnUrl: '/' + returnUrl },
-  });
+  // Otherwise, kick them back to the login page safely
+  return router.parseUrl('/login');
 };
