@@ -6,13 +6,19 @@
       <span class="brand-text">DevBlog</span>
     </a>
 
-    <!-- The New Search Bar -->
-    <div class="search-container">
-      <input type="text" placeholder="Search..." class="search-input" aria-label="Search posts" />
-      <button type="button" class="search-icon-btn">
+    <form class="search-container" (submit)="$event.preventDefault(); submitSearch()">
+      <input
+        type="text"
+        placeholder="Search posts"
+        class="search-input"
+        aria-label="Search posts"
+        [value]="searchValue"
+        (input)="searchValue = $any($event.target).value"
+      />
+      <button type="submit" class="search-icon-btn" aria-label="Search">
         <mat-icon>search</mat-icon>
       </button>
-    </div>
+    </form>
 
     <span class="spacer"></span>
 
@@ -20,6 +26,57 @@
       <button mat-stroked-button color="primary" class="write-btn" routerLink="/create-post">
         Write a Post
       </button>
+
+      <button
+        mat-icon-button
+        type="button"
+        class="notification-btn"
+        [matMenuTriggerFor]="notificationMenu"
+        (menuOpened)="loadNotifications()"
+        aria-label="Notifications"
+      >
+        <mat-icon
+          [matBadge]="unreadCount() || null"
+          matBadgeColor="warn"
+          matBadgeSize="small"
+          [matBadgeHidden]="unreadCount() === 0"
+          >notifications</mat-icon
+        >
+      </button>
+
+      <mat-menu #notificationMenu="matMenu" xPosition="before" class="notification-menu">
+        <div class="notification-header">
+          <strong>Notifications</strong>
+          @if (unreadCount()) {
+            <span>{{ unreadCount() }} unread</span>
+          }
+        </div>
+        <mat-divider></mat-divider>
+        @if (notificationsLoading()) {
+          <div class="notification-empty">Loading...</div>
+        } @else {
+          @for (notification of notifications(); track notification.id) {
+            <button
+              mat-menu-item
+              class="notification-item"
+              [class.unread]="!notification.isRead"
+              (click)="markNotification(notification)"
+            >
+              <img
+                [src]="notification.senderProfilePictureUrl || 'assets/default-avatar.png'"
+                [alt]="notification.senderUsername + ' avatar'"
+              />
+              <span>
+                <strong>{{ notification.senderUsername }}</strong>
+                {{ notification.type }}
+                <small>{{ notification.createdAt | date: 'short' }}</small>
+              </span>
+            </button>
+          } @empty {
+            <div class="notification-empty">No notifications yet.</div>
+          }
+        }
+      </mat-menu>
 
       <button mat-button [matMenuTriggerFor]="userMenu" class="user-btn">
         @if (authStore.avatarUrl()) {

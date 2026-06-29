@@ -1,0 +1,125 @@
+@if (isLoading()) {
+  <div class="loading-state">
+    <mat-spinner diameter="42"></mat-spinner>
+  </div>
+} @else if (profile(); as profile) {
+  <section class="profile-header">
+    <div class="avatar-wrap">
+      <img [src]="profile.profilePictureUrl || 'assets/default-avatar.png'" [alt]="profile.username + ' avatar'" />
+
+      @if (isOwnProfile) {
+        <label class="avatar-action">
+          @if (avatarUploading()) {
+            <mat-spinner diameter="20"></mat-spinner>
+          } @else {
+            <mat-icon>photo_camera</mat-icon>
+          }
+          <input type="file" accept="image/*" (change)="onAvatarSelected($event)" />
+        </label>
+      }
+    </div>
+
+    <div class="profile-copy">
+      <div class="profile-title-row">
+        <h1>{{ profile.username }}</h1>
+        @if (!isOwnProfile) {
+          <button mat-flat-button color="primary" type="button" (click)="toggleFollow()" [disabled]="followLoading()">
+            @if (isFollowing()) {
+              Following
+            } @else {
+              Follow
+            }
+          </button>
+        }
+      </div>
+      @if (profile.bio) {
+        <p>{{ profile.bio }}</p>
+      }
+      <div class="profile-meta">
+        <span>{{ profile.postsCount }} Posts</span>
+        <button type="button" (click)="openConnections('followers')">
+          {{ profile.followersCount }} Followers
+        </button>
+        <button type="button" (click)="openConnections('following')">
+          {{ profile.followingCount }} Following
+        </button>
+        <span>Joined {{ profile.joinedAt | date: 'mediumDate' }}</span>
+      </div>
+    </div>
+  </section>
+
+  @if (errorMessage()) {
+    <p class="error-state">{{ errorMessage() }}</p>
+  }
+
+  <section class="profile-posts">
+    <h2>Posts</h2>
+
+    <div class="post-list">
+      @for (post of posts(); track post.id) {
+        <app-post-card
+          [post]="post"
+          (likeClick)="togglePostLike(post.id)"
+          (deleteClick)="deletePost(post.id)"
+        ></app-post-card>
+      } @empty {
+        @if (!postsLoading()) {
+          <p class="empty-text">No posts yet.</p>
+        }
+      }
+    </div>
+
+    @if (postsLoading()) {
+      <div class="loading-more">
+        <mat-spinner diameter="28"></mat-spinner>
+      </div>
+    }
+
+    @if (hasMorePosts()) {
+      <button mat-stroked-button type="button" class="load-more" (click)="loadMorePosts()">Load more posts</button>
+    }
+  </section>
+
+  @if (connectionPanel()) {
+    <div class="connection-backdrop" (click)="closeConnections()">
+      <section class="connection-panel" (click)="$event.stopPropagation()">
+        <header>
+          <h2>{{ connectionPanel() === 'followers' ? 'Followers' : 'Following' }}</h2>
+          <button mat-icon-button type="button" aria-label="Close" (click)="closeConnections()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </header>
+
+        <div class="connection-list">
+          @for (user of connectionUsers(); track user.id) {
+            <a [routerLink]="['/profile', user.username]" (click)="closeConnections()">
+              <img
+                [src]="user.profileImageUrl || user.profilePictureUrl || 'assets/default-avatar.png'"
+                [alt]="user.username + ' avatar'"
+              />
+              <span>{{ user.username }}</span>
+            </a>
+          } @empty {
+            @if (!connectionsLoading()) {
+              <p class="empty-text">No users found.</p>
+            }
+          }
+        </div>
+
+        @if (connectionsLoading()) {
+          <div class="loading-more">
+            <mat-spinner diameter="24"></mat-spinner>
+          </div>
+        }
+
+        @if (connectionHasMore()) {
+          <button mat-stroked-button type="button" class="load-more" (click)="loadMoreConnections()">
+            Load more
+          </button>
+        }
+      </section>
+    </div>
+  }
+} @else {
+  <p class="error-state">{{ errorMessage() }}</p>
+}
