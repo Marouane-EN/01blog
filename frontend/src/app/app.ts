@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { AuthService } from './core/services/auth.service';
 
@@ -8,7 +8,11 @@ import { AuthService } from './core/services/auth.service';
   imports: [RouterOutlet],
   template: `
     <a href="#main-content" class="skip-link">Skip to main content</a>
-    <router-outlet />
+    @if (isCheckingAuth()) {
+      <div class="boot-screen"></div>
+    } @else {
+      <router-outlet />
+    }
   `,
   styles: [
     `
@@ -28,12 +32,17 @@ import { AuthService } from './core/services/auth.service';
       .skip-link:focus {
         top: 0;
       }
+      .boot-screen {
+        min-height: 100vh;
+        background: #f5f5f5;
+      }
     `,
   ],
 })
 export class AppComponent implements OnInit {
   // Use YOUR existing AuthService — not AuthStore — for the boot call
   readonly #authService = inject(AuthService);
+  readonly isCheckingAuth = signal(this.#authService.hasToken());
 
   ngOnInit(): void {
     // If a JWT token exists in localStorage, verify it with the backend
@@ -43,12 +52,16 @@ export class AppComponent implements OnInit {
 
     if (token) {
       this.#authService.fetchMe().subscribe({
+        next: () => this.isCheckingAuth.set(false),
         // Success: AuthService updates currentUserSubject → AuthStore signal updates → Navbar re-renders
         error: () => {
           // Token is expired or invalid — clean up
           this.#authService.logout();
+          this.isCheckingAuth.set(false);
         },
       });
+    } else {
+      this.isCheckingAuth.set(false);
     }
   }
 }

@@ -18,7 +18,8 @@ export interface RegistrationRequest {
 export interface UserDto {
   id: number;
   username: string;
-  profilePictureUrl?: string;
+  profileImageUrl?: string | null;
+  profilePictureUrl?: string | null;
 }
 
 export interface AuthResponse {
@@ -63,18 +64,21 @@ export class AuthService {
     this.currentUserSubject.next(null);
   }
 
+  hasToken(): boolean {
+    return typeof window !== 'undefined' && !!window.localStorage?.getItem('jwt_token');
+  }
+
   // 3. Register Method
-  register(registrationData: RegistrationRequest): Observable<string> {
-    // We send the formattedData object directly to the backend
-    return this.http
-      .post(`${this.API_URL}/auth/register`, registrationData, {
-        responseType: 'text', // Since your controller returns a plain string message
-      })
-      .pipe(
-        tap((response) => {
-          console.log('Registration successful:', response);
-        }),
-      );
+  register(registrationData: RegistrationRequest): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.API_URL}/auth/register`, registrationData).pipe(
+      tap((response) => {
+        if (response && response.token) {
+          localStorage.setItem('jwt_token', response.token);
+          localStorage.setItem('current_user', JSON.stringify(response.userProfile));
+          this.currentUserSubject.next(response.userProfile);
+        }
+      }),
+    );
   }
 
   fetchMe(): Observable<UserDto> {
@@ -93,7 +97,12 @@ export class AuthService {
   private getSavedUser(): UserDto | null {
     if (typeof window !== 'undefined' && window.localStorage) {
       const savedUser = localStorage.getItem('current_user');
-      return savedUser ? JSON.parse(savedUser) : null;
+      try {
+        return savedUser ? JSON.parse(savedUser) : null;
+      } catch {
+        localStorage.removeItem('current_user');
+        return null;
+      }
     }
     return null;
   }

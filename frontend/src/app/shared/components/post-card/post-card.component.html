@@ -1,9 +1,28 @@
 <article class="post-card">
-  @if (post.mediaUrls && post.mediaUrls.length > 0) {
-    <a [routerLink]="['/posts', post.slug]" class="cover-image-link">
-      <img [src]="post.mediaUrls[0]" [alt]="post.title" class="cover-image" loading="lazy" />
+  <aside class="card-action-rail" aria-label="Post actions">
+    <button
+      mat-icon-button
+      type="button"
+      class="rail-btn"
+      (click)="toggleLike($event)"
+      [class.active-like]="post.likedByCurrentUser"
+      aria-label="Like post"
+    >
+      <mat-icon>{{ post.likedByCurrentUser ? 'favorite' : 'favorite_border' }}</mat-icon>
+    </button>
+    <span>{{ post.totalLikes }}</span>
+
+    <a
+      mat-icon-button
+      class="rail-btn"
+      [routerLink]="['/posts', post.slug]"
+      fragment="comments"
+      aria-label="View comments"
+    >
+      <mat-icon>chat_bubble_outline</mat-icon>
     </a>
-  }
+    <span>{{ post.totalComments }}</span>
+  </aside>
 
   <div class="card-content">
     <div class="post-header">
@@ -18,6 +37,23 @@
           <span class="publish-date">{{ post.createAt | date: 'MMM d' }}</span>
         </div>
       </a>
+
+      @if (isOwnPost()) {
+        <button mat-icon-button type="button" [matMenuTriggerFor]="postMenu" aria-label="Post options">
+          <mat-icon>more_horiz</mat-icon>
+        </button>
+
+        <mat-menu #postMenu="matMenu" xPosition="before">
+          <a mat-menu-item [routerLink]="['/posts', post.slug]" [queryParams]="{ edit: true }">
+            <mat-icon>edit</mat-icon>
+            <span>Edit</span>
+          </a>
+          <button mat-menu-item type="button" (click)="deletePost($event)">
+            <mat-icon>delete</mat-icon>
+            <span>Delete</span>
+          </button>
+        </mat-menu>
+      }
     </div>
 
     <div class="post-body">
@@ -25,36 +61,9 @@
         <a [routerLink]="['/posts', post.slug]">{{ post.title }}</a>
       </h2>
 
-      <div class="post-tags">
-        @for (tagName of post.tag; track tagName) {
-          <a [routerLink]="['/t', tagName]" class="tag">
-            <span class="hash">#</span>{{ tagName }}
-          </a>
-        }
-      </div>
-    </div>
-
-    <div class="post-footer">
-      <div class="metrics">
-        <button
-          mat-button
-          class="metric-btn"
-          (click)="toggleLike($event)"
-          [class.active-like]="post.likedByCurrentUser"
-        >
-          <mat-icon>{{ post.likedByCurrentUser ? 'favorite' : 'favorite_border' }}</mat-icon>
-          <span>{{ post.totalLikes }} <span class="hide-mobile">Reactions</span></span>
-        </button>
-
-        <a mat-button class="metric-btn" [routerLink]="['/posts', post.slug]" fragment="comments">
-          <mat-icon>chat_bubble_outline</mat-icon>
-          <span>{{ post.totalComments }} <span class="hide-mobile">Comments</span></span>
-        </a>
-      </div>
-
-      <div class="actions">
-        <span class="read-time">{{ calculateReadingTime(post.content) }} min read</span>
-      </div>
+      @if (post.content) {
+        <p class="post-preview">{{ post.content }}</p>
+      }
     </div>
   </div>
 </article>

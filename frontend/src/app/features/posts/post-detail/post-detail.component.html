@@ -1,0 +1,209 @@
+@if (isLoading()) {
+  <div class="loading-state">
+    <mat-spinner diameter="42"></mat-spinner>
+  </div>
+} @else if (post(); as post) {
+  <div class="post-page-shell">
+    <aside class="post-action-rail" aria-label="Post actions">
+      <button
+        mat-icon-button
+        type="button"
+        class="rail-btn"
+        [class.active-like]="post.likedByCurrentUser"
+        aria-label="Like post"
+        (click)="togglePostLike()"
+      >
+        <mat-icon>{{ post.likedByCurrentUser ? 'favorite' : 'favorite_border' }}</mat-icon>
+      </button>
+      <span>{{ post.totalLikes }}</span>
+
+      <button mat-icon-button type="button" class="rail-btn" aria-label="Go to comments" (click)="scrollToComments()">
+        <mat-icon>chat_bubble_outline</mat-icon>
+      </button>
+      <span>{{ post.totalComments }}</span>
+    </aside>
+
+    <main class="post-main">
+      <article class="post-detail">
+        @if (post.mediaUrls.length) {
+          <div class="media-grid">
+            @for (mediaUrl of post.mediaUrls; track mediaUrl) {
+              @if (isVideoUrl(mediaUrl)) {
+                <video class="post-media" [src]="mediaUrl" controls preload="metadata"></video>
+              } @else {
+                <img [src]="mediaUrl" [alt]="post.title" class="post-media" loading="lazy" />
+              }
+            }
+          </div>
+        }
+
+        <header class="post-header">
+          <div class="post-header-row">
+            <a [routerLink]="['/profile', post.author.username]" class="author-row">
+              <img
+                [src]="post.author.profileImageUrl || 'assets/default-avatar.png'"
+                [alt]="post.author.username + ' avatar'"
+              />
+              <span>
+                <strong>{{ post.author.username }}</strong>
+                <small>{{ post.createAt | date: 'mediumDate' }}</small>
+              </span>
+            </a>
+
+            @if (isOwnPost(post)) {
+              <div class="owner-actions">
+                @if (!isEditingPost()) {
+                  <button mat-stroked-button type="button" (click)="startPostEdit()">
+                    <mat-icon>edit</mat-icon>
+                    Edit
+                  </button>
+                }
+                <button mat-button type="button" class="danger-btn" (click)="deletePost()">
+                  <mat-icon>delete</mat-icon>
+                  Delete
+                </button>
+              </div>
+            }
+          </div>
+
+          @if (isEditingPost()) {
+            <form class="post-edit-form" [formGroup]="postEditForm" (ngSubmit)="savePostEdit()">
+              <mat-form-field appearance="outline">
+                <mat-label>Title</mat-label>
+                <input matInput formControlName="title" maxlength="128" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Content</mat-label>
+                <textarea matInput rows="10" formControlName="content" maxlength="1000"></textarea>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Tags</mat-label>
+                <input matInput formControlName="tags" />
+              </mat-form-field>
+
+              <div class="form-actions">
+                <button mat-stroked-button type="button" (click)="cancelPostEdit()">Cancel</button>
+                <button mat-flat-button color="primary" type="submit" [disabled]="isSavingPost()">
+                  Save
+                </button>
+              </div>
+            </form>
+          } @else {
+            <h1>{{ post.title }}</h1>
+          }
+        </header>
+
+        @if (!isEditingPost()) {
+          <div class="post-content">
+            @for (paragraph of post.content.split('\n'); track $index) {
+              <p>{{ paragraph }}</p>
+            }
+          </div>
+        }
+      </article>
+
+      <section id="comments" class="comments-section">
+        <h2>Comments</h2>
+
+        <form class="comment-form" [formGroup]="commentForm" (ngSubmit)="submitComment()">
+          <mat-form-field appearance="outline">
+            <mat-label>Add a comment</mat-label>
+            <textarea matInput rows="3" maxlength="200" formControlName="content"></textarea>
+            <mat-hint align="end">{{ commentForm.controls.content.value.length }}/200</mat-hint>
+          </mat-form-field>
+          <button mat-flat-button color="primary" type="submit" [disabled]="isSubmittingComment()">
+            Comment
+          </button>
+        </form>
+
+        <div class="comment-list">
+          @for (comment of comments(); track comment.id) {
+            <article class="comment-card">
+              <div class="comment-header">
+                <a [routerLink]="['/profile', comment.author.username]" class="comment-author">
+                  <img
+                    [src]="
+                      comment.author.profileImageUrl ||
+                      comment.author.profilePictureUrl ||
+                      'assets/default-avatar.png'
+                    "
+                    [alt]="comment.author.username + ' avatar'"
+                  />
+                  <span>
+                    <strong>{{ comment.author.username }}</strong>
+                    <small>{{ comment.createdAt | date: 'short' }}</small>
+                  </span>
+                </a>
+
+                @if (isOwnComment(comment)) {
+                  <div class="comment-owner-actions">
+                    <button mat-button type="button" (click)="startCommentEdit(comment)">
+                      <mat-icon>edit</mat-icon>
+                      Edit
+                    </button>
+                    <button mat-button type="button" class="danger-btn" (click)="deleteComment(comment)">
+                      <mat-icon>delete</mat-icon>
+                      Delete
+                    </button>
+                  </div>
+                }
+              </div>
+
+              @if (editingCommentId() === comment.id) {
+                <form class="comment-edit-form" [formGroup]="commentEditForm" (ngSubmit)="saveCommentEdit(comment)">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Edit comment</mat-label>
+                    <textarea matInput rows="3" maxlength="200" formControlName="content"></textarea>
+                  </mat-form-field>
+                  <div class="form-actions">
+                    <button mat-stroked-button type="button" (click)="cancelCommentEdit()">Cancel</button>
+                    <button mat-flat-button color="primary" type="submit" [disabled]="savingCommentId() === comment.id">
+                      Save
+                    </button>
+                  </div>
+                </form>
+              } @else {
+                <p>{{ comment.content }}</p>
+              }
+
+              <button
+                mat-button
+                type="button"
+                class="comment-like-btn"
+                [class.active-like]="comment.likedByCurrentUser"
+                (click)="toggleCommentLike(comment)"
+              >
+                <mat-icon>{{ comment.likedByCurrentUser ? 'favorite' : 'favorite_border' }}</mat-icon>
+                {{ comment.likeCount }}
+              </button>
+
+              @if (comment.replies.length) {
+                <div class="replies">
+                  @for (reply of comment.replies; track reply.id) {
+                    <p><strong>{{ reply.author.username }}:</strong> {{ reply.content }}</p>
+                  }
+                </div>
+              }
+            </article>
+          } @empty {
+            <p class="empty-text">No comments yet.</p>
+          }
+        </div>
+
+        @if (hasMoreComments()) {
+          <button mat-stroked-button type="button" class="load-more" (click)="loadMoreComments()">
+            @if (commentsLoading()) {
+              Loading...
+            } @else {
+              Load more comments
+            }
+          </button>
+        }
+      </section>
+    </main>
+  </div>
+} @else {
+  <div class="error-state">{{ errorMessage() }}</div>
+}

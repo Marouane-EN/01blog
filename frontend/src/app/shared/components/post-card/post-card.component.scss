@@ -1,37 +1,62 @@
 .post-card {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
   background: #ffffff;
   border-radius: 8px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #e4e7ec;
   overflow: hidden;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
   transition:
     box-shadow 0.2s ease,
-    border-color 0.2s ease;
+    border-color 0.2s ease,
+    transform 0.2s ease;
+
+  &:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 10px 24px rgba(16, 24, 40, 0.08);
+    transform: translateY(-1px);
+  }
 
   &:focus-within {
-    border-color: #3b49df;
+    border-color: #2563eb;
   }
 }
 
-.cover-image-link {
-  display: block;
-  max-height: 273px;
-  overflow: hidden;
+.card-action-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 1rem 0.4rem;
+  border-right: 1px solid #f2f4f7;
+  color: #667085;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
 
-  .cover-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
+.rail-btn {
+  color: #475467;
+
+  &:hover {
+    color: #2563eb;
+    background: #eff6ff;
+  }
+
+  &.active-like {
+    color: #dc2626;
   }
 }
 
 .card-content {
-  padding: 1.25rem;
+  padding: 1.1rem 1.2rem 1rem;
 }
 
-// ── Header (Author) ──
 .post-header {
-  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.7rem;
 }
 
 .author-meta {
@@ -43,10 +68,12 @@
   width: fit-content;
 
   .author-avatar {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    border: 1px solid #e5e5e5;
+    object-fit: cover;
+    background: #eef2f7;
+    border: 1px solid #e5e7eb;
   }
 
   .author-info {
@@ -55,53 +82,62 @@
     line-height: 1.2;
 
     .author-name {
-      font-weight: 500;
-      color: #3d3d3d;
+      font-weight: 700;
+      color: #1f2937;
       font-size: 0.875rem;
 
       &:hover {
-        color: #090909;
-        background-color: rgba(0, 0, 0, 0.035);
+        color: #1d4ed8;
       }
     }
 
     .publish-date {
       font-size: 0.75rem;
-      color: #717171;
+      color: #667085;
     }
   }
 }
 
-// ── Body (Title & Tags) ──
 .post-body {
-  padding-left: 40px; // Aligns text with the author name (32px avatar + 8px gap)
+  padding-left: 44px;
 
   .post-title {
-    margin: 0 0 0.5rem 0;
-    font-size: 1.5rem;
+    margin: 0 0 0.6rem;
+    font-size: 1.45rem;
     font-weight: 700;
     line-height: 1.25;
 
     a {
       text-decoration: none;
-      color: #090909;
+      color: #111827;
 
       &:hover {
-        color: #3b49df;
+        color: #1d4ed8;
       }
     }
   }
 }
 
+.post-preview {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0 0 1rem;
+  color: #475467;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
 .post-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 0.35rem;
   margin-bottom: 1rem;
 
   .tag {
     text-decoration: none;
-    color: #404040;
+    color: #475467;
     font-size: 0.875rem;
     padding: 4px 8px;
     border-radius: 6px;
@@ -109,67 +145,39 @@
     transition: all 0.2s ease;
 
     .hash {
-      color: #a3a3a3;
+      color: #98a2b3;
     }
 
     &:hover {
-      background-color: rgba(0, 0, 0, 0.035);
-      border-color: #d6d6d7;
+      color: #1d4ed8;
+      background-color: #eff6ff;
+      border-color: #bfdbfe;
     }
   }
 }
 
-// ── Footer (Metrics & Actions) ──
-.post-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-left: 40px; // Keep alignment
-
-  .metrics {
-    display: flex;
-    gap: 8px;
-
-    .metric-btn {
-      color: #3d3d3d;
-      font-weight: 400;
-      padding: 0 12px;
-
-      mat-icon {
-        margin-right: 4px;
-        transform: scale(0.9);
-      }
-
-      &:hover {
-        background-color: rgba(0, 0, 0, 0.035);
-      }
-
-      &.active-like mat-icon {
-        color: #dc2626; // Red for liked
-      }
-    }
-  }
-
-  .actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-
-    .read-time {
-      font-size: 0.75rem;
-      color: #717171;
-    }
-  }
-}
-
-// ── Responsive Tweaks ──
 @media (max-width: 600px) {
-  .post-body,
-  .post-footer {
-    padding-left: 0; // Remove indent on mobile for more space
+  .post-card {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .card-action-rail {
+    padding-inline: 0.2rem;
+  }
+
+  .card-content {
+    padding: 1rem;
+  }
+
+  .post-body {
+    padding-left: 0;
+  }
+
+  .post-body .post-title {
+    font-size: 1.2rem;
   }
 
   .hide-mobile {
-    display: none; // Hide words like "Reactions" to save space
+    display: none;
   }
 }

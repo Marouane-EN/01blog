@@ -1,37 +1,54 @@
 <div class="home-container">
-  
-  <!-- Left Sidebar: People I Follow -->
   <aside class="left-sidebar">
     <div class="sidebar-widget">
       <h3>People I Follow</h3>
       <div class="user-list">
-        <!-- Placeholder for when we connect the /api/users/{id}/following endpoint -->
-        <p class="empty-text">You aren't following anyone yet.</p>
-        
-        <!-- Example of how a user item will look -->
-        <!--
-        <a routerLink="/profile/username" class="user-item">
-          <img src="assets/default-avatar.png" alt="Avatar" class="small-avatar">
-          <span class="username">username</span>
-        </a>
-        -->
+        @if (connectionsLoading()) {
+          <div class="mini-loading">
+            <mat-spinner diameter="22"></mat-spinner>
+          </div>
+        } @else if (connectionsError()) {
+          <p class="empty-text">{{ connectionsError() }}</p>
+        } @else {
+          @for (user of following(); track user.id) {
+            <a [routerLink]="['/profile', user.username]" class="user-item">
+              <img
+                [src]="user.profileImageUrl || 'assets/default-avatar.png'"
+                [alt]="user.username + ' avatar'"
+                class="small-avatar"
+              />
+              <span class="username">{{ user.username }}</span>
+            </a>
+          } @empty {
+            <p class="empty-text">You aren't following anyone yet.</p>
+          }
+        }
       </div>
     </div>
   </aside>
 
-  <!-- Center Main Feed -->
   <main class="feed-section">
-    <!-- Header Controls (Removed "For You") -->
     <header class="feed-header">
-      <button class="feed-tab" [class.active]="feedStore.activeTab() === 'latest'" (click)="setTab('latest')">
-        Latest
-      </button>
-      <button class="feed-tab" [class.active]="feedStore.activeTab() === 'following'" (click)="setTab('following')">
-        Following
-      </button>
+      @if (feedStore.searchQuery()) {
+        <div class="search-heading">
+          <div>
+            <span>Search</span>
+            <strong>{{ feedStore.searchQuery() }}</strong>
+          </div>
+          <button mat-icon-button type="button" aria-label="Clear search" (click)="clearSearch()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      } @else {
+        <button class="feed-tab" [class.active]="feedStore.activeTab() === 'latest'" (click)="setTab('latest')">
+          Latest
+        </button>
+        <button class="feed-tab" [class.active]="feedStore.activeTab() === 'following'" (click)="setTab('following')">
+          Following
+        </button>
+      }
     </header>
 
-    <!-- The Feed Content -->
     <div class="post-list">
       @if (feedStore.isLoading()) {
         <div class="loading-state">
@@ -39,29 +56,93 @@
         </div>
       } @else if (feedStore.error()) {
         <div class="error-state">{{ feedStore.error() }}</div>
-      } @else {
-        @for (post of feedStore.posts(); track post.id) {
-          <app-post-card [post]="post"></app-post-card>
+      } @else if (feedStore.searchQuery()) {
+        @if (feedStore.userSearchResults().length) {
+          <section class="search-result-group">
+            <h2>Users</h2>
+            <div class="search-user-list">
+              @for (user of feedStore.userSearchResults(); track user.id) {
+                <a [routerLink]="['/profile', user.username]" class="search-user-card">
+                  <img
+                    [src]="user.profileImageUrl || user.profilePictureUrl || 'assets/default-avatar.png'"
+                    [alt]="user.username + ' avatar'"
+                  />
+                  <span>{{ user.username }}</span>
+                </a>
+              }
+            </div>
+          </section>
+        }
+
+        @if (feedStore.searchResults().length) {
+          <section class="search-result-group">
+            <h2>Posts</h2>
+          </section>
+        }
+        @for (result of feedStore.searchResults(); track result.title + result.createAt) {
+          <article class="search-result-card">
+            <span>{{ result.author }}</span>
+            <h2>{{ result.title }}</h2>
+            <time>{{ result.createAt | date: 'mediumDate' }}</time>
+          </article>
         } @empty {
-          <div class="empty-state">
+          @if (!feedStore.userSearchResults().length) {
+            <div class="empty-state">
+              <mat-icon>search_off</mat-icon>
+              <h3>No search results</h3>
+              <p>Try another keyword.</p>
+            </div>
+          }
+        }
+        } @else {
+          @for (post of feedStore.posts(); track post.id) {
+          <app-post-card
+            [post]="post"
+            (likeClick)="togglePostLike(post.id)"
+            (deleteClick)="deletePost(post.id)"
+          ></app-post-card>
+          } @empty {
+            <div class="empty-state">
             <mat-icon>article</mat-icon>
             <h3>No posts found</h3>
             <p>Looks like there's nothing here yet. Check back later!</p>
           </div>
         }
       }
+
+      @if (feedStore.isLoadingMore()) {
+        <div class="loading-more">
+          <mat-spinner diameter="28"></mat-spinner>
+        </div>
+      }
     </div>
   </main>
 
-  <!-- Right Sidebar: People Following Me -->
   <aside class="right-sidebar">
     <div class="sidebar-widget">
       <h3>My Followers</h3>
       <div class="user-list">
-        <!-- Placeholder for when we connect the /api/users/{id}/followers endpoint -->
-        <p class="empty-text">No followers yet. Start posting to gain an audience!</p>
+        @if (connectionsLoading()) {
+          <div class="mini-loading">
+            <mat-spinner diameter="22"></mat-spinner>
+          </div>
+        } @else if (connectionsError()) {
+          <p class="empty-text">{{ connectionsError() }}</p>
+        } @else {
+          @for (user of followers(); track user.id) {
+            <a [routerLink]="['/profile', user.username]" class="user-item">
+              <img
+                [src]="user.profileImageUrl || 'assets/default-avatar.png'"
+                [alt]="user.username + ' avatar'"
+                class="small-avatar"
+              />
+              <span class="username">{{ user.username }}</span>
+            </a>
+          } @empty {
+            <p class="empty-text">No followers yet. Start posting to gain an audience!</p>
+          }
+        }
       </div>
     </div>
   </aside>
-
 </div>

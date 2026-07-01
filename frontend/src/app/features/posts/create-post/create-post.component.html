@@ -1,0 +1,61 @@
+<section class="create-post-page">
+  <header class="page-header">
+    <a routerLink="/" mat-button>
+      <mat-icon>arrow_back</mat-icon>
+      Home
+    </a>
+    <h1>Create post</h1>
+  </header>
+
+  <form class="post-form" [formGroup]="form" (ngSubmit)="submit()">
+    <mat-form-field appearance="outline">
+      <mat-label>Title</mat-label>
+      <input matInput formControlName="title" maxlength="128" />
+      <mat-hint align="end">{{ form.controls.title.value.length }}/128</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Content</mat-label>
+      <textarea matInput formControlName="content" rows="12" maxlength="1000"></textarea>
+      <mat-hint align="end">{{ form.controls.content.value.length }}/1000</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Tags</mat-label>
+      <input matInput formControlName="tags" placeholder="angular, spring, api" />
+      <mat-hint>Separate up to 5 tags with commas.</mat-hint>
+    </mat-form-field>
+
+    <label class="file-drop">
+      <mat-icon>upload_file</mat-icon>
+      <span>Add images or videos</span>
+      <input type="file" accept="image/*,video/*" multiple (change)="onFilesSelected($event)" />
+    </label>
+
+    @if (files().length) {
+      <div class="file-list">
+        @for (file of files(); track file.name + file.size) {
+          <button type="button" class="file-pill" (click)="removeFile(file)">
+            <mat-icon>close</mat-icon>
+            {{ file.name }}
+          </button>
+        }
+      </div>
+    }
+
+    @if (errorMessage()) {
+      <p class="form-error">{{ errorMessage() }}</p>
+    }
+
+    <div class="form-actions">
+      <button mat-stroked-button type="button" routerLink="/">Cancel</button>
+      <button mat-flat-button color="primary" type="submit" [disabled]="isSubmitting()">
+        @if (isSubmitting()) {
+          <mat-spinner diameter="20"></mat-spinner>
+        } @else {
+          Publish
+        }
+      </button>
+    </div>
+  </form>
+</section>

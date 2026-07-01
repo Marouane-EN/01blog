@@ -1,7 +1,11 @@
 .navbar {
   background-color: #ffffff;
-  border-bottom: 1px solid #e5e5e5;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  border-bottom: 1px solid #e4e7ec;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  min-height: 64px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
 }
 
 .nav-container {
@@ -10,21 +14,23 @@
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 1.25rem;
+  gap: 1rem;
 }
 
 .brand-logo {
   display: flex;
   align-items: center;
   text-decoration: none;
-  color: #000;
+  color: #111827;
   gap: 8px;
+  flex: 0 0 auto;
 
   mat-icon {
     font-size: 28px;
     height: 28px;
     width: 28px;
-    color: #3b49df; // Signature dev brand color
+    color: #2563eb;
   }
 
   .brand-text {
@@ -38,9 +44,20 @@
 }
 
 .write-btn {
-  margin-right: 1rem;
-  border-color: #3b49df;
-  color: #3b49df;
+  border-color: #2563eb;
+  color: #1d4ed8;
+  flex: 0 0 auto;
+  font-weight: 700;
+}
+
+.notification-btn {
+  flex: 0 0 auto;
+  color: #475467;
+
+  &:hover {
+    color: #2563eb;
+    background: #eff6ff;
+  }
 }
 
 .user-btn {
@@ -53,7 +70,7 @@
     height: 36px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid #e5e5e5;
+    border: 2px solid #e4e7ec;
   }
 }
 
@@ -62,21 +79,73 @@
   font-size: 0.9rem;
   color: #333;
 }
-// Add this below your .brand-logo styles
+
+.notification-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-width: 300px;
+  padding: 0.8rem 1rem;
+  color: #111827;
+
+  span {
+    color: #667085;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+}
+
+.notification-empty {
+  min-width: 300px;
+  padding: 1rem;
+  color: #667085;
+  font-size: 0.9rem;
+}
+
+.notification-item {
+  min-height: 64px;
+
+  img {
+    width: 34px;
+    height: 34px;
+    margin-right: 0.65rem;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  span {
+    display: flex;
+    flex-direction: column;
+    white-space: normal;
+    line-height: 1.25;
+  }
+
+  small {
+    color: #667085;
+    font-size: 0.75rem;
+  }
+
+  &.unread {
+    background: #eff6ff;
+  }
+}
 .search-container {
   display: flex;
   align-items: center;
   position: relative;
-  margin-left: 1rem;
-  width: 100%;
-  max-width: 420px;
+  flex: 1 1 420px;
+  max-width: 480px;
+  min-width: 220px;
 
   .search-input {
     width: 100%;
-    padding: 8px 40px 8px 12px; // Extra padding on the right for the icon
-    border: 1px solid #d4d4d4;
-    border-radius: 6px;
-    font-size: 1rem;
+    padding: 8px 42px 8px 14px;
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #111827;
+    font-size: 0.95rem;
     height: 40px;
     outline: none;
     transition:
@@ -84,8 +153,12 @@
       box-shadow 0.2s ease;
 
     &:focus {
-      border-color: #3b49df;
-      box-shadow: 0 0 0 1px #3b49df;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+    }
+
+    &::placeholder {
+      color: #98a2b3;
     }
   }
 
@@ -101,28 +174,41 @@
     align-items: center;
     justify-content: center;
     padding: 4px;
-    border-radius: 4px;
+    border-radius: 6px;
 
     mat-icon {
       font-size: 24px;
       height: 24px;
       width: 24px;
-      color: #3d3d3d;
+      color: #475467;
     }
 
     &:hover {
       background-color: rgba(0, 0, 0, 0.05);
 
       mat-icon {
-        color: #3b49df;
+        color: #2563eb;
       }
     }
   }
 }
 
-// Hide the search bar on very small screens to keep the navbar clean
-@media (max-width: 600px) {
+@media (max-width: 760px) {
+  .nav-container {
+    gap: 0.65rem;
+    padding: 0 0.75rem;
+  }
+
+  .brand-logo .brand-text {
+    display: none;
+  }
+
   .search-container {
+    min-width: 0;
+    flex-basis: auto;
+  }
+
+  .write-btn {
     display: none;
   }
 }
