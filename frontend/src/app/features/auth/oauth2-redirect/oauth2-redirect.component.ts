@@ -1,7 +1,6 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AuthService } from '../../../core/services/auth.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
@@ -40,29 +39,26 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 export class Oauth2RedirectComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-  private authService = inject(AuthService);
+  private platformId = inject(PLATFORM_ID);
 
   ngOnInit(): void {
-    // 1. Grab the token from the URL (e.g., ?token=XYZ)
-    const token = this.route.snapshot.queryParamMap.get('token');
+    if (isPlatformBrowser(this.platformId)) {
+      const token = this.route.snapshot.queryParamMap.get('token');
 
-    if (token) {
-      localStorage.setItem('jwt_token', token);
+      if (token) {
+        // 1. Clean the token just in case
+        const cleanToken = token.replace(/['"]+/g, '');
 
-      this.authService.fetchMe().subscribe({
-        next: () => {
-          // Success! The user profile is loaded. Send them to the Home Page.
-          this.router.navigate(['/']);
-          console.log('OAuth2 login successful! User profile fetched.');
-        },
-        error: (err) => {
-          console.error('Failed to fetch user profile after OAuth2 login', err);
-          this.router.navigate(['/login']);
-        },
-      });
-    } else {
-      // If someone just types this URL in manually without a token, kick them to login
-      this.router.navigate(['/login']);
+        // 2. Save it using the exact key your AuthService expects
+        localStorage.setItem('jwt_token', cleanToken);
+
+        // 3. DO NOT use this.router.navigate(['/']) or fetchMe() here!
+        // Force the browser to do a hard refresh. When it wakes back up,
+        // the AuthStore will find the token and seamlessly log you in.
+        window.location.href = '/';
+      } else {
+        this.router.navigate(['/login']);
+      }
     }
   }
 }

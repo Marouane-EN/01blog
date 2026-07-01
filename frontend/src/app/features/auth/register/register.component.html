@@ -1,73 +1,75 @@
 <div class="register-container">
-  <mat-card class="register-card">
-    <mat-card-header>
-      <mat-card-title>Create your account</mat-card-title>
-    </mat-card-header>
+  @if (isBrowser) {
+    <mat-card class="register-card">
+      <mat-card-header>
+        <mat-card-title>Create your account</mat-card-title>
+      </mat-card-header>
 
-    <mat-card-content>
-      <div class="social-login-container">
-        <button mat-stroked-button type="button" class="social-btn" (click)="loginWithGoogle()">
-          <img
-            src="https://raw.githubusercontent.com/devicons/devicon/master/icons/google/google-original.svg"
-            alt="Google"
-            class="social-icon"
-          />
-          Continue with Google
-        </button>
+      <mat-card-content>
+        <div class="social-login-container">
+          <button mat-stroked-button type="button" class="social-btn" (click)="loginWithGoogle()">
+            <img
+              src="https://raw.githubusercontent.com/devicons/devicon/master/icons/google/google-original.svg"
+              alt="Google"
+              class="social-icon"
+            />
+            Continue with Google
+          </button>
 
-        <button mat-stroked-button type="button" class="social-btn" (click)="loginWithGithub()">
-          <img
-            src="https://raw.githubusercontent.com/devicons/devicon/master/icons/github/github-original.svg"
-            alt="GitHub"
-            class="social-icon"
-          />
-          Continue with GitHub
-        </button>
-      </div>
+          <button mat-stroked-button type="button" class="social-btn" (click)="loginWithGithub()">
+            <img
+              src="https://raw.githubusercontent.com/devicons/devicon/master/icons/github/github-original.svg"
+              alt="GitHub"
+              class="social-icon"
+            />
+            Continue with GitHub
+          </button>
+        </div>
 
-      <div class="divider"><span>OR</span></div>
+        <div class="divider"><span>OR</span></div>
 
-      <form [formGroup]="registerForm" (ngSubmit)="onRegister()" class="register-form">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Username</mat-label>
-          <input matInput formControlName="username" />
-        </mat-form-field>
+        <form [formGroup]="registerForm" (ngSubmit)="onRegister()" class="register-form">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Username</mat-label>
+            <input matInput formControlName="username" />
+          </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Email</mat-label>
-          <input matInput formControlName="email" type="email" />
-        </mat-form-field>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email" type="email" />
+          </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Password</mat-label>
-          <input matInput formControlName="password" type="password" />
-        </mat-form-field>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Password</mat-label>
+            <input matInput formControlName="password" type="password" />
+          </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Birth Date</mat-label>
-          <input matInput [matDatepicker]="picker" formControlName="birthDate" />
-          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-          <mat-datepicker #picker></mat-datepicker>
-        </mat-form-field>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Birth Date</mat-label>
+            <input matInput [matDatepicker]="picker" formControlName="birthDate" />
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+          </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Bio</mat-label>
-          <textarea matInput formControlName="bio" rows="3"></textarea>
-        </mat-form-field>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Bio</mat-label>
+            <textarea matInput formControlName="bio" rows="3"></textarea>
+          </mat-form-field>
 
-        <button
-          mat-flat-button
-          color="primary"
-          type="submit"
-          [disabled]="registerForm.invalid || isLoading()"
-        >
-          @if (isLoading()) {
-            <mat-spinner diameter="20"></mat-spinner>
-          } @else {
-            <span>Sign Up</span>
-          }
-        </button>
-      </form>
-    </mat-card-content>
-  </mat-card>
+          <button
+            mat-flat-button
+            color="primary"
+            type="submit"
+            [disabled]="registerForm.invalid || isLoading()"
+          >
+            @if (isLoading()) {
+              <mat-spinner diameter="20"></mat-spinner>
+            } @else {
+              <span>Sign Up</span>
+            }
+          </button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  }
 </div>
