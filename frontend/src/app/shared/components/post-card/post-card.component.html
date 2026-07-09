@@ -39,7 +39,12 @@
       </a>
 
       @if (isOwnPost()) {
-        <button mat-icon-button type="button" [matMenuTriggerFor]="postMenu" aria-label="Post options">
+        <button
+          mat-icon-button
+          type="button"
+          [matMenuTriggerFor]="postMenu"
+          aria-label="Post options"
+        >
           <mat-icon>more_horiz</mat-icon>
         </button>
 
@@ -64,6 +69,13 @@
       @if (post.content) {
         <p class="post-preview">{{ post.content }}</p>
       }
+
+      <div class="post-tags-container">
+        @for (tag of post.tag; track tag) {
+          <a [routerLink]="['/tags', tag]" class="post-tag">#{{ tag }}</a>
+        }
+      </div>
     </div>
   </div>
 </article>
+
