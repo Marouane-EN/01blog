@@ -54,14 +54,16 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public PostDto getPostBySlug(String slug, User currentUser) {
+    public PostDto getPostBySlug(String slug, Long currentUserId) {
         Post post = postRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Article not found"));
 
         if (post.getAuthor().isBlocked() || !post.getAuthor().isActive()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This article is no longer available.");
         }
-        List<Long> likedPostIds = likeRepository.findLikedPostIdsByUser(currentUser.getId(), List.of(post.getId()));
+        List<Long> likedPostIds = (currentUserId != null)
+                ? likeRepository.findLikedPostIdsByUser(currentUserId, List.of(post.getId()))
+                : Collections.emptyList();
         return mapToDto(post, likedPostIds);
     }
 
@@ -103,7 +105,7 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public CursorResponse<PostDto> getPostFeed(Long cursor, User currentUser) {
+    public CursorResponse<PostDto> getPostFeed(Long cursor, Long currentUserId) {
         List<Post> posts;
 
         Pageable pageRequest = PageRequest.of(0, 11);
@@ -123,8 +125,9 @@ public class PostService {
         }
 
         List<Long> postIds = posts.stream().map(Post::getId).toList();
-
-        List<Long> likedPostIds = likeRepository.findLikedPostIdsByUser(currentUser.getId(), postIds);
+        List<Long> likedPostIds = (currentUserId != null)
+                ? likeRepository.findLikedPostIdsByUser(currentUserId, postIds)
+                : Collections.emptyList();
 
         List<PostDto> cleanPosts = posts.stream()
                 .map(post -> this.mapToDto(post, likedPostIds))
@@ -161,7 +164,9 @@ public class PostService {
         }
 
         List<Long> postIds = posts.stream().map(Post::getId).toList();
-        List<Long> likedPostIds = likeRepository.findLikedPostIdsByUser(currentUserId, postIds);
+        List<Long> likedPostIds = (currentUserId != null)
+                ? likeRepository.findLikedPostIdsByUser(currentUserId, postIds)
+                : Collections.emptyList();
 
         List<PostDto> cleanPosts = posts.stream()
                 .map(post -> mapToDto(post, likedPostIds))
@@ -171,15 +176,15 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public CursorResponse<PostDto> getSubscriptionsFeed(Long cursor, User currentUser) {
+    public CursorResponse<PostDto> getSubscriptionsFeed(Long cursor, Long currentUserId) {
 
         Pageable pageRequest = PageRequest.of(0, 11);
         List<Post> posts;
 
         if (cursor == null) {
-            posts = postRepository.findSubscriptionsFeed(currentUser.getId(), pageRequest);
+            posts = postRepository.findSubscriptionsFeed(currentUserId, pageRequest);
         } else {
-            posts = postRepository.findSubscriptionsFeedByCursor(currentUser.getId(), cursor, pageRequest);
+            posts = postRepository.findSubscriptionsFeedByCursor(currentUserId, cursor, pageRequest);
         }
 
         boolean hasMore = posts.size() > 10;
@@ -191,7 +196,7 @@ public class PostService {
         }
 
         List<Long> postIds = posts.stream().map(Post::getId).toList();
-        List<Long> likedPostIds = likeRepository.findLikedPostIdsByUser(currentUser.getId(), postIds);
+        List<Long> likedPostIds = likeRepository.findLikedPostIdsByUser(currentUserId, postIds);
 
         List<PostDto> cleanPosts = posts.stream()
                 .map(post -> mapToDto(post, likedPostIds))
@@ -201,7 +206,7 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public CursorResponse<PostSearchDto> searchPosts(String keyword, Long cursor, User currentUser) {
+    public CursorResponse<PostSearchDto> searchPosts(String keyword, Long cursor) {
 
         Pageable pageRequest = PageRequest.of(0, 11);
         List<Post> posts;
@@ -222,10 +227,12 @@ public class PostService {
 
         List<PostSearchDto> cleanPosts = posts.stream()
                 .map(post -> {
-                    String author = (post.getAuthor().isBlocked() || !post.getAuthor().isActive())
-                            ? "[Suspended Account]"
-                            : post.getAuthor().getUsername();
-                    return new PostSearchDto(author, post.getTitle(), post.getCreatedAt());
+                    UserDto author = (post.getAuthor().isBlocked() || !post.getAuthor().isActive())
+                            ? new UserDto(0L, "[Suspended Account]", null)
+                            : new UserDto(post.getAuthor().getId(), post.getAuthor().getUsername(),
+                                    post.getAuthor().getProfilePictureUrl());
+                    return new PostSearchDto(post.getId(), author, post.getTitle(), post.getSlug(),
+                            post.getCreatedAt());
                 })
                 .toList();
 

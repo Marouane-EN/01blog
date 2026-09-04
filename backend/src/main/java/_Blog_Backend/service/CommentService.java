@@ -55,7 +55,7 @@ public class CommentService {
     }
 
     @Transactional(readOnly = true)
-    public CursorResponse<CommentDto> getCommentsForPost(Long postId, Long cursor, User currentUser) {
+    public CursorResponse<CommentDto> getCommentsForPost(Long postId, Long cursor, Long currentUserId) {
         if (!postRepository.existsById(postId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
         }
@@ -77,7 +77,7 @@ public class CommentService {
             nextCursor = comments.get(comments.size() - 1).getId();
         }
 
-        List<CommentDto> cleanComments = comments.stream().map(comment -> mapToDto(comment, currentUser.getId()))
+        List<CommentDto> cleanComments = comments.stream().map(comment -> mapToDto(comment, currentUserId))
                 .toList();
         return new CursorResponse<>(cleanComments, nextCursor, hasMore);
     }
@@ -157,7 +157,7 @@ public class CommentService {
         int totalLikes = comment.getLikes() != null ? comment.getLikes().size() : 0;
 
         boolean likedByCurrentUser = false;
-        if (comment.getLikes() != null) {
+        if (comment.getLikes() != null && currentUserId != null) {
             likedByCurrentUser = comment.getLikes().stream()
                     .anyMatch(like -> like.getUser().getId().equals(currentUserId));
         }

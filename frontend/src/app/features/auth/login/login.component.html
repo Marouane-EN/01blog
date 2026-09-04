@@ -1,104 +1,177 @@
-<div class="login-container">
-  @if (isBrowser) {
-    <mat-card class="login-card">
-      <mat-card-header>
-        <mat-card-title>Welcome to 01Blog</mat-card-title>
-        <mat-card-subtitle>A community of developers</mat-card-subtitle>
-      </mat-card-header>
+@if (isBrowser) {
+  <div class="auth-shell">
+    <!-- Left Branded Panel -->
+    <div class="auth-brand">
+      <span class="auth-brand-glyph">"</span>
 
-      <mat-card-content>
-        <div class="social-login-container">
-          <button
-            mat-stroked-button
-            type="button"
-            class="social-btn google-btn"
-            (click)="loginWithGoogle()"
-          >
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
-              alt="Google"
-              class="social-icon"
-            />
+      <!-- ADDED ROUTER LINK HERE -->
+      <a routerLink="/" class="auth-brand-mark" style="text-decoration: none; color: inherit">
+        01<span>.</span>
+      </a>
+
+      <div class="auth-brand-copy">
+        <p class="auth-brand-tagline">Good to see<br />you again.</p>
+        <p class="auth-brand-sub">
+          Log in to catch up on what people are writing and pick up where you left off.
+        </p>
+      </div>
+    </div>
+
+    <!-- Right Form Panel -->
+    <div class="auth-form-panel">
+      <div class="auth-card">
+        <!-- ADDED ROUTER LINK HERE (for mobile view) -->
+        <a
+          routerLink="/"
+          class="auth-card-brand-mobile"
+          style="text-decoration: none; color: inherit"
+        >
+          01<span>.</span>
+        </a>
+
+        <h1 class="auth-title">Log in</h1>
+        <p class="auth-subtitle">Welcome back to 01.</p>
+
+        <!-- Social Login -->
+        <div class="oauth-group">
+          <button class="oauth-btn" type="button" (click)="loginWithGoogle()">
+            <svg viewBox="0 0 18 18">
+              <path
+                fill="#4285F4"
+                d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84c-.21 1.13-.84 2.09-1.8 2.73v2.27h2.92c1.7-1.57 2.68-3.88 2.68-6.64z"
+              />
+              <path
+                fill="#34A853"
+                d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.27c-.81.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.71H.96v2.33C2.44 15.98 5.48 18 9 18z"
+              />
+              <path
+                fill="#FBBC05"
+                d="M3.97 10.7A5.4 5.4 0 0 1 3.68 9c0-.59.1-1.17.29-1.7V4.97H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.03l3.01-2.33z"
+              />
+              <path
+                fill="#EA4335"
+                d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.59-2.59C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.97l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"
+              />
+            </svg>
             Continue with Google
           </button>
-
-          <button
-            mat-stroked-button
-            type="button"
-            class="social-btn github-btn"
-            (click)="loginWithGithub()"
-          >
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg"
-              alt="GitHub"
-              class="social-icon"
-            />
+          <button class="oauth-btn" type="button" (click)="loginWithGithub()">
+            <svg viewBox="0 0 16 16">
+              <path
+                fill="currentColor"
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"
+              />
+            </svg>
             Continue with GitHub
           </button>
         </div>
 
-        <div class="divider">
-          <span>OR</span>
-        </div>
+        <div class="divider"><span>or</span></div>
 
-        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
-          @if (errorMessage()) {
-            <div class="error-alert">
-              {{ errorMessage() }}
+        <!-- Global Error Alert -->
+        @if (errorMessage()) {
+          <div class="error-alert">
+            {{ errorMessage() }}
+          </div>
+        }
+
+        <!-- Login Form -->
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+          <div class="field">
+            <div class="field-row">
+              <label for="login-id">Email or username</label>
             </div>
-          }
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Username or Email</mat-label>
             <input
-              matInput
+              id="login-id"
+              type="text"
               formControlName="identifier"
-              placeholder="Enter your username or email"
+              placeholder="you@example.com or username"
+              autocomplete="username"
+              [class.has-error]="
+                loginForm.controls.identifier.invalid && loginForm.controls.identifier.touched
+              "
             />
-            @if (loginForm.controls.identifier.hasError('required')) {
-              <mat-error>Username or email is required</mat-error>
+            @if (
+              loginForm.controls.identifier.hasError('required') &&
+              loginForm.controls.identifier.touched
+            ) {
+              <div class="field-error">Username or email is required</div>
             }
-          </mat-form-field>
+          </div>
 
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Password</mat-label>
-            <input
-              matInput
-              [type]="hidePassword() ? 'password' : 'text'"
-              formControlName="password"
-            />
-            <button
-              mat-icon-button
-              matSuffix
-              (click)="hidePassword.update((v) => !v)"
-              type="button"
-            >
-              <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
-            </button>
-            @if (loginForm.controls.password.hasError('required')) {
-              <mat-error>Password is required</mat-error>
+          <div class="field">
+            <div class="field-row">
+              <label for="login-pw">Password</label>
+              <a class="field-link" routerLink="/forgot-password">Forgot password?</a>
+            </div>
+            <div class="input-wrap">
+              <input
+                id="login-pw"
+                [type]="hidePassword() ? 'password' : 'text'"
+                formControlName="password"
+                placeholder="••••••••"
+                autocomplete="current-password"
+                [class.has-error]="
+                  loginForm.controls.password.invalid && loginForm.controls.password.touched
+                "
+              />
+
+              <!-- Password Toggle Button -->
+              <button
+                type="button"
+                class="pw-toggle"
+                [class.is-visible]="!hidePassword()"
+                (click)="hidePassword.update((v) => !v)"
+                [attr.aria-label]="hidePassword() ? 'Show password' : 'Hide password'"
+              >
+                <svg
+                  class="eye"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12Z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                <svg
+                  class="eye-off"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M3 3l18 18" />
+                  <path
+                    d="M10.6 5.1A10.7 10.7 0 0 1 12 5c7 0 10.5 7 10.5 7a13.5 13.5 0 0 1-3.1 4.1M6.6 6.6C3.8 8.3 1.5 12 1.5 12s3.5 7 10.5 7c1.3 0 2.5-.2 3.6-.6"
+                  />
+                  <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+                </svg>
+              </button>
+            </div>
+            @if (
+              loginForm.controls.password.hasError('required') &&
+              loginForm.controls.password.touched
+            ) {
+              <div class="field-error">Password is required</div>
             }
-          </mat-form-field>
+          </div>
 
-          <button
-            mat-flat-button
-            color="primary"
-            type="submit"
-            class="submit-button"
-            [disabled]="loginForm.invalid || isLoading()"
-          >
+          <button type="submit" class="btn-block" [disabled]="loginForm.invalid || isLoading()">
             @if (isLoading()) {
-              <mat-spinner diameter="20"></mat-spinner>
+              <mat-spinner diameter="20" style="margin: 0 auto"></mat-spinner>
             } @else {
-              <span>Log In</span>
+              <span>Log in</span>
             }
           </button>
         </form>
-      </mat-card-content>
 
-      <mat-card-footer>
-        <p>Don't have an account? <a routerLink="/register">Register here</a></p>
-      </mat-card-footer>
-    </mat-card>
-  }
-</div>
+        <p class="auth-switch">Don't have an account? <a routerLink="/register">Sign up</a></p>
+      </div>
+    </div>
+  </div>
+}

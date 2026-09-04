@@ -30,9 +30,7 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.scss"
-            ],
+            "styles": ["src/styles.scss"],
             "server": "src/main.server.ts",
             "outputMode": "server",
             "security": {
@@ -68,6 +66,9 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "allowedHosts": ["colors-laboratory-hottest-forums.trycloudflare.com"]
+          },
           "configurations": {
             "production": {
               "buildTarget": "frontend:build:production"

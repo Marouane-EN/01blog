@@ -1,108 +1,312 @@
-<div class="home-container">
-  <aside class="left-sidebar">
-    <div class="sidebar-widget">
-      <h3>People I Follow</h3>
-      <div class="user-list">
+<div class="layout">
+  <!-- ================= LEFT RAIL ================= -->
+  <aside class="rail-left">
+    @if (authStore.isAuthenticated()) {
+      <!-- [LOGGED IN]: Profile Panel -->
+      <div class="panel profile-panel">
+        @if (authStore.avatarUrl()) {
+          <img
+            [src]="authStore.avatarUrl()"
+            [attr.referrerpolicy]="'no-referrer'"
+            alt="Profile Avatar"
+            class="profile-avatar"
+          />
+        } @else {
+          <!-- If no image, render your exact raw SVG so it inherits the colors and sizing! -->
+          <div class="avatar-m">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+            </svg>
+          </div>
+        }
+        <p class="profile-name">{{ authStore.displayName() }}</p>
+        <p class="profile-handle">{{ '@' + authStore.displayName() }}</p>
+        <div class="profile-stats">
+          <div class="profile-stat">
+            <b>{{ profile()?.postsCount }}</b
+            ><span>Posts</span>
+          </div>
+          <div class="profile-stat">
+            <b>{{ profile()?.followingCount }}</b
+            ><span>Follows</span>
+          </div>
+          <div class="profile-stat">
+            <b>{{ profile()?.followersCount }}</b
+            ><span>Readers</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- [LOGGED IN]: People I Follow -->
+      <div class="panel">
+        <p class="panel-label">People I follow</p>
         @if (connectionsLoading()) {
-          <div class="mini-loading">
+          <div class="state-container">
             <mat-spinner diameter="22"></mat-spinner>
           </div>
         } @else if (connectionsError()) {
-          <p class="empty-text">{{ connectionsError() }}</p>
+          <p class="error-text">{{ connectionsError() }}</p>
         } @else {
           @for (user of following(); track user.id) {
-            <a [routerLink]="['/profile', user.username]" class="user-item">
-              <img
-                [src]="user.profileImageUrl || 'assets/default-avatar.png'"
-                [alt]="user.username + ' avatar'"
-                class="small-avatar"
-              />
-              <span class="username">{{ user.username }}</span>
+            <a [routerLink]="['/profile', user.username]" class="person-row">
+              <div class="avatar-sm">
+                <!-- Check if a real image exists -->
+                @if (user.profilePictureUrl) {
+                  <img
+                    [src]="user.profilePictureUrl"
+                    [attr.referrerpolicy]="'no-referrer'"
+                    [alt]="user.username + ' avatar'"
+                    class="real-avatar"
+                  />
+                } @else {
+                  <!-- If no image, render your exact raw SVG so it inherits the colors and sizing! -->
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="8" r="4" />
+                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+                  </svg>
+                }
+              </div>
+              <span class="person-name">{{ user.username }}</span>
             </a>
           } @empty {
             <p class="empty-text">You aren't following anyone yet.</p>
           }
         }
       </div>
-    </div>
+    } @else {
+      <!-- [GUEST]: Join 01 Panel -->
+      <div class="panel join-panel">
+        <p class="join-title serif">Join 01</p>
+        <p class="join-copy">Follow people, react to posts, and share your own updates.</p>
+        <button class="btn-accent w-full" routerLink="/register">Sign up — it's free</button>
+        <p class="join-login-line">Already have an account? <a routerLink="/login">Log in</a></p>
+      </div>
+
+      <!-- [GUEST]: Static Popular on 01 -->
+      <div class="panel">
+        <p class="panel-label">Popular on 01</p>
+        <div class="person-row">
+          <div class="avatar-sm">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+            </svg>
+          </div>
+          <span class="person-name">admin</span>
+        </div>
+        <div class="person-row">
+          <div
+            class="avatar-sm"
+            style="background: linear-gradient(135deg, #8fbfa8, #3e7f63)"
+          ></div>
+          <span class="person-name">maroineen</span>
+        </div>
+        <div class="person-row">
+          <div class="avatar-sm">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+            </svg>
+          </div>
+          <span class="person-name">abaid</span>
+        </div>
+      </div>
+    }
   </aside>
 
-  <main class="feed-section">
-    <header class="feed-header">
-      @if (feedStore.searchQuery()) {
-        <div class="search-heading">
-          <div>
-            <span>Search</span>
-            <strong>{{ feedStore.searchQuery() }}</strong>
+  <!-- ================= MAIN FEED ================= -->
+  <main class="feed-col">
+    @if (authStore.isAuthenticated()) {
+      <!-- [LOGGED IN]: Post Composer -->
+      <div class="composer">
+        <!-- Check if a real image exists -->
+        @if (authStore.avatarUrl()) {
+          <img
+            [src]="authStore.avatarUrl()"
+            [attr.referrerpolicy]="authStore.avatarUrl() ? 'no-referrer' : null"
+            class="composer-avatar"
+          />
+        } @else {
+          <!-- If no image, render your exact raw SVG so it inherits the colors and sizing! -->
+          <div class="avatar-sm">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+            </svg>
           </div>
-          <button mat-icon-button type="button" aria-label="Clear search" (click)="clearSearch()">
-            <mat-icon>close</mat-icon>
-          </button>
+        }
+
+        <div class="composer-input" routerLink="/create-post">Share what you're working on…</div>
+        <button class="btn-post" routerLink="/create-post">Post</button>
+      </div>
+    } @else {
+      <!-- [GUEST]: Prompt at the top of the feed -->
+      <div class="guest-prompt">
+        <div class="guest-prompt-text">
+          <strong>New here?</strong> Create an account to post, react, and follow people.
         </div>
-      } @else {
-        <button class="feed-tab" [class.active]="feedStore.activeTab() === 'latest'" (click)="setTab('latest')">
+        <button class="btn-accent" routerLink="/register">Sign up</button>
+      </div>
+    }
+
+    <!-- Feed Tabs & Search Header -->
+    @if (feedStore.searchQuery()) {
+      <a class="results-back" (click)="clearSearch()" style="cursor: pointer">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+        Back to feed
+      </a>
+
+      <h1 class="results-title">
+        Results for <mark>“{{ feedStore.searchQuery() }}”</mark>
+      </h1>
+      <p class="results-count">
+        {{ feedStore.searchResults().length + feedStore.userSearchResults().length }} results found
+      </p>
+
+      <div class="results-tabs">
+        <button class="results-tab active">All</button>
+      </div>
+    } @else {
+      <div class="feed-tabs">
+        <button
+          class="tab"
+          [class.active]="feedStore.activeTab() === 'latest'"
+          (click)="setTab('latest')"
+        >
           Latest
         </button>
-        <button class="feed-tab" [class.active]="feedStore.activeTab() === 'following'" (click)="setTab('following')">
-          Following
-        </button>
-      }
-    </header>
+        @if (authStore.isAuthenticated()) {
+          <button
+            class="tab"
+            [class.active]="feedStore.activeTab() === 'following'"
+            (click)="setTab('following')"
+          >
+            Following
+          </button>
+        } @else {
+          <button class="tab tab-locked" disabled>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="5" y="11" width="14" height="9" rx="2" />
+              <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+            </svg>
+            Following
+          </button>
+        }
+      </div>
+    }
 
+    <!-- Posts Container -->
     <div class="post-list">
       @if (feedStore.isLoading()) {
-        <div class="loading-state">
-          <mat-spinner diameter="40"></mat-spinner>
-        </div>
+        <div class="state-container"><mat-spinner diameter="40"></mat-spinner></div>
       } @else if (feedStore.error()) {
-        <div class="error-state">{{ feedStore.error() }}</div>
+        <div class="error-text state-container">{{ feedStore.error() }}</div>
       } @else if (feedStore.searchQuery()) {
+        <!-- Search Results (Users) -->
         @if (feedStore.userSearchResults().length) {
-          <section class="search-result-group">
-            <h2>Users</h2>
-            <div class="search-user-list">
-              @for (user of feedStore.userSearchResults(); track user.id) {
-                <a [routerLink]="['/profile', user.username]" class="search-user-card">
-                  <img
-                    [src]="user.profileImageUrl || user.profilePictureUrl || 'assets/default-avatar.png'"
-                    [alt]="user.username + ' avatar'"
-                  />
-                  <span>{{ user.username }}</span>
+          <div class="results-section">
+            <p class="search-section-label">People</p>
+
+            @for (user of feedStore.userSearchResults(); track user.id) {
+              <div class="result-row">
+                <a [routerLink]="['/profile', user.username]" class="avatar-md">
+                  @if (user.profilePictureUrl) {
+                    <img
+                      [src]="user.profilePictureUrl"
+                      [attr.referrerpolicy]="'no-referrer'"
+                      [alt]="user.username + ' avatar'"
+                    />
+                  } @else {
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <circle cx="12" cy="8" r="4" />
+                      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+                    </svg>
+                  }
                 </a>
-              }
-            </div>
-          </section>
+                <div class="result-body">
+                  <a [routerLink]="['/profile', user.username]" class="result-name">{{
+                    user.username
+                  }}</a>
+                </div>
+                <!-- Reusing the follow button style for navigation -->
+                <a [routerLink]="['/profile', user.username]" class="btn-follow-sm">View Profile</a>
+              </div>
+            }
+          </div>
         }
 
+        <!-- Search Results (Posts) -->
         @if (feedStore.searchResults().length) {
-          <section class="search-result-group">
-            <h2>Posts</h2>
-          </section>
+          <div class="results-section">
+            <p class="search-section-label">Posts</p>
+
+            @for (result of feedStore.searchResults(); track result.id) {
+              <a [routerLink]="['/posts', result.slug]" class="result-row post-result-row">
+                <!-- Fallback Avatar since search results don't have profile pics -->
+                @if (result.author.profilePictureUrl) {
+                  <div class="avatar-md">
+                    <img
+                      [src]="result.author.profilePictureUrl"
+                      [attr.referrerpolicy]="'no-referrer'"
+                      [alt]="result.author.username + ' avatar'"
+                    />
+                  </div>
+                } @else {
+                  <div class="avatar-md">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <circle cx="12" cy="8" r="4" />
+                      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+                    </svg>
+                  </div>
+                }
+                <div class="result-body">
+                  <!-- Notice how we highlight the title and make it a serif font -->
+                  <h3 class="result-title-serif">{{ result.title }}</h3>
+                  <p class="result-meta">
+                    <strong>{{ result.author.username }}</strong> ·
+                    {{ result.createAt | date: 'mediumDate' }}
+                  </p>
+                </div>
+              </a>
+            }
+          </div>
         }
-        @for (result of feedStore.searchResults(); track result.title + result.createAt) {
-          <article class="search-result-card">
-            <span>{{ result.author }}</span>
-            <h2>{{ result.title }}</h2>
-            <time>{{ result.createAt | date: 'mediumDate' }}</time>
-          </article>
-        } @empty {
-          @if (!feedStore.userSearchResults().length) {
-            <div class="empty-state">
-              <mat-icon>search_off</mat-icon>
-              <h3>No search results</h3>
-              <p>Try another keyword.</p>
-            </div>
-          }
+
+        <!-- Empty State -->
+        @if (!feedStore.userSearchResults().length && !feedStore.searchResults().length) {
+          <div class="empty-state">
+            <mat-icon>search_off</mat-icon>
+            <h3>No search results</h3>
+            <p>Try another keyword.</p>
+          </div>
         }
-        } @else {
-          @for (post of feedStore.posts(); track post.id) {
+      } @else {
+        <!-- Standard Feed -->
+        @for (post of feedStore.posts(); track post.id) {
           <app-post-card
             [post]="post"
             (likeClick)="togglePostLike(post.id)"
             (deleteClick)="deletePost(post.id)"
           ></app-post-card>
-          } @empty {
-            <div class="empty-state">
+        } @empty {
+          <div class="empty-state">
             <mat-icon>article</mat-icon>
             <h3>No posts found</h3>
             <p>Looks like there's nothing here yet. Check back later!</p>
@@ -111,37 +315,59 @@
       }
 
       @if (feedStore.isLoadingMore()) {
-        <div class="loading-more">
-          <mat-spinner diameter="28"></mat-spinner>
-        </div>
+        <div class="state-container"><mat-spinner diameter="28"></mat-spinner></div>
       }
     </div>
   </main>
 
-  <aside class="right-sidebar">
-    <div class="sidebar-widget">
-      <h3>My Followers</h3>
-      <div class="user-list">
+  <!-- ================= RIGHT RAIL ================= -->
+  <aside class="rail-right">
+    @if (authStore.isAuthenticated()) {
+      <div class="panel">
+        <p class="panel-label">My followers</p>
         @if (connectionsLoading()) {
-          <div class="mini-loading">
-            <mat-spinner diameter="22"></mat-spinner>
-          </div>
+          <div class="state-container"><mat-spinner diameter="22"></mat-spinner></div>
         } @else if (connectionsError()) {
-          <p class="empty-text">{{ connectionsError() }}</p>
+          <p class="error-text">{{ connectionsError() }}</p>
         } @else {
           @for (user of followers(); track user.id) {
-            <a [routerLink]="['/profile', user.username]" class="user-item">
-              <img
-                [src]="user.profileImageUrl || 'assets/default-avatar.png'"
-                [alt]="user.username + ' avatar'"
-                class="small-avatar"
-              />
-              <span class="username">{{ user.username }}</span>
+            <a [routerLink]="['/profile', user.username]" class="person-row">
+              <div class="avatar-sm">
+                <!-- Check if a real image exists -->
+                @if (user.profilePictureUrl) {
+                  <img
+                    [src]="user.profilePictureUrl"
+                    [attr.referrerpolicy]="'no-referrer'"
+                    [alt]="user.username + ' avatar'"
+                    class="real-avatar"
+                  />
+                } @else {
+                  <!-- If no image, render your exact raw SVG so it inherits the colors and sizing! -->
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="8" r="4" />
+                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+                  </svg>
+                }
+              </div>
+              <span class="person-name">{{ user.username }}</span>
             </a>
           } @empty {
-            <p class="empty-text">No followers yet. Start posting to gain an audience!</p>
+            <p class="empty-text">No followers yet.</p>
           }
         }
+      </div>
+    }
+
+    <div class="panel">
+      <p class="panel-label">Trending tags</p>
+      <div class="trend-row">
+        <span class="trend-tag">#backend</span><span class="trend-count">24 posts</span>
+      </div>
+      <div class="trend-row">
+        <span class="trend-tag">#product</span><span class="trend-count">17 posts</span>
+      </div>
+      <div class="trend-row">
+        <span class="trend-tag">#changelog</span><span class="trend-count">9 posts</span>
       </div>
     </div>
   </aside>

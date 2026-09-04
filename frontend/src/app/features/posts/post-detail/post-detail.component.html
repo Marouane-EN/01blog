@@ -3,235 +3,336 @@
     <mat-spinner diameter="42"></mat-spinner>
   </div>
 } @else if (post(); as post) {
-  <div class="post-page-shell">
-    <aside class="post-action-rail" aria-label="Post actions">
+  <div class="post-shell">
+    <!-- Sticky Reaction Rail -->
+    <aside class="reaction-rail">
       <button
-        mat-icon-button
-        type="button"
         class="rail-btn"
-        [class.active-like]="post.likedByCurrentUser"
-        aria-label="Like post"
+        [class.is-liked]="post.likedByCurrentUser"
+        aria-label="React"
         (click)="togglePostLike()"
       >
-        <mat-icon>{{ post.likedByCurrentUser ? 'favorite' : 'favorite_border' }}</mat-icon>
+        <!-- Heart SVG -->
+        <svg
+          viewBox="0 0 24 24"
+          [attr.fill]="post.likedByCurrentUser ? 'currentColor' : 'none'"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M12 21s-7-4.6-9.5-9A5.5 5.5 0 0 1 12 5a5.5 5.5 0 0 1 9.5 7c-2.5 4.4-9.5 9-9.5 9z"
+          />
+        </svg>
+        <span class="rail-count">{{ post.totalLikes }}</span>
       </button>
-      <span>{{ post.totalLikes }}</span>
 
-      <button
-        mat-icon-button
-        type="button"
-        class="rail-btn"
-        aria-label="Go to comments"
-        (click)="scrollToComments()"
-      >
-        <mat-icon>chat_bubble_outline</mat-icon>
+      <button class="rail-btn" aria-label="Go to comments" (click)="scrollToComments()">
+        <!-- Comment SVG -->
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+        <span class="rail-count">{{ post.totalComments }}</span>
       </button>
-      <span>{{ post.totalComments }}</span>
     </aside>
 
     <main class="post-main">
-      <article class="post-detail">
-        @if (post.mediaUrls.length) {
-          <div class="media-grid">
-            @for (mediaUrl of post.mediaUrls; track mediaUrl) {
-              @if (isVideoUrl(mediaUrl)) {
-                <video class="post-media" [src]="mediaUrl" controls preload="metadata"></video>
-              } @else {
-                <img [src]="mediaUrl" [alt]="post.title" class="post-media" loading="lazy" />
-              }
+      <a class="post-back" routerLink="/">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+        Back to feed
+      </a>
+
+      <!-- Media Grid -->
+      @if (post.mediaUrls.length) {
+        <div class="media-grid">
+          @for (mediaUrl of post.mediaUrls; track mediaUrl) {
+            @if (isVideoUrl(mediaUrl)) {
+              <video class="post-media" [src]="mediaUrl" controls preload="metadata"></video>
+            } @else {
+              <img [src]="mediaUrl" [alt]="post.title" class="post-media" loading="lazy" />
             }
-          </div>
-        }
-
-        <header class="post-header">
-          <div class="post-header-row">
-            <a [routerLink]="['/profile', post.author.username]" class="author-row">
-              <img
-                [src]="post.author.profileImageUrl || 'assets/default-avatar.png'"
-                [alt]="post.author.username + ' avatar'"
-              />
-              <span>
-                <strong>{{ post.author.username }}</strong>
-                <small>{{ post.createAt | date: 'mediumDate' }}</small>
-              </span>
-            </a>
-
-            @if (isOwnPost(post)) {
-              <div class="owner-actions">
-                @if (!isEditingPost()) {
-                  <button mat-stroked-button type="button" (click)="startPostEdit()">
-                    <mat-icon>edit</mat-icon>
-                    Edit
-                  </button>
-                }
-                <button mat-button type="button" class="danger-btn" (click)="deletePost()">
-                  <mat-icon>delete</mat-icon>
-                  Delete
-                </button>
-              </div>
-            }
-          </div>
-
-          @if (isEditingPost()) {
-            <form class="post-edit-form" [formGroup]="postEditForm" (ngSubmit)="savePostEdit()">
-              <mat-form-field appearance="outline">
-                <mat-label>Title</mat-label>
-                <input matInput formControlName="title" maxlength="128" />
-              </mat-form-field>
-
-              <mat-form-field appearance="outline">
-                <mat-label>Content</mat-label>
-                <textarea matInput rows="10" formControlName="content" maxlength="1000"></textarea>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline">
-                <mat-label>Tags</mat-label>
-                <input matInput formControlName="tags" />
-              </mat-form-field>
-
-              <div class="form-actions">
-                <button mat-stroked-button type="button" (click)="cancelPostEdit()">Cancel</button>
-                <button mat-flat-button color="primary" type="submit" [disabled]="isSavingPost()">
-                  Save
-                </button>
-              </div>
-            </form>
-          } @else {
-            <h1>{{ post.title }}</h1>
           }
-        </header>
+        </div>
+      }
 
-        @if (!isEditingPost()) {
-          <div class="post-content">
-            @for (paragraph of post.content.split('\n'); track $index) {
-              <p>{{ paragraph }}</p>
+      <!-- Author Byline -->
+      <div class="post-byline">
+        <a [routerLink]="['/profile', post.author.username]" class="avatar-md">
+          @if (post.author.profilePictureUrl) {
+            <img
+              [src]="post.author.profilePictureUrl"
+              [attr.referrerpolicy]="'no-referrer'"
+              [alt]="post.author.username + ' avatar'"
+            />
+          } @else {
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+            </svg>
+          }
+        </a>
+        <div class="byline-info">
+          <a [routerLink]="['/profile', post.author.username]" class="byline-name-lg">{{
+            post.author.username
+          }}</a>
+          <p class="byline-sub">Posted {{ post.createAt | date: 'mediumDate' }}</p>
+        </div>
+
+        @if (isOwnPost(post)) {
+          <div class="owner-actions">
+            @if (!isEditingPost()) {
+              <button class="btn-secondary" type="button" (click)="startPostEdit()">Edit</button>
             }
-          </div>
-          <div class="post-tags-container">
-            @for (tag of post.tag; track tag) {
-              <a [routerLink]="['/tags', tag]" class="post-tag">#{{ tag }}</a>
-            }
+            <button class="btn-danger" type="button" (click)="deletePost()">Delete</button>
           </div>
         }
-      </article>
+      </div>
 
-      <section id="comments" class="comments-section">
-        <h2>Comments</h2>
+      <!-- Editing vs Viewing State -->
+      @if (isEditingPost()) {
+        <form class="post-edit-form" [formGroup]="postEditForm" (ngSubmit)="savePostEdit()">
+          <div class="field">
+            <input
+              type="text"
+              class="custom-input title-input"
+              formControlName="title"
+              placeholder="Post Title"
+              maxlength="128"
+            />
+          </div>
+          <div class="field">
+            <input
+              type="text"
+              class="custom-input"
+              formControlName="tags"
+              placeholder="Tags (comma separated)"
+            />
+          </div>
+          <div class="field">
+            <textarea
+              class="custom-input body-input"
+              rows="12"
+              formControlName="content"
+              placeholder="Write your post here..."
+            ></textarea>
+          </div>
+          <div class="form-actions">
+            <button class="btn-secondary" type="button" (click)="cancelPostEdit()">Cancel</button>
+            <button class="btn-primary" type="submit" [disabled]="isSavingPost()">
+              Save Changes
+            </button>
+          </div>
+        </form>
+      } @else {
+        <h1 class="post-title-lg">{{ post.title }}</h1>
 
-        <form class="comment-form" [formGroup]="commentForm" (ngSubmit)="submitComment()">
-          <mat-form-field appearance="outline">
-            <mat-label>Add a comment</mat-label>
-            <textarea matInput rows="3" maxlength="200" formControlName="content"></textarea>
-            <mat-hint align="end">{{ commentForm.controls.content.value.length }}/200</mat-hint>
-          </mat-form-field>
-          <button mat-flat-button color="primary" type="submit" [disabled]="isSubmittingComment()">
-            Comment
-          </button>
+        <div class="post-tags">
+          @for (tag of post.tag; track tag) {
+            <a [routerLink]="['/tags', tag]" class="pill-tag">#{{ tag }}</a>
+          }
+        </div>
+
+        <div class="post-body">
+          @for (paragraph of post.content.split('\n'); track $index) {
+            <p>{{ paragraph }}</p>
+          }
+        </div>
+      }
+
+      <div class="post-actions-bottom"></div>
+
+      <!-- Comments Section -->
+      <section class="comments-section" id="comments">
+        <div class="comments-header">
+          <h2 class="comments-title">{{ comments().length }} Comments</h2>
+        </div>
+
+        <form class="comment-composer" [formGroup]="commentForm" (ngSubmit)="submitComment()">
+          @if (authStore.isAuthenticated()) {
+            <a [routerLink]="['/profile', authStore.displayName()]" class="avatar-sm">
+              @if (authStore.avatarUrl()) {
+                <img [src]="authStore.avatarUrl()" [attr.referrerpolicy]="'no-referrer'" />
+              } @else {
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+                </svg>
+              }
+            </a>
+          } @else {
+            <a routerLink="/login" class="avatar-sm">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+              </svg>
+            </a>
+          }
+          <div class="composer-input-wrap">
+            <textarea
+              formControlName="content"
+              placeholder="Add to the discussion"
+              maxlength="200"
+            ></textarea>
+            <div class="composer-footer flex-between">
+              <span class="char-count">{{ commentForm.controls.content.value.length }}/200</span>
+              <button
+                class="btn-primary"
+                type="submit"
+                [disabled]="isSubmittingComment() || commentForm.invalid"
+              >
+                Comment
+              </button>
+            </div>
+          </div>
         </form>
 
-        <div class="comment-list">
+        <div class="comment-thread">
           @for (comment of comments(); track comment.id) {
-            <article class="comment-card">
-              <div class="comment-header">
-                <a [routerLink]="['/profile', comment.author.username]" class="comment-author">
-                  <img
-                    [src]="
-                      comment.author.profileImageUrl ||
-                      comment.author.profilePictureUrl ||
-                      'assets/default-avatar.png'
-                    "
-                    [alt]="comment.author.username + ' avatar'"
-                  />
-                  <span>
-                    <strong>{{ comment.author.username }}</strong>
-                    <small>{{ comment.createdAt | date: 'short' }}</small>
-                  </span>
+            <div class="comment-node">
+              <div class="comment">
+                <a [routerLink]="['/profile', comment.author.username]" class="avatar-sm">
+                  @if (comment.author.profilePictureUrl) {
+                    <img
+                      [src]="comment.author.profilePictureUrl"
+                      [attr.referrerpolicy]="'no-referrer'"
+                    />
+                  } @else {
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <circle cx="12" cy="8" r="4" />
+                      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+                    </svg>
+                  }
                 </a>
 
-                @if (isOwnComment(comment)) {
-                  <div class="comment-owner-actions">
-                    <button mat-button type="button" (click)="startCommentEdit(comment)">
-                      <mat-icon>edit</mat-icon>
-                      Edit
-                    </button>
-                    <button
-                      mat-button
-                      type="button"
-                      class="danger-btn"
-                      (click)="deleteComment(comment)"
-                    >
-                      <mat-icon>delete</mat-icon>
-                      Delete
-                    </button>
+                <div class="comment-body">
+                  <div class="comment-head">
+                    <a [routerLink]="['/profile', comment.author.username]" class="comment-name">{{
+                      comment.author.username
+                    }}</a>
+                    <span class="comment-date">{{ comment.createdAt | date: 'short' }}</span>
                   </div>
-                }
+
+                  @if (editingCommentId() === comment.id) {
+                    <form
+                      class="comment-edit-form"
+                      [formGroup]="commentEditForm"
+                      (ngSubmit)="saveCommentEdit(comment)"
+                    >
+                      <div class="composer-input-wrap">
+                        <textarea formControlName="content" maxlength="200"></textarea>
+                        <div class="composer-footer form-actions">
+                          <button class="btn-secondary" type="button" (click)="cancelCommentEdit()">
+                            Cancel
+                          </button>
+                          <button
+                            class="btn-primary"
+                            type="submit"
+                            [disabled]="savingCommentId() === comment.id"
+                          >
+                            Save
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+                  } @else {
+                    <p class="comment-text">{{ comment.content }}</p>
+                  }
+
+                  <div class="comment-actions">
+                    <button
+                      class="comment-action"
+                      [class.is-liked]="comment.likedByCurrentUser"
+                      (click)="toggleCommentLike(comment)"
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        [attr.fill]="comment.likedByCurrentUser ? 'currentColor' : 'none'"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path
+                          d="M12 21s-7-4.6-9.5-9A5.5 5.5 0 0 1 12 5a5.5 5.5 0 0 1 9.5 7c-2.5 4.4-9.5 9-9.5 9z"
+                        />
+                      </svg>
+                      {{ comment.likeCount }}
+                    </button>
+
+                    @if (isOwnComment(comment)) {
+                      <button class="comment-action" (click)="startCommentEdit(comment)">
+                        Edit
+                      </button>
+                      <button class="comment-action danger-text" (click)="deleteComment(comment)">
+                        Delete
+                      </button>
+                    }
+                  </div>
+                </div>
               </div>
 
-              @if (editingCommentId() === comment.id) {
-                <form
-                  class="comment-edit-form"
-                  [formGroup]="commentEditForm"
-                  (ngSubmit)="saveCommentEdit(comment)"
-                >
-                  <mat-form-field appearance="outline">
-                    <mat-label>Edit comment</mat-label>
-                    <textarea
-                      matInput
-                      rows="3"
-                      maxlength="200"
-                      formControlName="content"
-                    ></textarea>
-                  </mat-form-field>
-                  <div class="form-actions">
-                    <button mat-stroked-button type="button" (click)="cancelCommentEdit()">
-                      Cancel
-                    </button>
-                    <button
-                      mat-flat-button
-                      color="primary"
-                      type="submit"
-                      [disabled]="savingCommentId() === comment.id"
-                    >
-                      Save
-                    </button>
-                  </div>
-                </form>
-              } @else {
-                <p>{{ comment.content }}</p>
-              }
-
-              <button
-                mat-button
-                type="button"
-                class="comment-like-btn"
-                [class.active-like]="comment.likedByCurrentUser"
-                (click)="toggleCommentLike(comment)"
-              >
-                <mat-icon>{{
-                  comment.likedByCurrentUser ? 'favorite' : 'favorite_border'
-                }}</mat-icon>
-                {{ comment.likeCount }}
-              </button>
-
+              <!-- Nested Replies -->
               @if (comment.replies.length) {
-                <div class="replies">
+                <div class="comment-replies">
                   @for (reply of comment.replies; track reply.id) {
-                    <p>
-                      <strong>{{ reply.author.username }}:</strong> {{ reply.content }}
-                    </p>
+                    <div class="comment-node">
+                      <div class="comment">
+                        <a [routerLink]="['/profile', reply.author.username]" class="avatar-sm">
+                          @if (reply.author.profilePictureUrl) {
+                            <img
+                              [src]="reply.author.profilePictureUrl"
+                              [attr.referrerpolicy]="'no-referrer'"
+                            />
+                          } @else {
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                              <circle cx="12" cy="8" r="4" />
+                              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+                            </svg>
+                          }
+                        </a>
+                        <div class="comment-body">
+                          <div class="comment-head">
+                            <a
+                              [routerLink]="['/profile', reply.author.username]"
+                              class="comment-name"
+                              >{{ reply.author.username }}</a
+                            >
+                            <span class="comment-date">{{ reply.createdAt | date: 'short' }}</span>
+                          </div>
+                          <p class="comment-text">{{ reply.content }}</p>
+                        </div>
+                      </div>
+                    </div>
                   }
                 </div>
               }
-            </article>
+            </div>
           } @empty {
-            <p class="empty-text">No comments yet.</p>
+            <p class="empty-text">No comments yet. Start the conversation!</p>
           }
         </div>
 
         @if (hasMoreComments()) {
-          <button mat-stroked-button type="button" class="load-more" (click)="loadMoreComments()">
+          <button class="btn-secondary load-more" type="button" (click)="loadMoreComments()">
             @if (commentsLoading()) {
-              Loading...
+              <mat-spinner diameter="20"></mat-spinner>
             } @else {
               Load more comments
             }

@@ -9,7 +9,7 @@ import { FeedStore } from '../../core/store/feed.store';
 import { AuthStore } from '../../core/store/auth.store';
 import { UserService } from '../../core/services/user.service';
 import { PostService } from '../../core/services/post.service';
-import { FeedTab, UserPreview } from '../../core/models/interfaces/post.model';
+import { FeedTab, PublicProfile, UserPreview } from '../../core/models/interfaces/post.model';
 import { PostCardComponent } from '../../shared/components/post-card/post-card.component';
 
 @Component({
@@ -37,9 +37,9 @@ export class HomePageComponent implements OnInit, OnDestroy {
   private postService = inject(PostService);
   private subscriptions = new Subscription();
   private loadedConnectionsFor: number | null = null;
-
   following = signal<readonly UserPreview[]>([]);
   followers = signal<readonly UserPreview[]>([]);
+  profile = signal<PublicProfile | null>(null);
   connectionsLoading = signal(false);
   connectionsError = signal<string | null>(null);
 
@@ -135,16 +135,19 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
     this.subscriptions.add(
       forkJoin({
+        profile: this.userService.getProfile(this.authStore.user()?.username ?? ''),
         following: this.userService.getFollowing(userId),
         followers: this.userService.getFollowers(userId),
       }).subscribe({
-        next: ({ following, followers }) => {
+        next: ({ profile, following, followers }) => {
+          this.profile.set(profile);
           this.following.set(following.data);
           this.followers.set(followers.data);
           this.connectionsLoading.set(false);
         },
         error: (err) => {
           console.error('Error fetching user connections:', err);
+          this.profile.set(null);
           this.following.set([]);
           this.followers.set([]);
           this.connectionsError.set('Could not load people right now.');

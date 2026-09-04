@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
@@ -16,12 +16,14 @@ import { AuthStore } from '../../../core/store/auth.store';
 })
 export class PostCardComponent {
   authStore = inject(AuthStore);
-
+  
   @Input({ required: true }) post!: Post;
-
+  
   @Output() likeClick = new EventEmitter<void>();
   @Output() deleteClick = new EventEmitter<void>();
   @Output() tagClick = new EventEmitter<string>();
+  
+  constructor(private router: Router) {}
 
   toggleLike(event: Event) {
     event.stopPropagation();
@@ -42,5 +44,9 @@ export class PostCardComponent {
     const wordsPerMinute = 200;
     const words = content.trim().split(/\s+/).length;
     return Math.max(1, Math.ceil(words / wordsPerMinute));
+  }
+
+  navigateToPost() {
+    this.router.navigate(['/posts/', this.post.slug]);
   }
 }

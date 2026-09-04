@@ -59,7 +59,8 @@ public class CommentController {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body("Too many attempts. Please try again in 15 minutes.");
         }
-        return ResponseEntity.ok(commentService.getCommentsForPost(postId, cursor, currentUser));
+        Long currentUserId = (currentUser != null) ? currentUser.getId() : null;
+        return ResponseEntity.ok(commentService.getCommentsForPost(postId, cursor, currentUserId));
     }
 
     @PutMapping("/{commentId}")

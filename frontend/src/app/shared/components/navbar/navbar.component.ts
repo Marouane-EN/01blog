@@ -10,6 +10,7 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { AuthStore } from '../../../core/store/auth.store';
 import { Notification as AppNotification } from '../../../core/models/interfaces/post.model';
 import { NotificationService } from '../../../core/services/notification.service';
+import { MatSpinner } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-navbar',
@@ -24,6 +25,7 @@ import { NotificationService } from '../../../core/services/notification.service
     MatMenuModule,
     MatDividerModule,
     MatBadgeModule,
+    MatSpinner
   ],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.scss'],

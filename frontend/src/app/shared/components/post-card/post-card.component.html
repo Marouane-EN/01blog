@@ -1,81 +1,159 @@
-<article class="post-card">
-  <aside class="card-action-rail" aria-label="Post actions">
-    <button
-      mat-icon-button
-      type="button"
-      class="rail-btn"
-      (click)="toggleLike($event)"
-      [class.active-like]="post.likedByCurrentUser"
-      aria-label="Like post"
-    >
-      <mat-icon>{{ post.likedByCurrentUser ? 'favorite' : 'favorite_border' }}</mat-icon>
-    </button>
-    <span>{{ post.totalLikes }}</span>
-
+<!-- Added cursor: pointer and click event to navigate to the post -->
+<article class="feed-item" (click)="navigateToPost()" style="cursor: pointer">
+  <div class="byline">
+    <!-- Wrap avatar in a routerLink to go to profile and stop event propagation -->
     <a
-      mat-icon-button
-      class="rail-btn"
-      [routerLink]="['/posts', post.slug]"
-      fragment="comments"
-      aria-label="View comments"
+      [routerLink]="['/profile', post.author.username]"
+      (click)="$event.stopPropagation()"
+      class="avatar-link"
     >
-      <mat-icon>chat_bubble_outline</mat-icon>
-    </a>
-    <span>{{ post.totalComments }}</span>
-  </aside>
-
-  <div class="card-content">
-    <div class="post-header">
-      <a [routerLink]="['/profile', post.author.username]" class="author-meta">
+      @if (post.author.profilePictureUrl) {
         <img
-          [src]="post.author.profileImageUrl || 'assets/default-avatar.png'"
+          [src]="post.author.profilePictureUrl"
+          [attr.referrerpolicy]="'no-referrer'"
           alt="Author avatar"
-          class="author-avatar"
+          class="avatar-xs"
         />
-        <div class="author-info">
-          <span class="author-name">{{ post.author.username }}</span>
-          <span class="publish-date">{{ post.createAt | date: 'MMM d' }}</span>
+      } @else {
+        <div class="avatar-xs">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+          </svg>
         </div>
-      </a>
+      }
+    </a>
 
-      @if (isOwnPost()) {
-        <button
-          mat-icon-button
-          type="button"
-          [matMenuTriggerFor]="postMenu"
-          aria-label="Post options"
+    <!-- Navigate to profile and stop propagation -->
+    <a
+      [routerLink]="['/profile', post.author.username]"
+      (click)="$event.stopPropagation()"
+      class="byline-name"
+    >
+      {{ post.author.username }}
+    </a>
+    <span class="byline-sep">·</span>
+    <span class="byline-date">{{ post.createAt | date: 'MMM d' }}</span>
+    <span class="byline-spacer"></span>
+
+    @if (isOwnPost()) {
+      <button
+        class="item-menu"
+        [matMenuTriggerFor]="postMenu"
+        aria-label="More"
+        (click)="$event.stopPropagation()"
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="5" cy="12" r="1.6" />
+          <circle cx="12" cy="12" r="1.6" />
+          <circle cx="19" cy="12" r="1.6" />
+        </svg>
+      </button>
+
+      <!-- Move the class to the mat-menu itself so it attaches to the CDK overlay panel -->
+      <mat-menu #postMenu="matMenu" xPosition="before" class="custom-post-menu">
+        <!-- Add disableRipple to kill the Material animation -->
+        <a
+          mat-menu-item
+          disableRipple
+          [routerLink]="['/posts', post.slug]"
+          [queryParams]="{ edit: true }"
+          (click)="$event.stopPropagation()"
         >
-          <mat-icon>more_horiz</mat-icon>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+          <span>Edit post</span>
+        </a>
+
+        <!-- Add disableRipple here too -->
+        <button
+          mat-menu-item
+          disableRipple
+          type="button"
+          class="danger-item"
+          (click)="deletePost($event); $event.stopPropagation()"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path
+              d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+            ></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
+          </svg>
+          <span>Delete</span>
         </button>
+      </mat-menu>
+    }
+  </div>
 
-        <mat-menu #postMenu="matMenu" xPosition="before">
-          <a mat-menu-item [routerLink]="['/posts', post.slug]" [queryParams]="{ edit: true }">
-            <mat-icon>edit</mat-icon>
-            <span>Edit</span>
-          </a>
-          <button mat-menu-item type="button" (click)="deletePost($event)">
-            <mat-icon>delete</mat-icon>
-            <span>Delete</span>
-          </button>
-        </mat-menu>
-      }
-    </div>
+  <h2 class="item-title">
+    <!-- The title text is now just text, as clicking the article handles navigation -->
+    <span>{{ post.title }}</span>
+  </h2>
 
-    <div class="post-body">
-      <h2 class="post-title">
-        <a [routerLink]="['/posts', post.slug]">{{ post.title }}</a>
-      </h2>
+  <div class="item-tags">
+    @for (tag of post.tag; track tag) {
+      <a [routerLink]="['/tags', tag]" (click)="$event.stopPropagation()" class="pill-tag">{{
+        tag
+      }}</a>
+    }
+  </div>
 
-      @if (post.content) {
-        <p class="post-preview">{{ post.content }}</p>
-      }
+  <div class="item-actions">
+    <div class="item-actions-left">
+      <!-- Stop propagation on the like button so it doesn't navigate to the post -->
+      <button class="action" type="button">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M12 21s-7-4.6-9.5-9A5.5 5.5 0 0 1 12 5a5.5 5.5 0 0 1 9.5 7c-2.5 4.4-9.5 9-9.5 9z"
+          />
+        </svg>
+        {{ post.totalLikes }}
+      </button>
 
-      <div class="post-tags-container">
-        @for (tag of post.tag; track tag) {
-          <a [routerLink]="['/tags', tag]" class="post-tag">#{{ tag }}</a>
-        }
-      </div>
+      <!-- Navigate to comments and stop propagation -->
+      <a
+        class="action"
+        [routerLink]="['/posts', post.slug]"
+        fragment="comments"
+        (click)="$event.stopPropagation()"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+        {{ post.totalComments > 0 ? post.totalComments : 'Comment' }}
+      </a>
     </div>
   </div>
 </article>
-

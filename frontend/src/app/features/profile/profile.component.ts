@@ -1,6 +1,6 @@
 import { CommonModule, DatePipe } from '@angular/common';
 import { Component, OnInit, effect, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -36,6 +36,7 @@ export class ProfileComponent implements OnInit {
   private requestedUsername = signal<string | null>(null);
   private loadedUsername: string | null = null;
 
+  private router = inject(Router);
   profile = signal<PublicProfile | null>(null);
   posts = signal<readonly Post[]>([]);
   nextCursor = signal<number | null>(null);
@@ -107,6 +108,14 @@ export class ProfileComponent implements OnInit {
   }
 
   toggleFollow() {
+    // 1. Check if the user is logged in first!
+    if (!this.authStore.isAuthenticated()) {
+      // If not, redirect them to the login page immediately.
+      // Make sure to inject the Router in your component constructor or via inject(Router)!
+      this.router.navigate(['/login']);
+      return;
+    }
+
     const profile = this.profile();
 
     if (!profile || this.isOwnProfile || this.followLoading()) {
@@ -279,7 +288,9 @@ export class ProfileComponent implements OnInit {
 
     request.subscribe({
       next: (response) => {
-        this.connectionUsers.update((users) => (cursor ? [...users, ...response.data] : response.data));
+        this.connectionUsers.update((users) =>
+          cursor ? [...users, ...response.data] : response.data,
+        );
         this.connectionCursor.set(response.nextCursor);
         this.connectionHasMore.set(response.hasMore);
         this.connectionsLoading.set(false);

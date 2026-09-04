@@ -1,142 +1,303 @@
-.loading-state,
-.loading-more {
-  display: flex;
-  justify-content: center;
-  padding: 2rem;
-}
-
-.profile-header,
-.profile-posts {
-  max-width: 900px;
-  margin: 0 auto 1rem;
-  background: #ffffff;
-  border: 1px solid #e4e7ec;
-  border-radius: 8px;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
-}
-
-.profile-header {
+/* ================= PROFILE SHELL ================= */
+.profile-shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  margin-top: 52px;
+  padding: var(--space-8, 32px) var(--space-6, 24px) var(--space-10, 40px);
   display: grid;
-  grid-template-columns: 128px minmax(0, 1fr);
-  gap: 1.25rem;
-  align-items: center;
-  padding: 1.5rem;
+  grid-template-columns: minmax(0, 1fr) 268px;
+  gap: var(--space-8, 32px);
+  align-items: start;
 }
 
+.profile-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--ink-secondary, #6b6a61);
+  margin-bottom: var(--space-5, 20px);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.profile-back:hover {
+  color: var(--ink, #1b1b18);
+}
+.profile-back svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ---- header ---- */
+.profile-header {
+  padding-bottom: var(--space-6, 24px);
+  border-bottom: 1px solid var(--hairline, #e8e6dd);
+  margin-bottom: var(--space-2, 8px);
+}
+
+/* ---- avatar & upload overlay ---- */
 .avatar-wrap {
   position: relative;
-  width: 128px;
-  height: 128px;
-
-  > img {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid #e4e7ec;
-  }
+  display: inline-block;
+  margin-bottom: var(--space-4, 16px);
 }
 
+.avatar-xl,
+.avatar-xl-img {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+}
+.avatar-xl {
+  background: #efeee6;
+  color: #adab9c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  svg {
+    width: 42px;
+    height: 42px;
+  }
+}
+.avatar-xl-img {
+  object-fit: cover;
+  border: 1px solid var(--hairline, #e8e6dd);
+}
+
+/* Replaces the old edit button with a clean overlay */
 .avatar-action {
   position: absolute;
-  right: 4px;
-  bottom: 4px;
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
+  bottom: 0;
+  right: 0;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: #2563eb;
-  color: #ffffff;
+  border: 1px solid var(--hairline-strong, #dbd9cd);
+  background: var(--surface, #ffffff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-secondary, #6b6a61);
   cursor: pointer;
-  box-shadow: 0 6px 14px rgba(16, 24, 40, 0.18);
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 
+  &:hover {
+    color: var(--ink, #1b1b18);
+    border-color: var(--ink-muted, #9c9b90);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+  svg {
+    width: 15px;
+    height: 15px;
+  }
   input {
     display: none;
   }
 }
 
-.profile-copy {
-  min-width: 0;
-
-  h1 {
-    margin: 0;
-    color: #111827;
-    font-size: 2rem;
-  }
-
-  p {
-    margin: 0.55rem 0 0;
-    color: #344054;
-    line-height: 1.55;
-  }
-}
-
-.profile-title-row {
+/* ---- typography ---- */
+.profile-name-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  gap: 10px;
+}
+.profile-name {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-weight: 600;
+  font-size: 27px;
+  margin: 0;
+  color: var(--ink, #1b1b18);
+}
+.profile-handle {
+  font-size: 14px;
+  color: var(--ink-muted, #9c9b90);
+  margin: 2px 0 var(--space-4, 16px);
+}
+.profile-bio {
+  font-size: 14.5px;
+  color: var(--ink, #1b1b18);
+  line-height: 1.6;
+  margin: 0 0 var(--space-3, 12px);
+  max-width: 540px;
 }
 
 .profile-meta {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 1rem;
-  color: #667085;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--ink-muted, #9c9b90);
+  margin: 0 0 var(--space-5, 20px);
+}
+.profile-meta svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ---- stats ---- */
+.profile-stats-row {
+  display: flex;
+  gap: var(--space-6, 24px);
+  margin-bottom: var(--space-5, 20px);
+}
+.profile-stat-item {
+  font-size: 13.5px;
+  color: var(--ink-secondary, #6b6a61);
+}
+.profile-stat-item b {
+  color: var(--ink, #1b1b18);
   font-weight: 700;
+  transition: color 0.15s ease;
+}
 
-  button {
-    border: 0;
-    background: transparent;
-    color: #2563eb;
-    cursor: pointer;
-    font: inherit;
-    padding: 0;
+.stat-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  cursor: pointer;
 
-    &:hover {
-      text-decoration: underline;
+  &:hover {
+    color: var(--accent-ink, #14503a);
+  }
+  &:hover b {
+    color: var(--accent-ink, #14503a);
+  }
+}
+
+/* ---- actions ---- */
+.profile-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+}
+
+.btn-follow-lg {
+  background: var(--accent, #1e6b4e);
+  color: #fff;
+  border: 1px solid var(--accent, #1e6b4e);
+  border-radius: var(--radius-md, 10px);
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+  cursor: pointer;
+  min-width: 110px; /* Keeps width stable when text changes */
+}
+.btn-follow-lg:hover {
+  background: var(--accent-ink, #14503a);
+}
+
+/* The Unfollow Hover Trick */
+.btn-follow-lg.is-following {
+  background: var(--surface, #ffffff);
+  color: var(--ink, #1b1b18);
+  border-color: var(--hairline-strong, #dbd9cd);
+
+  .unfollow-text {
+    display: none;
+  }
+
+  &:hover {
+    border-color: #c6563f;
+    color: #c6563f;
+    background: #fbf2f0;
+
+    .following-text {
+      display: none;
+    }
+    .unfollow-text {
+      display: inline;
     }
   }
 }
 
-.profile-posts {
-  padding: 1rem;
-
-  h2 {
-    margin: 0 0 1rem;
-    color: #111827;
-  }
+.profile-more {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--hairline-strong, #dbd9cd);
+  background: var(--surface, #ffffff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-secondary, #6b6a61);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+.profile-more:hover {
+  border-color: var(--ink-muted, #9c9b90);
+  color: var(--ink, #1b1b18);
+}
+.profile-more svg {
+  width: 16px;
+  height: 16px;
 }
 
+/* Reused standard secondary button for load more */
+.btn-edit-profile {
+  background: var(--surface, #ffffff);
+  color: var(--ink, #1b1b18);
+  border: 1px solid var(--hairline-strong, #dbd9cd);
+  border-radius: var(--radius-md, 10px);
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: border-color 0.15s ease;
+  cursor: pointer;
+}
+.btn-edit-profile:hover {
+  border-color: var(--ink-muted, #9c9b90);
+}
+
+/* ---- posts & states ---- */
+.posts-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-muted, #9c9b90);
+  margin: var(--space-6, 24px) 0 0;
+}
 .post-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
 }
 
+.loading-state,
+.loading-more {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+  margin-top: 52px;
+}
 .empty-text,
 .error-state {
-  color: #667085;
+  color: var(--ink-muted, #9c9b90);
+  font-size: 14px;
 }
-
-.error-state {
-  max-width: 900px;
-  margin: 0 auto 1rem;
-}
-
 .load-more {
   margin-top: 1rem;
+  width: 100%;
 }
 
+/* ================= CONNECTIONS MODAL ================= */
 .connection-backdrop {
   position: fixed;
   inset: 0;
   z-index: 50;
   display: grid;
   place-items: center;
-  background: rgba(17, 24, 39, 0.38);
+  background: rgba(27, 27, 24, 0.4);
   padding: 1rem;
 }
 
@@ -144,9 +305,9 @@
   width: min(420px, 100%);
   max-height: min(620px, 90vh);
   overflow: auto;
-  border-radius: 8px;
-  background: #ffffff;
-  box-shadow: 0 24px 48px rgba(16, 24, 40, 0.24);
+  border-radius: var(--radius-lg, 12px);
+  background: var(--surface, #ffffff);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.12);
 
   header {
     position: sticky;
@@ -155,59 +316,100 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid #e4e7ec;
-    background: #ffffff;
-    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--hairline, #e8e6dd);
+    background: var(--surface, #ffffff);
+    padding: 12px 16px;
   }
 
   h2 {
     margin: 0;
-    color: #111827;
-    font-size: 1.1rem;
+    color: var(--ink, #1b1b18);
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .modal-close {
+    border: none;
   }
 }
 
 .connection-list {
   display: flex;
   flex-direction: column;
-  padding: 0.5rem;
+  padding: 8px;
 
   a {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    border-radius: 7px;
-    color: #111827;
-    padding: 0.65rem;
+    gap: 12px;
+    border-radius: var(--radius-md, 10px);
+    color: var(--ink, #1b1b18);
+    padding: 10px;
     text-decoration: none;
-    font-weight: 700;
+    transition: background-color 0.15s ease;
 
     &:hover {
-      color: #1d4ed8;
-      background: #eff6ff;
+      background: var(--bg, #faf9f6);
     }
   }
+}
 
+.avatar-sm {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #efeee6;
+  color: #adab9c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
   img {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
   }
 }
 
-@media (max-width: 640px) {
-  .profile-header {
-    grid-template-columns: 1fr;
-    justify-items: center;
-    text-align: center;
-  }
+.suggest-name {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+}
+.load-more-connections {
+  width: calc(100% - 32px);
+  margin: 0 16px 16px;
+}
 
-  .profile-meta {
-    justify-content: center;
+/* ================= RESPONSIVE ================= */
+@media (max-width: 1000px) {
+  .profile-shell {
+    grid-template-columns: minmax(0, 1fr);
   }
-
-  .profile-title-row {
-    flex-direction: column;
+  .profile-aside {
+    display: none;
+  }
+}
+@media (max-width: 600px) {
+  .profile-shell {
+    padding: var(--space-5, 20px) var(--space-4, 16px) 88px;
+  }
+  .profile-name {
+    font-size: 22px;
+  }
+  .avatar-xl,
+  .avatar-xl-img {
+    width: 72px;
+    height: 72px;
+  }
+  .avatar-xl svg {
+    width: 34px;
+    height: 34px;
   }
 }

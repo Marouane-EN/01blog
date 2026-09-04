@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -46,8 +47,23 @@ public class SecurityConfig {
                                                         response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
                                                                         "Unauthorized");
                                                 }))
-                                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/admin/**").hasRole("ADMIN")
+                                .authorizeHttpRequests(auth -> auth
+                                                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
                                                 .requestMatchers("/api/auth/**", "/oauth2/**", "/error").permitAll()
+
+                                                .requestMatchers("/api/posts/subscriptions").authenticated()
+
+                                                .requestMatchers("/api/users/me").authenticated()
+
+                                                .requestMatchers(HttpMethod.GET,
+                                                                "/api/posts/**",
+                                                                "/api/users/search",
+                                                                "/api/users/*/following",
+                                                                "/api/users/*/followers",
+                                                                "/api/users/*")
+                                                .permitAll()
+
                                                 .anyRequest().authenticated())
                                 .oauth2Login(oauth2 -> oauth2
                                                 .userInfoEndpoint(userInfo -> userInfo
@@ -62,7 +78,7 @@ public class SecurityConfig {
         public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration configuration = new CorsConfiguration();
 
-                configuration.setAllowedOrigins(List.of("http://localhost:4200"));
+                configuration.setAllowedOriginPatterns(List.of("*"));
 
                 configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
 

@@ -1,5 +1,6 @@
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 
 export interface LoginRequest {
@@ -18,7 +19,6 @@ export interface RegistrationRequest {
 export interface UserDto {
   id: number;
   username: string;
-  profileImageUrl?: string | null;
   profilePictureUrl?: string | null;
 }
 
@@ -32,6 +32,8 @@ export interface AuthResponse {
 })
 export class AuthService {
   private http = inject(HttpClient);
+  private platformId = inject(PLATFORM_ID);
+
   private readonly API_URL = 'http://localhost:8080/api';
 
   // UPGRADE: Store the actual User profile instead of just true/false
@@ -59,9 +61,11 @@ export class AuthService {
 
   logout(): void {
     // Clear everything out on logout
-    localStorage.removeItem('jwt_token');
-    localStorage.removeItem('current_user');
-    this.currentUserSubject.next(null);
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem('jwt_token');
+      localStorage.removeItem('current_user');
+      this.currentUserSubject.next(null);
+    }
   }
 
   hasToken(): boolean {

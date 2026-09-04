@@ -56,8 +56,8 @@ public class PostController {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body("Too many attempts. Please try again in 15 minutes.");
         }
-
-        return ResponseEntity.ok(postService.getPostFeed(cursor, currentUser));
+        Long currentUserId = (currentUser != null) ? currentUser.getId() : null;
+        return ResponseEntity.ok(postService.getPostFeed(cursor, currentUserId));
     }
 
     @GetMapping("/{slug}")
@@ -70,8 +70,8 @@ public class PostController {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body("Too many attempts. Please try again in 15 minutes.");
         }
-
-        PostDto postDto = postService.getPostBySlug(slug, currentUser);
+        Long currentUserId = (currentUser != null) ? currentUser.getId() : null;
+        PostDto postDto = postService.getPostBySlug(slug, currentUserId);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(postDto);
     }
@@ -88,7 +88,8 @@ public class PostController {
                     .body("Too many attempts. Please try again in 15 minutes.");
         }
 
-        return ResponseEntity.ok(postService.getPostsByUser(authorId, cursor, currentUser.getId()));
+        Long currentUserId = (currentUser != null) ? currentUser.getId() : null;
+        return ResponseEntity.ok(postService.getPostsByUser(authorId, cursor, currentUserId));
     }
 
     @GetMapping("/subscriptions")
@@ -103,14 +104,13 @@ public class PostController {
                     .body("Too many attempts. Please try again in 15 minutes.");
         }
 
-        return ResponseEntity.ok(postService.getSubscriptionsFeed(cursor, currentUser));
+        return ResponseEntity.ok(postService.getSubscriptionsFeed(cursor, currentUser.getId()));
     }
 
     @GetMapping("/search")
     public ResponseEntity<?> searchPosts(
             @RequestParam(name = "q") String keyword,
-            @RequestParam(required = false) Long cursor,
-            @AuthenticationPrincipal User currentUser, HttpServletRequest httpRequest) {
+            @RequestParam(required = false) Long cursor, HttpServletRequest httpRequest) {
         String ipAddress = rateLimiter.getClientIp(httpRequest);
 
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
@@ -123,7 +123,7 @@ public class PostController {
             return ResponseEntity.badRequest().build();
         }
 
-        return ResponseEntity.ok(postService.searchPosts(keyword, cursor, currentUser));
+        return ResponseEntity.ok(postService.searchPosts(keyword, cursor));
     }
 
     @DeleteMapping("/{id}")

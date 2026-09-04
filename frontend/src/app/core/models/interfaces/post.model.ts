@@ -9,8 +9,7 @@ export interface CursorResponse<T> {
 export interface UserPreview {
   readonly id: number;
   readonly username: string;
-  readonly profileImageUrl: string | null;
-  readonly profilePictureUrl?: string | null;
+  readonly profilePictureUrl: string | null;
 }
 
 export interface Comment {
@@ -41,8 +40,10 @@ export interface LikeResponse {
 }
 
 export interface PostSearchResult {
-  readonly author: string;
+  readonly id: number;
+  readonly author: UserPreview;
   readonly title: string;
+  readonly slug: string;
   readonly createAt: string;
 }
 
