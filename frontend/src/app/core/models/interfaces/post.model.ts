@@ -1,32 +1,4 @@
-// ── Generic Wrapper ──────────────────────────────────────────────────
-export interface CursorResponse<T> {
-  readonly data: readonly T[];
-  readonly nextCursor: number | null;
-  readonly hasMore: boolean;
-}
-
-// ── User Models ──────────────────────────────────────────────────────
-export interface UserPreview {
-  readonly id: number;
-  readonly username: string;
-  readonly profilePictureUrl: string | null;
-}
-
-export interface Comment {
-  readonly id: number;
-  readonly content: string;
-  readonly author: UserPreview;
-  readonly replies: readonly Comment[];
-  readonly likeCount: number;
-  readonly likedByCurrentUser: boolean;
-  readonly createdAt: string;
-  readonly updatedAt: string;
-}
-
-export interface CreateCommentRequest {
-  readonly content: string;
-  readonly parentId?: number | null;
-}
+import { UserDto } from './user.model';
 
 export interface CreatePostRequest {
   readonly title: string;
@@ -41,36 +13,10 @@ export interface LikeResponse {
 
 export interface PostSearchResult {
   readonly id: number;
-  readonly author: UserPreview;
+  readonly author: UserDto;
   readonly title: string;
   readonly slug: string;
   readonly createAt: string;
-}
-
-export interface Notification {
-  readonly id: number;
-  readonly senderUsername: string;
-  readonly senderProfilePictureUrl: string | null;
-  readonly type: string;
-  readonly postId: number | null;
-  readonly isRead: boolean;
-  readonly createdAt: string;
-}
-
-export interface SubscriptionResponse {
-  readonly isSubscribed: boolean;
-  readonly totalSubscribers: number;
-}
-
-export interface PublicProfile {
-  readonly id: number;
-  readonly username: string;
-  readonly bio: string | null;
-  readonly profilePictureUrl: string | null;
-  readonly postsCount: number;
-  readonly followersCount: number;
-  readonly followingCount: number;
-  readonly joinedAt: string;
 }
 
 // ── Post Models ──────────────────────────────────────────────────────
@@ -79,7 +25,7 @@ export interface Post {
   readonly slug: string;
   readonly title: string;
   readonly content: string;
-  readonly author: UserPreview;
+  readonly author: UserDto;
   readonly tag: readonly string[]; // Backend sends an array of strings
   readonly mediaUrls: readonly string[];
   readonly totalLikes: number; // Updated from likesCount

@@ -8,7 +8,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatBadgeModule } from '@angular/material/badge';
 import { AuthStore } from '../../../core/store/auth.store';
-import { Notification as AppNotification } from '../../../core/models/interfaces/post.model';
+import { Notification as AppNotification } from '../../../core/models';
 import { NotificationService } from '../../../core/services/notification.service';
 import { MatSpinner } from '@angular/material/progress-spinner';
 

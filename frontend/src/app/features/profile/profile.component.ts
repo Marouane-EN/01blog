@@ -8,7 +8,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { PostService } from '../../core/services/post.service';
 import { UserService } from '../../core/services/user.service';
 import { AuthStore } from '../../core/store/auth.store';
-import { Post, PublicProfile, UserPreview } from '../../core/models/interfaces/post.model';
+import { Post, PublicProfile, UserDto } from '../../core/models';
 import { PostCardComponent } from '../../shared/components/post-card/post-card.component';
 
 @Component({
@@ -48,7 +48,7 @@ export class ProfileComponent implements OnInit {
   isFollowing = signal(false);
   errorMessage = signal('');
   connectionPanel = signal<'followers' | 'following' | null>(null);
-  connectionUsers = signal<readonly UserPreview[]>([]);
+  connectionUsers = signal<readonly UserDto[]>([]);
   connectionCursor = signal<number | null>(null);
   connectionHasMore = signal(false);
   connectionsLoading = signal(false);

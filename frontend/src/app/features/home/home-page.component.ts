@@ -9,7 +9,7 @@ import { FeedStore } from '../../core/store/feed.store';
 import { AuthStore } from '../../core/store/auth.store';
 import { UserService } from '../../core/services/user.service';
 import { PostService } from '../../core/services/post.service';
-import { FeedTab, PublicProfile, UserPreview } from '../../core/models/interfaces/post.model';
+import { FeedTab, PublicProfile, UserDto } from '../../core/models/index';
 import { PostCardComponent } from '../../shared/components/post-card/post-card.component';
 
 @Component({
@@ -37,8 +37,8 @@ export class HomePageComponent implements OnInit, OnDestroy {
   private postService = inject(PostService);
   private subscriptions = new Subscription();
   private loadedConnectionsFor: number | null = null;
-  following = signal<readonly UserPreview[]>([]);
-  followers = signal<readonly UserPreview[]>([]);
+  following = signal<readonly UserDto[]>([]);
+  followers = signal<readonly UserDto[]>([]);
   profile = signal<PublicProfile | null>(null);
   connectionsLoading = signal(false);
   connectionsError = signal<string | null>(null);

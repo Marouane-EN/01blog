@@ -1,7 +1,8 @@
 import { Injectable, inject, signal, computed, Signal, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { AuthService, UserDto } from '../services/auth.service';
+import { AuthService } from '../services/auth.service';
+import { UserDto } from '../models';
 
 /**
  * AuthStore — Signal facade over the existing AuthService.

@@ -2,20 +2,21 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
-  Post,
+  CreatePostRequest,
   CursorResponse,
   FeedTab,
-  CreatePostRequest,
   LikeResponse,
+  Post,
   PostSearchResult,
-} from '../models/interfaces/post.model';
+} from '../models';
+import { environment } from '../../../environments/environment.development';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PostService {
   private http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/posts';
+  private readonly API_URL = environment.apiUrl; // Use the API URL from the environment configuration
 
   getFeed(tab: FeedTab, cursor?: number | null): Observable<CursorResponse<Post>> {
     let params = new HttpParams();
@@ -25,15 +26,15 @@ export class PostService {
 
     // Route to the correct endpoint based on the tab
     if (tab === 'following') {
-      return this.http.get<CursorResponse<Post>>(`${this.API_URL}/subscriptions`, { params });
+      return this.http.get<CursorResponse<Post>>(`${this.API_URL}/posts/subscriptions`, { params });
     }
 
     // Default to latest
-    return this.http.get<CursorResponse<Post>>(this.API_URL, { params });
+    return this.http.get<CursorResponse<Post>>(`${this.API_URL}/posts`, { params });
   }
 
   getPostBySlug(slug: string): Observable<Post> {
-    return this.http.get<Post>(`${this.API_URL}/${slug}`);
+    return this.http.get<Post>(`${this.API_URL}/posts/${slug}`);
   }
 
   getPostsByUser(userId: number, cursor?: number | null): Observable<CursorResponse<Post>> {
@@ -43,7 +44,7 @@ export class PostService {
       params = params.set('cursor', cursor.toString());
     }
 
-    return this.http.get<CursorResponse<Post>>(`${this.API_URL}/user/${userId}`, { params });
+    return this.http.get<CursorResponse<Post>>(`${this.API_URL}/posts/user/${userId}`, { params });
   }
 
   createPost(request: CreatePostRequest, files: readonly File[] = []): Observable<Post> {
@@ -63,11 +64,11 @@ export class PostService {
 
     files.forEach((file) => formData.append('files', file));
 
-    return this.http.post<Post>(this.API_URL, formData);
+    return this.http.post<Post>(`${this.API_URL}/posts`, formData);
   }
 
   updatePost(postId: number, request: CreatePostRequest): Observable<Post> {
-    return this.http.put<Post>(`${this.API_URL}/${postId}`, {
+    return this.http.put<Post>(`${this.API_URL}/posts/${postId}`, {
       title: request.title,
       content: request.content,
       tags: request.tags,
@@ -75,11 +76,11 @@ export class PostService {
   }
 
   deletePost(postId: number): Observable<string> {
-    return this.http.delete(`${this.API_URL}/${postId}`, { responseType: 'text' });
+    return this.http.delete(`${this.API_URL}/posts/${postId}`, { responseType: 'text' });
   }
 
   toggleLike(postId: number): Observable<LikeResponse> {
-    return this.http.post<LikeResponse>(`${this.API_URL}/${postId}/like`, {});
+    return this.http.post<LikeResponse>(`${this.API_URL}/posts/${postId}/like`, {});
   }
 
   searchPosts(query: string, cursor?: number | null): Observable<CursorResponse<PostSearchResult>> {
@@ -89,6 +90,8 @@ export class PostService {
       params = params.set('cursor', cursor.toString());
     }
 
-    return this.http.get<CursorResponse<PostSearchResult>>(`${this.API_URL}/search`, { params });
+    return this.http.get<CursorResponse<PostSearchResult>>(`${this.API_URL}/posts/search`, {
+      params,
+    });
   }
 }

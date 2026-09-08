@@ -2,109 +2,93 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
-
-export interface LoginRequest {
-  identifier: string;
-  password: string;
-}
-
-export interface RegistrationRequest {
-  username: string;
-  email: string;
-  password: string;
-  bio?: string;
-  birthDate?: Date;
-}
-
-export interface UserDto {
-  id: number;
-  username: string;
-  profilePictureUrl?: string | null;
-}
-
-export interface AuthResponse {
-  token: string;
-  userProfile: UserDto;
-}
+import { AuthResponse, LoginRequest, RegistrationRequest, UserDto } from '../models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
+  private static readonly TOKEN_KEY = 'jwt_token';
+  private static readonly USER_KEY = 'current_user';
+
   private http = inject(HttpClient);
   private platformId = inject(PLATFORM_ID);
+  private readonly API_URL = environment.apiUrl;
 
-  private readonly API_URL = 'http://localhost:8080/api';
-
-  // UPGRADE: Store the actual User profile instead of just true/false
   private currentUserSubject = new BehaviorSubject<UserDto | null>(this.getSavedUser());
-
-  // The Navbar will subscribe to this to get the user's username and picture
   currentUser$ = this.currentUserSubject.asObservable();
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.API_URL}/auth/login`, credentials).pipe(
-      tap((response) => {
-        if (response && response.token) {
-          // HOW IT IS STORED: We take the token string and save it under the key 'jwt_token'
-          localStorage.setItem('jwt_token', response.token);
-
-          // We convert the user object into a string and save it so it survives page refreshes
-          localStorage.setItem('current_user', JSON.stringify(response.userProfile));
-
-          // Broadcast the new user to the rest of the application
-          this.currentUserSubject.next(response.userProfile);
-        }
-      }),
-    );
+    return this.http
+      .post<AuthResponse>(`${this.API_URL}/auth/login`, credentials)
+      .pipe(tap((response) => this.handleAuthSuccess(response)));
   }
 
-  logout(): void {
-    // Clear everything out on logout
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.removeItem('jwt_token');
-      localStorage.removeItem('current_user');
-      this.currentUserSubject.next(null);
-    }
-  }
-
-  hasToken(): boolean {
-    return typeof window !== 'undefined' && !!window.localStorage?.getItem('jwt_token');
-  }
-
-  // 3. Register Method
   register(registrationData: RegistrationRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.API_URL}/auth/register`, registrationData).pipe(
-      tap((response) => {
-        if (response && response.token) {
-          localStorage.setItem('jwt_token', response.token);
-          localStorage.setItem('current_user', JSON.stringify(response.userProfile));
-          this.currentUserSubject.next(response.userProfile);
-        }
-      }),
-    );
+    return this.http
+      .post<AuthResponse>(`${this.API_URL}/auth/register`, registrationData)
+      .pipe(tap((response) => this.handleAuthSuccess(response)));
   }
 
   fetchMe(): Observable<UserDto> {
     return this.http.get<UserDto>(`${this.API_URL}/users/me`).pipe(
       tap((userProfile) => {
-        // Save the user profile to local storage so it survives page refreshes
-        localStorage.setItem('current_user', JSON.stringify(userProfile));
-
-        // Broadcast the new user to the rest of the application (like the Navbar!)
+        this.persistUser(userProfile);
         this.currentUserSubject.next(userProfile);
       }),
     );
   }
 
-  // Helper to check LocalStorage when the app first boots up
+  logout(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem(AuthService.TOKEN_KEY);
+      localStorage.removeItem(AuthService.USER_KEY);
+    }
+    this.currentUserSubject.next(null);
+  }
+
+  hasToken(): boolean {
+    return !!this.getToken();
+  }
+
+  getToken(): string | null {
+    return isPlatformBrowser(this.platformId) ? localStorage.getItem(AuthService.TOKEN_KEY) : null;
+  }
+
+  /**
+   * Persists a token obtained outside the normal login/register flow
+   * (e.g. an OAuth2 redirect callback that only receives a raw token).
+   */
+  setToken(token: string): void {
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem(AuthService.TOKEN_KEY, token);
+    }
+  }
+
+  // --- PRIVATE HELPERS ---
+
+  private handleAuthSuccess(response: AuthResponse): void {
+    if (response && response.token) {
+      this.setToken(response.token);
+      this.persistUser(response.userProfile);
+      this.currentUserSubject.next(response.userProfile);
+    }
+  }
+
+  private persistUser(user: UserDto): void {
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem(AuthService.USER_KEY, JSON.stringify(user));
+    }
+  }
+
   private getSavedUser(): UserDto | null {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      const savedUser = localStorage.getItem('current_user');
+    if (isPlatformBrowser(this.platformId)) {
+      const savedUser = localStorage.getItem(AuthService.USER_KEY);
       try {
         return savedUser ? JSON.parse(savedUser) : null;
       } catch {
-        localStorage.removeItem('current_user');
+        localStorage.removeItem(AuthService.USER_KEY);
         return null;
       }
     }

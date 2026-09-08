@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { PostService } from '../services/post.service';
 import { UserService } from '../services/user.service';
-import { Post, FeedTab, PostSearchResult, UserPreview } from '../models/interfaces/post.model';
+import { Post, FeedTab, PostSearchResult, UserDto } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class FeedStore {
@@ -12,7 +12,7 @@ export class FeedStore {
   // ── Private Writable Signals ──
   readonly #posts = signal<readonly Post[]>([]);
   readonly #searchResults = signal<readonly PostSearchResult[]>([]);
-  readonly #userSearchResults = signal<readonly UserPreview[]>([]);
+  readonly #userSearchResults = signal<readonly UserDto[]>([]);
   readonly #isLoading = signal<boolean>(false);
   readonly #isLoadingMore = signal<boolean>(false);
   readonly #activeTab = signal<FeedTab>('latest');

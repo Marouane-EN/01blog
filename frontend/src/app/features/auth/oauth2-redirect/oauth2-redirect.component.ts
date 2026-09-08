@@ -2,6 +2,7 @@ import { Component, inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-oauth2-redirect',
@@ -40,6 +41,7 @@ export class Oauth2RedirectComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
+  private authService = inject(AuthService);
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -49,8 +51,8 @@ export class Oauth2RedirectComponent implements OnInit {
         // 1. Clean the token just in case
         const cleanToken = token.replace(/['"]+/g, '');
 
-        // 2. Save it using the exact key your AuthService expects
-        localStorage.setItem('jwt_token', cleanToken);
+        // 2. Save it via AuthService, the single source of truth for the storage key
+        this.authService.setToken(cleanToken);
 
         // 3. DO NOT use this.router.navigate(['/']) or fetchMe() here!
         // Force the browser to do a hard refresh. When it wakes back up,

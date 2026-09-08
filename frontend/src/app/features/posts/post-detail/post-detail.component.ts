@@ -6,7 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { Comment, Post } from '../../../core/models/interfaces/post.model';
+import { Comment, Post } from '../../../core/models';
 import { CommentService } from '../../../core/services/comment.service';
 import { PostService } from '../../../core/services/post.service';
 import { AuthStore } from '../../../core/store/auth.store';
@@ -339,7 +339,9 @@ export class PostDetailComponent implements OnInit {
 
     this.commentService.getComments(postId, cursor).subscribe({
       next: (response) => {
-        this.comments.update((comments) => (cursor ? [...comments, ...response.data] : response.data));
+        this.comments.update((comments) =>
+          cursor ? [...comments, ...response.data] : response.data,
+        );
         this.commentsCursor.set(response.nextCursor);
         this.hasMoreComments.set(response.hasMore);
         this.commentsLoading.set(false);

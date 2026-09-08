@@ -1,25 +1,19 @@
 import { HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { AuthService } from '../services/auth.service';
 
 export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
-  // Check if we are in the browser and have a token
+  const token = inject(AuthService).getToken();
 
-  if (typeof window !== 'undefined' && window.localStorage) {
-    const token = localStorage.getItem('jwt_token');
+  if (token) {
+    const authReq = req.clone({
+      setHeaders: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-    // If we have a token, clone the request and attach it
-
-    if (token) {
-      const authReq = req.clone({
-        setHeaders: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      return next(authReq);
-    }
+    return next(authReq);
   }
-
-  // If no token, just send the request as is
 
   return next(req);
 };

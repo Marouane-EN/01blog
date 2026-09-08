@@ -4,7 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
-import { Post } from '../../../core/models/interfaces/post.model';
+import { Post } from '../../../core/models';
 import { AuthStore } from '../../../core/store/auth.store';
 
 @Component({

@@ -1,7 +1,7 @@
 import { Component, inject, PLATFORM_ID, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { AuthService, RegistrationRequest } from '../../../core/services/auth.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -9,6 +9,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { isPlatformBrowser } from '@angular/common';
+import { RegistrationRequest } from '../../../core/models';
 
 @Component({
   selector: 'app-register',
@@ -79,10 +80,7 @@ export class RegisterComponent {
     const rawValue = this.registerForm.getRawValue();
 
     // 2. Format birthDate: Convert JS Date to ISO string, then extract YYYY-MM-DD
-    // If birthDate is null/undefined, we leave it as undefined
-    const formattedBirthDate = rawValue.birthDate
-      ? new Date(rawValue.birthDate).toISOString().split('T')[0]
-      : null;
+    const formattedBirthDate = new Date(rawValue.birthDate as Date).toISOString().split('T')[0];
 
     // 3. Assemble the payload to match the Spring Boot 'RegisterRequest' record
     const RegistrationRequest: RegistrationRequest = {
@@ -90,7 +88,7 @@ export class RegisterComponent {
       email: rawValue.email,
       password: rawValue.password,
       bio: rawValue.bio,
-      birthDate: formattedBirthDate ? new Date(formattedBirthDate) : undefined,
+      birthDate: new Date(formattedBirthDate as string), // Ensure it's a Date object
     };
 
     return RegistrationRequest;

@@ -10,6 +10,24 @@ export interface User {
   readonly createdAt: string;
 }
 
-export interface AuthUser extends User {
-  readonly token: string;
+export interface PublicProfile {
+  readonly id: number;
+  readonly username: string;
+  readonly bio: string | null;
+  readonly profilePictureUrl: string | null;
+  readonly postsCount: number;
+  readonly followersCount: number;
+  readonly followingCount: number;
+  readonly joinedAt: string;
+}
+
+export interface SubscriptionResponse {
+  readonly isSubscribed: boolean;
+  readonly totalSubscribers: number;
+}
+
+export interface UserDto {
+  id: number;
+  username: string;
+  profilePictureUrl: string | null;
 }

@@ -48,9 +48,7 @@ export class AppComponent implements OnInit {
     // If a JWT token exists in localStorage, verify it with the backend
     // and rehydrate the current user (navbar will update automatically
     // because AuthStore subscribes to AuthService.currentUser$).
-    const token = typeof window !== 'undefined' ? localStorage.getItem('jwt_token') : null;
-
-    if (token) {
+    if (this.#authService.getToken()) {
       this.#authService.fetchMe().subscribe({
         next: () => this.isCheckingAuth.set(false),
         // Success: AuthService updates currentUserSubject → AuthStore signal updates → Navbar re-renders
