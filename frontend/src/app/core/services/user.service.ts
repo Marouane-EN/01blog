@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { CursorResponse, PublicProfile, SubscriptionResponse, UserDto } from '../models';
+import { CursorResponse, PopularUser, PublicProfile, SubscriptionResponse, UserDto } from '../models';
 import { environment } from '../../../environments/environment';
 import { buildCursorParams } from '../utils/http.utils';
 
@@ -43,4 +43,8 @@ export class UserService {
     return this.http.get<CursorResponse<UserDto>>(`${this.API_URL}/users/search`, { params });
   }
 
+  getPopularUsers(limit = 5): Observable<readonly PopularUser[]> {
+    const params = new HttpParams().set('limit', limit);
+    return this.http.get<readonly PopularUser[]>(`${this.API_URL}/users/popular`, { params });
+  }
 }

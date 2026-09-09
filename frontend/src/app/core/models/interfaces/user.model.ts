@@ -31,3 +31,10 @@ export interface UserDto {
   username: string;
   profilePictureUrl: string | null;
 }
+
+export interface PopularUser {
+  readonly id: number;
+  readonly username: string;
+  readonly profilePictureUrl: string | null;
+  readonly followerCount: number;
+}

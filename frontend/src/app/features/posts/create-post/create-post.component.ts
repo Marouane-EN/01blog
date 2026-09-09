@@ -1,11 +1,6 @@
-import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnDestroy, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { Router, RouterLink } from '@angular/router';
 import { PostService } from '../../../core/services/post.service';
 import { ToastService } from '../../../core/services/toast.service';
 import {
@@ -22,16 +17,7 @@ interface FilePreview {
 @Component({
   selector: 'app-create-post',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    RouterModule,
-    MatButtonModule,
-    MatIconModule,
-    MatInputModule,
-    MatProgressSpinnerModule,
-    MediaCarouselComponent,
-  ],
+  imports: [ReactiveFormsModule, RouterLink, MediaCarouselComponent],
   templateUrl: './create-post.component.html',
   styleUrls: ['./create-post.component.scss'],
 })

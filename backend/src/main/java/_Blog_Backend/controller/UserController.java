@@ -124,6 +124,21 @@ public class UserController {
         return ResponseEntity.ok(userService.getPublicProfile(username));
     }
 
+    @GetMapping("/popular")
+    public ResponseEntity<?> getPopularUsers(
+            @RequestParam(defaultValue = "5") int limit,
+            HttpServletRequest httpRequest) {
+        String ipAddress = rateLimiter.getClientIp(httpRequest);
+        Bucket bucket = rateLimiter.resolveBucket(ipAddress);
+        if (!bucket.tryConsume(1)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("Too many attempts. Please try again in 15 minutes.");
+        }
+
+        int cappedLimit = Math.min(Math.max(limit, 1), 20);
+        return ResponseEntity.ok(userService.getPopularUsers(cappedLimit));
+    }
+
     @GetMapping("/search")
     public ResponseEntity<?> searchUsers(
             @RequestParam(name = "q") String keyword,

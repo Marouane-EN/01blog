@@ -9,8 +9,9 @@ import { FeedStore } from '../../core/store/feed.store';
 import { AuthStore } from '../../core/store/auth.store';
 import { UserService } from '../../core/services/user.service';
 import { PostService } from '../../core/services/post.service';
+import { TagService } from '../../core/services/tag.service';
 import { ToastService } from '../../core/services/toast.service';
-import { FeedTab, PublicProfile, UserDto } from '../../core/models/index';
+import { FeedTab, PopularUser, PublicProfile, TagTrend, UserDto } from '../../core/models/index';
 import { PostCardComponent } from '../../shared/components/post-card/post-card.component';
 
 @Component({
@@ -36,6 +37,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private userService = inject(UserService);
   private postService = inject(PostService);
+  private tagService = inject(TagService);
   private toastService = inject(ToastService);
   private subscriptions = new Subscription();
   private loadedConnectionsFor: number | null = null;
@@ -44,6 +46,8 @@ export class HomePageComponent implements OnInit, OnDestroy {
   profile = signal<PublicProfile | null>(null);
   connectionsLoading = signal(false);
   connectionsError = signal<string | null>(null);
+  trendingTags = signal<readonly TagTrend[]>([]);
+  popularUsers = signal<readonly PopularUser[]>([]);
 
   constructor() {
     effect(() => {
@@ -71,6 +75,16 @@ export class HomePageComponent implements OnInit, OnDestroy {
         this.feedStore.loadFeed(this.feedStore.activeTab());
       }),
     );
+
+    this.tagService.getTrendingTags(5).subscribe({
+      next: (tags) => this.trendingTags.set(tags),
+      error: (err) => console.error('Error loading trending tags:', err),
+    });
+
+    this.userService.getPopularUsers(5).subscribe({
+      next: (users) => this.popularUsers.set(users),
+      error: (err) => console.error('Error loading popular users:', err),
+    });
   }
 
   ngOnDestroy() {

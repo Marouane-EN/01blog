@@ -138,6 +138,10 @@
   align-items: baseline;
   justify-content: space-between;
   padding: var(--space-2) 0;
+  text-decoration: none;
+  color: inherit;
+  border-radius: var(--radius-md);
+  transition: background-color 0.15s ease;
 }
 .trend-tag {
   font-size: 13.5px;

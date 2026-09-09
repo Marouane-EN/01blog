@@ -61,7 +61,8 @@ public class SecurityConfig {
                                                                 "/api/users/search",
                                                                 "/api/users/*/following",
                                                                 "/api/users/*/followers",
-                                                                "/api/users/*")
+                                                                "/api/users/*",
+                                                                "/api/tags/*")
                                                 .permitAll()
 
                                                 .anyRequest().authenticated())

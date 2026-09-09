@@ -1,33 +1,76 @@
 <section class="create-post-page">
-  <header class="page-header">
-    <a routerLink="/" mat-button>
-      <mat-icon>arrow_back</mat-icon>
-      Home
-    </a>
-    <h1>Create post</h1>
-  </header>
+  <a class="post-back" routerLink="/">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M19 12H5M12 19l-7-7 7-7" />
+    </svg>
+    Back to feed
+  </a>
+
+  <h1 class="page-title">Write a new post</h1>
+  <p class="page-subtitle">Share something with the community.</p>
 
   <form class="post-form" [formGroup]="form" (ngSubmit)="submit()">
-    <mat-form-field appearance="outline">
-      <mat-label>Title</mat-label>
-      <input matInput formControlName="title" maxlength="128" />
-      <mat-hint align="end">{{ form.controls.title.value.length }}/128</mat-hint>
-    </mat-form-field>
+    <div class="field">
+      <div class="field-head">
+        <label for="post-title" class="field-label">Title</label>
+        <span class="char-count">{{ form.controls.title.value.length }}/128</span>
+      </div>
+      <input
+        id="post-title"
+        type="text"
+        class="custom-input title-input"
+        formControlName="title"
+        maxlength="128"
+        placeholder="Give your post a title"
+      />
+    </div>
 
-    <mat-form-field appearance="outline">
-      <mat-label>Content</mat-label>
-      <textarea matInput formControlName="content" rows="12" maxlength="1000"></textarea>
-      <mat-hint align="end">{{ form.controls.content.value.length }}/1000</mat-hint>
-    </mat-form-field>
+    <div class="field">
+      <div class="field-head">
+        <label for="post-content" class="field-label">Content</label>
+        <span class="char-count">{{ form.controls.content.value.length }}/1000</span>
+      </div>
+      <textarea
+        id="post-content"
+        class="custom-input body-input"
+        rows="12"
+        formControlName="content"
+        maxlength="1000"
+        placeholder="Write your post here..."
+      ></textarea>
+    </div>
 
-    <mat-form-field appearance="outline">
-      <mat-label>Tags</mat-label>
-      <input matInput formControlName="tags" placeholder="angular, spring, api" />
-      <mat-hint>Separate up to 5 tags with commas.</mat-hint>
-    </mat-form-field>
+    <div class="field">
+      <label for="post-tags" class="field-label">Tags</label>
+      <input
+        id="post-tags"
+        type="text"
+        class="custom-input"
+        formControlName="tags"
+        placeholder="angular, spring, api"
+      />
+      <p class="field-hint">Separate up to 5 tags with commas.</p>
+    </div>
 
     <label class="file-drop">
-      <mat-icon>upload_file</mat-icon>
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.6"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M12 16V4m0 0L7 9m5-5l5 5" />
+        <path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+      </svg>
       <span>Add images or videos</span>
       <input type="file" accept="image/*,video/*" multiple (change)="onFilesSelected($event)" />
     </label>
@@ -46,13 +89,9 @@
     }
 
     <div class="form-actions">
-      <button mat-stroked-button type="button" routerLink="/">Cancel</button>
-      <button mat-flat-button color="primary" type="submit" [disabled]="isSubmitting()">
-        @if (isSubmitting()) {
-          <mat-spinner diameter="20"></mat-spinner>
-        } @else {
-          Publish
-        }
+      <button class="btn-secondary" type="button" routerLink="/">Cancel</button>
+      <button class="btn-primary" type="submit" [disabled]="isSubmitting()">
+        {{ isSubmitting() ? 'Publishing…' : 'Publish' }}
       </button>
     </div>
   </form>

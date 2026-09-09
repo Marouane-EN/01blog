@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import _Blog_Backend.dto.PopularUserProjection;
 import _Blog_Backend.entity.User;
 
 @Repository
@@ -42,4 +43,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
                         "AND u.id < :cursor ORDER BY u.id DESC")
         List<User> searchPublicUsersByCursor(@Param("keyword") String keyword, @Param("cursor") Long cursor,
                         Pageable pageable);
+
+        // Most-followed active accounts. Joins the (correctly-named) `followers`
+        // OneToMany directly instead of the User.followersCount/followingCount
+        // @Formula fields, whose SQL is swapped relative to their names.
+        @Query("SELECT u.id AS id, u.username AS username, u.profilePictureUrl AS profilePictureUrl, " +
+                        "COUNT(s) AS followerCount " +
+                        "FROM User u JOIN u.followers s " +
+                        "WHERE u.isActive = true AND u.isBlocked = false " +
+                        "GROUP BY u.id, u.username, u.profilePictureUrl " +
+                        "ORDER BY COUNT(s) DESC, u.username ASC")
+        List<PopularUserProjection> findPopularUsers(Pageable pageable);
 }

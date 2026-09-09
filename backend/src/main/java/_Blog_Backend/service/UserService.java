@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import _Blog_Backend.dto.CursorResponse;
+import _Blog_Backend.dto.PopularUserDto;
 import _Blog_Backend.dto.PublicProfileDto;
 import _Blog_Backend.dto.UserDto;
 import _Blog_Backend.entity.User;
@@ -103,5 +104,17 @@ public class UserService {
                 .toList();
 
         return new CursorResponse<>(cleanUsers, nextCursor, hasMore);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PopularUserDto> getPopularUsers(int limit) {
+        return userRepository.findPopularUsers(PageRequest.of(0, limit))
+                .stream()
+                .map(projection -> new PopularUserDto(
+                        projection.getId(),
+                        projection.getUsername(),
+                        projection.getProfilePictureUrl(),
+                        projection.getFollowerCount()))
+                .toList();
     }
 }
