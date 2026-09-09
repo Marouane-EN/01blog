@@ -1,12 +1,14 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import {
   CreatePostRequest,
   CursorResponse,
   FeedTab,
   LikeResponse,
   Post,
+  PostMedia,
   PostSearchResult,
 } from '../models';
 import { environment } from '../../../environments/environment';
@@ -78,4 +80,18 @@ export class PostService {
     });
   }
 
+  addFileToPost(postId: number, file: File): Observable<PostMedia> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.http
+      .post<{ mediaId: number; url: string }>(`${this.API_URL}/posts/${postId}/files`, formData)
+      .pipe(map((response) => ({ id: response.mediaId, url: response.url })));
+  }
+
+  deleteFileFromPost(postId: number, mediaId: number): Observable<string> {
+    return this.http.delete(`${this.API_URL}/posts/${postId}/files/${mediaId}`, {
+      responseType: 'text',
+    });
+  }
 }

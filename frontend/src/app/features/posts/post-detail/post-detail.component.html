@@ -60,9 +60,40 @@
       </a>
 
       <!-- Media Carousel -->
-      @if (mediaItems().length) {
+      @if (mediaItems().length || (isOwnPost(post) && isEditingPost())) {
         <div class="media-carousel-wrap">
-          <app-media-carousel style="--carousel-height: 480px" [items]="mediaItems()" />
+          @if (mediaItems().length) {
+            <app-media-carousel
+              style="--carousel-height: 480px"
+              [items]="mediaItems()"
+              [removable]="isOwnPost(post) && isEditingPost()"
+              (remove)="removeMedia($event)"
+            />
+          }
+
+          @if (isOwnPost(post) && isEditingPost()) {
+            <label class="file-drop">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M12 16V4m0 0L7 9m5-5l5 5" />
+                <path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+              </svg>
+              <span>{{ isUploadingMedia() ? 'Uploading…' : 'Add images or videos' }}</span>
+              <input
+                type="file"
+                accept="image/*,video/*"
+                multiple
+                [disabled]="isUploadingMedia()"
+                (change)="onMediaFilesSelected($event)"
+              />
+            </label>
+          }
         </div>
       }
 

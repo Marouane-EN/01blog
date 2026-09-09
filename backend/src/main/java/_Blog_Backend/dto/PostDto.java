@@ -10,7 +10,7 @@ public record PostDto(
         String title,
         String content,
         List<String> tag,
-        List<String> mediaUrls,
+        List<PostMediaDto> media,
         int totalLikes,
         int totalComments,
         boolean likedByCurrentUser,

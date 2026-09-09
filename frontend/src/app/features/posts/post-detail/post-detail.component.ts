@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { forkJoin } from 'rxjs';
 import { Comment, Post } from '../../../core/models';
 import { CommentService } from '../../../core/services/comment.service';
 import { PostService } from '../../../core/services/post.service';
@@ -55,6 +56,7 @@ export class PostDetailComponent implements OnInit {
   isSavingPost = signal(false);
   editingCommentId = signal<number | null>(null);
   savingCommentId = signal<number | null>(null);
+  isUploadingMedia = signal(false);
   errorMessage = signal('');
 
   commentForm = this.fb.nonNullable.group({
@@ -364,11 +366,67 @@ export class PostDetailComponent implements OnInit {
   }
 
   mediaItems = computed<readonly MediaCarouselItem[]>(() =>
-    (this.post()?.mediaUrls ?? []).map((url) => ({
-      url,
-      kind: this.isVideoUrl(url) ? 'video' : 'image',
+    (this.post()?.media ?? []).map((media) => ({
+      url: media.url,
+      kind: this.isVideoUrl(media.url) ? 'video' : 'image',
     })),
   );
+
+  onMediaFilesSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const post = this.post();
+    const files = input.files ? Array.from(input.files) : [];
+
+    if (!post || !files.length || this.isUploadingMedia()) {
+      input.value = '';
+      return;
+    }
+
+    this.isUploadingMedia.set(true);
+
+    forkJoin(files.map((file) => this.postService.addFileToPost(post.id, file))).subscribe({
+      next: (newMedia) => {
+        this.post.update((current) =>
+          current ? { ...current, media: [...current.media, ...newMedia] } : current,
+        );
+        this.isUploadingMedia.set(false);
+        this.toastService.success(
+          newMedia.length > 1 ? 'Files added.' : 'File added.',
+        );
+      },
+      error: (err) => {
+        console.error('Error adding file to post:', err);
+        this.isUploadingMedia.set(false);
+        this.toastService.error(err.error || 'Could not upload this file.');
+      },
+    });
+
+    input.value = '';
+  }
+
+  removeMedia(index: number) {
+    const post = this.post();
+    const media = post?.media[index];
+
+    if (!post || !media || this.isUploadingMedia()) {
+      return;
+    }
+
+    this.postService.deleteFileFromPost(post.id, media.id).subscribe({
+      next: () => {
+        this.post.update((current) =>
+          current
+            ? { ...current, media: current.media.filter((item) => item.id !== media.id) }
+            : current,
+        );
+        this.toastService.success('File removed.');
+      },
+      error: (err) => {
+        console.error('Error removing file from post:', err);
+        this.toastService.error(err.error || 'Could not remove this file.');
+      },
+    });
+  }
 
   private patchPostEditForm(post: Post) {
     this.postEditForm.setValue({

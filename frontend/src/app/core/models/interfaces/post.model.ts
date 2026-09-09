@@ -20,6 +20,11 @@ export interface PostSearchResult {
 }
 
 // ── Post Models ──────────────────────────────────────────────────────
+export interface PostMedia {
+  readonly id: number;
+  readonly url: string;
+}
+
 export interface Post {
   readonly id: number;
   readonly slug: string;
@@ -27,7 +32,7 @@ export interface Post {
   readonly content: string;
   readonly author: UserDto;
   readonly tag: readonly string[]; // Backend sends an array of strings
-  readonly mediaUrls: readonly string[];
+  readonly media: readonly PostMedia[];
   readonly totalLikes: number; // Updated from likesCount
   readonly totalComments: number; // Updated from commentsCount
   readonly likedByCurrentUser: boolean; // Updated from isLikedByMe

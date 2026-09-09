@@ -318,8 +318,8 @@ public class PostService {
                 : new UserDto(post.getAuthor().getId(), post.getAuthor().getUsername(),
                         post.getAuthor().getProfilePictureUrl());
 
-        List<String> mediaUrls = post.getMediaList().stream()
-                .map(PostMedia::getMediaUrl)
+        List<PostMediaDto> media = post.getMediaList().stream()
+                .map(m -> new PostMediaDto(m.getId(), m.getMediaUrl()))
                 .toList();
         List<String> tags = post.getTags().stream()
                 .map(Tag::getName)
@@ -336,7 +336,7 @@ public class PostService {
                 post.getTitle(),
                 post.getDescription(),
                 tags,
-                mediaUrls,
+                media,
                 post.getLikesCount(),
                 post.getCommentsCount(),
                 likedByCurrentUser,
