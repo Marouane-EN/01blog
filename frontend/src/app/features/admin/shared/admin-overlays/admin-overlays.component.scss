@@ -1,0 +1,97 @@
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(27, 27, 24, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: var(--space-4);
+}
+
+.modal-box {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  width: 380px;
+  max-width: 100%;
+  box-shadow: 0 20px 50px rgba(27, 27, 24, 0.25);
+}
+
+.modal-title {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 19px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.modal-desc {
+  font-size: 13.5px;
+  color: var(--ink-secondary);
+  line-height: 1.55;
+  margin: 0 0 var(--space-6);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+.modal-actions button {
+  padding: 9px 18px;
+  font-size: 13.5px;
+}
+
+.btn-sm-outline {
+  background: var(--surface);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  color: var(--ink);
+}
+.btn-sm-outline:hover {
+  border-color: var(--ink-muted);
+}
+
+.btn-sm-danger {
+  background: none;
+  border: 1px solid var(--danger);
+  color: var(--danger-ink);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+}
+.btn-sm-danger:hover {
+  background: var(--danger);
+  color: #fff;
+}
+
+.toast {
+  position: fixed;
+  top: 74px;
+  right: 24px;
+  background: var(--ink);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
+  font-size: 13.5px;
+  font-weight: 500;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+  pointer-events: none;
+  z-index: 100;
+  box-shadow: 0 8px 24px rgba(27, 27, 24, 0.18);
+}
+.toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    transition: none;
+  }
+}

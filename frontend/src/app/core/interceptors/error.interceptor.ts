@@ -10,8 +10,11 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      // 1. Catch 401 Unauthorized or 403 Forbidden errors
-      if (error.status === 401 || error.status === 403) {
+      // 1. Catch 401 Unauthorized — a missing/expired/invalid token.
+      // (403 is deliberately excluded: it means "authenticated but not
+      // allowed" for a specific action — e.g. reporting or banning an
+      // admin — and should surface as an error, not force a logout.)
+      if (error.status === 401) {
         let isActivelyLoggingIn = false;
 
         // 2. Safely check the URL (SSR Safe)

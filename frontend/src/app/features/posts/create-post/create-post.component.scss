@@ -44,24 +44,6 @@
   }
 }
 
-.file-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.file-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  border: 1px solid #d0d5dd;
-  border-radius: 999px;
-  background: #f9fafb;
-  color: #344054;
-  cursor: pointer;
-  padding: 0.35rem 0.65rem;
-}
-
 .form-error {
   margin: 0;
   color: #b42318;

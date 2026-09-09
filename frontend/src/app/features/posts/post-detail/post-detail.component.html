@@ -59,16 +59,10 @@
         Back to feed
       </a>
 
-      <!-- Media Grid -->
-      @if (post.mediaUrls.length) {
-        <div class="media-grid">
-          @for (mediaUrl of post.mediaUrls; track mediaUrl) {
-            @if (isVideoUrl(mediaUrl)) {
-              <video class="post-media" [src]="mediaUrl" controls preload="metadata"></video>
-            } @else {
-              <img [src]="mediaUrl" [alt]="post.title" class="post-media" loading="lazy" />
-            }
-          }
+      <!-- Media Carousel -->
+      @if (mediaItems().length) {
+        <div class="media-carousel-wrap">
+          <app-media-carousel style="--carousel-height: 480px" [items]="mediaItems()" />
         </div>
       }
 
@@ -101,6 +95,10 @@
               <button class="btn-secondary" type="button" (click)="startPostEdit()">Edit</button>
             }
             <button class="btn-danger" type="button" (click)="deletePost()">Delete</button>
+          </div>
+        } @else if (authStore.isAuthenticated()) {
+          <div class="owner-actions">
+            <button class="btn-secondary" type="button" (click)="reportPost()">Report</button>
           </div>
         }
       </div>
@@ -282,6 +280,10 @@
                       </button>
                       <button class="comment-action danger-text" (click)="deleteComment(comment)">
                         Delete
+                      </button>
+                    } @else if (authStore.isAuthenticated()) {
+                      <button class="comment-action" (click)="reportComment(comment)">
+                        Report
                       </button>
                     }
                   </div>

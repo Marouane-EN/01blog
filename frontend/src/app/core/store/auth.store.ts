@@ -3,6 +3,11 @@ import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { UserDto } from '../models';
+import { decodeJwtPayload } from '../utils/jwt.utils';
+
+interface JwtPayload {
+  role?: string;
+}
 
 /**
  * AuthStore — Signal facade over the existing AuthService.
@@ -63,6 +68,20 @@ export class AuthStore implements OnDestroy {
   readonly avatarUrl: Signal<string | null> = computed(
     () => this.#user()?.profilePictureUrl ?? null,
   );
+
+  /**
+   * True when the JWT carries a ROLE_ADMIN claim.
+   * Reads #hasJwt() purely to establish a reactive dependency — the actual
+   * role lives inside the token, not on the UserDto.
+   */
+  readonly isAdmin: Signal<boolean> = computed(() => {
+    if (!this.#hasJwt()) {
+      return false;
+    }
+    const token = this.#authService.getToken();
+    const payload = token ? decodeJwtPayload<JwtPayload>(token) : null;
+    return payload?.role?.split(',').includes('ROLE_ADMIN') ?? false;
+  });
 
   // ── Mutations — delegate to AuthService ───────────────────────────────
   logout(): void {

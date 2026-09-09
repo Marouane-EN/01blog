@@ -10,6 +10,8 @@ import { UserService } from '../../core/services/user.service';
 import { AuthStore } from '../../core/store/auth.store';
 import { Post, PublicProfile, UserDto } from '../../core/models';
 import { PostCardComponent } from '../../shared/components/post-card/post-card.component';
+import { ReportDialogService } from '../../shared/services/report-dialog.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-profile',
@@ -31,6 +33,8 @@ export class ProfileComponent implements OnInit {
   private userService = inject(UserService);
   private postService = inject(PostService);
   private authService = inject(AuthService);
+  private reportDialog = inject(ReportDialogService);
+  private toastService = inject(ToastService);
   authStore = inject(AuthStore);
 
   private requestedUsername = signal<string | null>(null);
@@ -131,12 +135,32 @@ export class ProfileComponent implements OnInit {
           followersCount: Number(response.totalSubscribers),
         });
         this.followLoading.set(false);
+        this.toastService.success(
+          response.isSubscribed
+            ? `You are now following ${profile.username}.`
+            : `You unfollowed ${profile.username}.`,
+        );
       },
       error: (err) => {
         console.error('Error toggling follow:', err);
         this.errorMessage.set(err.error || 'Could not update follow status.');
         this.followLoading.set(false);
+        this.toastService.error(err.error || 'Could not update follow status.');
       },
+    });
+  }
+
+  reportProfile() {
+    const profile = this.profile();
+
+    if (!profile || this.isOwnProfile) {
+      return;
+    }
+
+    this.reportDialog.open({
+      targetType: 'user',
+      targetId: profile.id,
+      label: `@${profile.username}`,
     });
   }
 
@@ -216,8 +240,13 @@ export class ProfileComponent implements OnInit {
             postsCount: Math.max(0, profile.postsCount - 1),
           });
         }
+
+        this.toastService.success('Post deleted.');
       },
-      error: (err) => console.error('Error deleting post:', err),
+      error: (err) => {
+        console.error('Error deleting post:', err);
+        this.toastService.error(err.error || 'Could not delete this post.');
+      },
     });
   }
 

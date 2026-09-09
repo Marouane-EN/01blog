@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './core/layout/main-layout/main-layout.component';
 import { guestGuard } from './core/guards/guest.guard';
+import { adminGuard } from './core/guards/admin.guard';
 
 export const routes: Routes = [
   // ── 1. App Shell (Pages that HAVE a Navbar and Footer) ──
@@ -61,6 +62,23 @@ export const routes: Routes = [
       ),
   },
 
-  // Catch-all route (fallback)
-  { path: '**', redirectTo: '' },
+  // ── 3. Admin Area (own layout, lazy-loaded) ──
+  {
+    path: 'admin',
+    canMatch: [adminGuard],
+    loadChildren: () => import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
+  },
+
+  // ── 4. Catch-all — rendered inside the main shell so the navbar still shows ──
+  {
+    path: '**',
+    component: MainLayoutComponent,
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./features/not-found/not-found.component').then((m) => m.NotFoundComponent),
+      },
+    ],
+  },
 ];

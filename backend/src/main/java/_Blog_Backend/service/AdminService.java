@@ -62,6 +62,11 @@ public class AdminService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Report is already resolved.");
         }
 
+        // admin can not be banned or have their content hidden, so we check for that here
+        if (report.getReported().getRole().equals("ADMIN")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Admin cannot be banned or have their content hidden.");
+        }
+
         switch (action) {
             case BAN_USER -> {
                 User badActor = report.getReported();
@@ -108,6 +113,7 @@ public class AdminService {
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
+                user.getRole(),
                 user.isBlocked(),
                 user.isActive(),
                 user.getCreatedAt()));

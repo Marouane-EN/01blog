@@ -38,6 +38,7 @@
 
     @if (isOwnPost()) {
       <button
+        #postMenuTrigger
         class="item-menu"
         [matMenuTriggerFor]="postMenu"
         aria-label="More"
@@ -51,7 +52,15 @@
       </button>
 
       <!-- Move the class to the mat-menu itself so it attaches to the CDK overlay panel -->
-      <mat-menu #postMenu="matMenu" xPosition="before" class="custom-post-menu">
+      <!-- Blur the trigger on close so it doesn't sit there looking "stuck" focused
+           once CDK restores focus to it (most noticeable when Report opens a dialog
+           on top of it). -->
+      <mat-menu
+        #postMenu="matMenu"
+        xPosition="before"
+        class="custom-post-menu"
+        (closed)="postMenuTrigger.blur()"
+      >
         <!-- Add disableRipple to kill the Material animation -->
         <a
           mat-menu-item
@@ -98,6 +107,48 @@
             <line x1="14" y1="11" x2="14" y2="17"></line>
           </svg>
           <span>Delete</span>
+        </button>
+      </mat-menu>
+    } @else if (authStore.isAuthenticated()) {
+      <button
+        #reportMenuTrigger
+        class="item-menu"
+        [matMenuTriggerFor]="reportMenu"
+        aria-label="More"
+        (click)="$event.stopPropagation()"
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="5" cy="12" r="1.6" />
+          <circle cx="12" cy="12" r="1.6" />
+          <circle cx="19" cy="12" r="1.6" />
+        </svg>
+      </button>
+
+      <mat-menu
+        #reportMenu="matMenu"
+        xPosition="before"
+        class="custom-post-menu"
+        (closed)="reportMenuTrigger.blur()"
+      >
+        <button
+          mat-menu-item
+          disableRipple
+          type="button"
+          class="danger-item"
+          (click)="reportPost($event)"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M6 3v18" />
+            <path d="M6 4h11l-2 4 2 4H6" />
+          </svg>
+          <span>Report</span>
         </button>
       </mat-menu>
     }

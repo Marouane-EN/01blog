@@ -9,7 +9,8 @@ import {
   Post,
   PostSearchResult,
 } from '../models';
-import { environment } from '../../../environments/environment.development';
+import { environment } from '../../../environments/environment';
+import { buildCursorParams } from '../utils/http.utils';
 
 @Injectable({
   providedIn: 'root',
@@ -19,32 +20,19 @@ export class PostService {
   private readonly API_URL = environment.apiUrl; // Use the API URL from the environment configuration
 
   getFeed(tab: FeedTab, cursor?: number | null): Observable<CursorResponse<Post>> {
-    let params = new HttpParams();
-    if (cursor) {
-      params = params.set('cursor', cursor.toString());
-    }
+    const params = buildCursorParams(cursor);
+    const endpoint = tab === 'following' ? '/posts/subscriptions' : '/posts';
+    return this.http.get<CursorResponse<Post>>(`${this.API_URL}${endpoint}`, { params });
+  }
 
-    // Route to the correct endpoint based on the tab
-    if (tab === 'following') {
-      return this.http.get<CursorResponse<Post>>(`${this.API_URL}/posts/subscriptions`, { params });
-    }
-
-    // Default to latest
-    return this.http.get<CursorResponse<Post>>(`${this.API_URL}/posts`, { params });
+  getPostsByUser(userId: number, cursor?: number | null): Observable<CursorResponse<Post>> {
+    return this.http.get<CursorResponse<Post>>(`${this.API_URL}/posts/user/${userId}`, {
+      params: buildCursorParams(cursor),
+    });
   }
 
   getPostBySlug(slug: string): Observable<Post> {
     return this.http.get<Post>(`${this.API_URL}/posts/${slug}`);
-  }
-
-  getPostsByUser(userId: number, cursor?: number | null): Observable<CursorResponse<Post>> {
-    let params = new HttpParams();
-
-    if (cursor) {
-      params = params.set('cursor', cursor.toString());
-    }
-
-    return this.http.get<CursorResponse<Post>>(`${this.API_URL}/posts/user/${userId}`, { params });
   }
 
   createPost(request: CreatePostRequest, files: readonly File[] = []): Observable<Post> {
@@ -84,14 +72,10 @@ export class PostService {
   }
 
   searchPosts(query: string, cursor?: number | null): Observable<CursorResponse<PostSearchResult>> {
-    let params = new HttpParams().set('q', query);
-
-    if (cursor) {
-      params = params.set('cursor', cursor.toString());
-    }
-
+    const params = buildCursorParams(cursor, new HttpParams().set('q', query));
     return this.http.get<CursorResponse<PostSearchResult>>(`${this.API_URL}/posts/search`, {
       params,
     });
   }
+
 }

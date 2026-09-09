@@ -1,0 +1,126 @@
+:host {
+  display: block;
+  --carousel-height: 320px;
+}
+
+.media-carousel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+}
+
+.carousel-arrow {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--hairline-strong, #dbd9cd);
+  background: var(--surface, #fff);
+  color: var(--ink, #1b1b18);
+  cursor: pointer;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: var(--ink-muted, #9c9b90);
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+}
+
+.carousel-slide {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: var(--carousel-height);
+  border-radius: var(--radius-lg, 12px);
+  overflow: hidden;
+  background: #0b0f14;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img,
+  video {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+}
+
+.carousel-remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(11, 15, 20, 0.6);
+  color: #ffffff;
+  cursor: pointer;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    background: rgba(11, 15, 20, 0.85);
+  }
+}
+
+.carousel-filename {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+  padding: 0.35rem 0.75rem;
+  background: linear-gradient(to top, rgba(11, 15, 20, 0.75), transparent);
+  color: #ffffff;
+  font-size: 0.8rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: var(--space-2, 8px);
+}
+
+.carousel-dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--hairline-strong, #dbd9cd);
+  cursor: pointer;
+
+  &.is-active {
+    background: var(--accent, #1e6b4e);
+  }
+}
+
+.carousel-counter {
+  margin: 0.25rem 0 0;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--ink-muted, #9c9b90);
+}

@@ -1,0 +1,39 @@
+.app-toast {
+  position: fixed;
+  top: 74px;
+  right: 24px;
+  background: var(--ink, #1b1b18);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: var(--radius-md, 10px);
+  font-size: 13.5px;
+  font-weight: 500;
+  max-width: min(360px, calc(100vw - 32px));
+  opacity: 0;
+  transform: translateY(-8px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+  pointer-events: none;
+  z-index: 1000;
+  box-shadow: 0 8px 24px rgba(27, 27, 24, 0.18);
+}
+.app-toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.app-toast.variant-error {
+  background: var(--danger, #c6563f);
+}
+.app-toast.variant-success {
+  background: var(--accent-ink, #14503a);
+}
+.app-toast.variant-info {
+  background: var(--ink, #1b1b18);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-toast {
+    transition: none;
+  }
+}

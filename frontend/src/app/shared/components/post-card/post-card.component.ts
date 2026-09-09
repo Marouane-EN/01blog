@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { Post } from '../../../core/models';
 import { AuthStore } from '../../../core/store/auth.store';
+import { ReportDialogService } from '../../services/report-dialog.service';
 
 @Component({
   selector: 'app-post-card',
@@ -16,7 +17,8 @@ import { AuthStore } from '../../../core/store/auth.store';
 })
 export class PostCardComponent {
   authStore = inject(AuthStore);
-  
+  private reportDialog = inject(ReportDialogService);
+
   @Input({ required: true }) post!: Post;
   
   @Output() likeClick = new EventEmitter<void>();
@@ -37,6 +39,15 @@ export class PostCardComponent {
 
   isOwnPost() {
     return this.authStore.user()?.id === this.post.author.id;
+  }
+
+  reportPost(event: Event) {
+    event.stopPropagation();
+    this.reportDialog.open({
+      targetType: 'post',
+      targetId: this.post.id,
+      label: `"${this.post.title}"`,
+    });
   }
 
   calculateReadingTime(content: string): number {

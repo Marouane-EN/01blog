@@ -2,7 +2,8 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { CursorResponse, PublicProfile, SubscriptionResponse, UserDto } from '../models';
-import { environment } from '../../../environments/environment.development';
+import { environment } from '../../../environments/environment';
+import { buildCursorParams } from '../utils/http.utils';
 
 @Injectable({
   providedIn: 'root',
@@ -12,28 +13,18 @@ export class UserService {
   private readonly API_URL = environment.apiUrl;
   getFollowing(userId: number, cursor?: number | null): Observable<CursorResponse<UserDto>> {
     return this.http.get<CursorResponse<UserDto>>(`${this.API_URL}/users/${userId}/following`, {
-      params: this.cursorParams(cursor),
+      params: buildCursorParams(cursor),
     });
   }
 
   getFollowers(userId: number, cursor?: number | null): Observable<CursorResponse<UserDto>> {
     return this.http.get<CursorResponse<UserDto>>(`${this.API_URL}/users/${userId}/followers`, {
-      params: this.cursorParams(cursor),
+      params: buildCursorParams(cursor),
     });
   }
 
   getProfile(username: string): Observable<PublicProfile> {
     return this.http.get<PublicProfile>(`${this.API_URL}/users/${username}`);
-  }
-
-  searchUsers(query: string, cursor?: number | null): Observable<CursorResponse<UserDto>> {
-    let params = new HttpParams().set('q', query);
-
-    if (cursor) {
-      params = params.set('cursor', cursor.toString());
-    }
-
-    return this.http.get<CursorResponse<UserDto>>(`${this.API_URL}/users/search`, { params });
   }
 
   toggleSubscription(username: string): Observable<SubscriptionResponse> {
@@ -47,13 +38,9 @@ export class UserService {
     return this.http.post(`${this.API_URL}/users/me/avatar`, formData, { responseType: 'text' });
   }
 
-  private cursorParams(cursor?: number | null): HttpParams {
-    let params = new HttpParams();
-
-    if (cursor) {
-      params = params.set('cursor', cursor.toString());
-    }
-
-    return params;
+  searchUsers(query: string, cursor?: number | null): Observable<CursorResponse<UserDto>> {
+    const params = buildCursorParams(cursor, new HttpParams().set('q', query));
+    return this.http.get<CursorResponse<UserDto>>(`${this.API_URL}/users/search`, { params });
   }
+
 }

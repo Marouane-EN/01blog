@@ -1,0 +1,39 @@
+<h1 class="admin-section-title">Reports</h1>
+<p class="admin-section-sub">Review flagged posts, comments and users, then take action or dismiss.</p>
+
+<div class="data-table">
+  @if (loading()) {
+    <p class="data-empty">Loading reports…</p>
+  } @else if (reports().length === 0) {
+    <p class="data-empty">No pending reports. All caught up.</p>
+  } @else {
+    @for (report of reports(); track report.reportId) {
+      <div class="data-row">
+        <div class="report-cell-main">
+          <p class="report-target">
+            {{ report.reportType | titlecase }}: {{ report.reportedUsername }}
+          </p>
+          <p class="report-meta">
+            Reported by {{ report.reporterUsername }} &middot; {{ report.createdAt | date: 'medium' }}
+          </p>
+          <span class="report-reason">{{ report.reason }}</span>
+        </div>
+        <span class="badge badge-pending">Pending</span>
+        <div class="report-actions">
+          <button class="btn-sm-outline" type="button" (click)="dismiss(report)">Dismiss</button>
+          <button class="btn-sm-danger" type="button" (click)="takeAction(report)">
+            {{ primaryActionLabel(report) }}
+          </button>
+        </div>
+      </div>
+    }
+
+    @if (!isLast()) {
+      <div class="load-more-row">
+        <button class="btn-sm-outline" type="button" [disabled]="loadingMore()" (click)="loadMore()">
+          {{ loadingMore() ? 'Loading…' : 'Load more' }}
+        </button>
+      </div>
+    }
+  }
+</div>

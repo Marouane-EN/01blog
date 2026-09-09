@@ -9,6 +9,7 @@ import { FeedStore } from '../../core/store/feed.store';
 import { AuthStore } from '../../core/store/auth.store';
 import { UserService } from '../../core/services/user.service';
 import { PostService } from '../../core/services/post.service';
+import { ToastService } from '../../core/services/toast.service';
 import { FeedTab, PublicProfile, UserDto } from '../../core/models/index';
 import { PostCardComponent } from '../../shared/components/post-card/post-card.component';
 
@@ -35,6 +36,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private userService = inject(UserService);
   private postService = inject(PostService);
+  private toastService = inject(ToastService);
   private subscriptions = new Subscription();
   private loadedConnectionsFor: number | null = null;
   following = signal<readonly UserDto[]>([]);
@@ -114,8 +116,14 @@ export class HomePageComponent implements OnInit, OnDestroy {
     }
 
     this.postService.deletePost(postId).subscribe({
-      next: () => this.feedStore.removePost(postId),
-      error: (err) => console.error('Error deleting post:', err),
+      next: () => {
+        this.feedStore.removePost(postId);
+        this.toastService.success('Post deleted.');
+      },
+      error: (err) => {
+        console.error('Error deleting post:', err);
+        this.toastService.error(err.error || 'Could not delete this post.');
+      },
     });
   }
 

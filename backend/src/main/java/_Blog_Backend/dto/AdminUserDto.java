@@ -6,6 +6,7 @@ public record AdminUserDto(
         Long id,
         String username,
         String email,
+        String role,
         boolean isBlocked,
         boolean isActive,
         LocalDateTime createdAt) {

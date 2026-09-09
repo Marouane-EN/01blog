@@ -177,6 +177,26 @@
     <span>Profile</span>
   </a>
 
+  @if (authStore.isAdmin()) {
+    <a mat-menu-item disableRipple routerLink="/admin">
+      <!-- Custom Dashboard SVG -->
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <rect x="3" y="3" width="7" height="7" rx="1" />
+        <rect x="14" y="3" width="7" height="7" rx="1" />
+        <rect x="3" y="14" width="7" height="7" rx="1" />
+        <rect x="14" y="14" width="7" height="7" rx="1" />
+      </svg>
+      <span>Dashboard</span>
+    </a>
+  }
+
   <button mat-menu-item disableRipple (click)="authStore.logout()" class="danger-item">
     <!-- Custom Logout SVG -->
     <svg

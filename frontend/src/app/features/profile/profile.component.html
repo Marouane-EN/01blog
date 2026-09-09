@@ -121,6 +121,12 @@
                 <span>Follow</span>
               }
             </button>
+
+            @if (authStore.isAuthenticated()) {
+              <button class="btn-report-profile" type="button" (click)="reportProfile()">
+                Report
+              </button>
+            }
           </div>
         }
       </div>

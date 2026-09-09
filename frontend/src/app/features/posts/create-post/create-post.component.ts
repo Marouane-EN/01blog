@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,6 +7,17 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { PostService } from '../../../core/services/post.service';
+import { ToastService } from '../../../core/services/toast.service';
+import {
+  MediaCarouselComponent,
+  MediaCarouselItem,
+} from '../../../shared/components/media-carousel/media-carousel.component';
+
+interface FilePreview {
+  readonly file: File;
+  readonly url: string;
+  readonly kind: 'image' | 'video';
+}
 
 @Component({
   selector: 'app-create-post',
@@ -19,14 +30,16 @@ import { PostService } from '../../../core/services/post.service';
     MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
+    MediaCarouselComponent,
   ],
   templateUrl: './create-post.component.html',
   styleUrls: ['./create-post.component.scss'],
 })
-export class CreatePostComponent {
+export class CreatePostComponent implements OnDestroy {
   private fb = inject(FormBuilder);
   private postService = inject(PostService);
   private router = inject(Router);
+  private toastService = inject(ToastService);
 
   form = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.maxLength(128)]],
@@ -34,17 +47,48 @@ export class CreatePostComponent {
     tags: [''],
   });
 
-  files = signal<readonly File[]>([]);
+  previews = signal<readonly FilePreview[]>([]);
+  activeIndex = signal(0);
   isSubmitting = signal(false);
   errorMessage = signal('');
 
+  mediaItems = computed<readonly MediaCarouselItem[]>(() =>
+    this.previews().map((preview) => ({
+      url: preview.url,
+      kind: preview.kind,
+      label: preview.file.name,
+    })),
+  );
+
   onFilesSelected(event: Event) {
     const input = event.target as HTMLInputElement;
-    this.files.set(input.files ? Array.from(input.files) : []);
+    const newFiles = input.files ? Array.from(input.files) : [];
+
+    if (newFiles.length) {
+      const newPreviews: FilePreview[] = newFiles.map((file) => ({
+        file,
+        url: URL.createObjectURL(file),
+        kind: file.type.startsWith('video/') ? 'video' : 'image',
+      }));
+
+      const insertAt = this.previews().length;
+      this.previews.update((previews) => [...previews, ...newPreviews]);
+      this.activeIndex.set(insertAt);
+    }
+
+    // Allow re-selecting the same file again later.
+    input.value = '';
   }
 
-  removeFile(fileToRemove: File) {
-    this.files.update((files) => files.filter((file) => file !== fileToRemove));
+  removePreviewAt(index: number) {
+    const preview = this.previews()[index];
+
+    if (!preview) {
+      return;
+    }
+
+    URL.revokeObjectURL(preview.url);
+    this.previews.update((previews) => previews.filter((_, i) => i !== index));
   }
 
   submit() {
@@ -70,11 +114,12 @@ export class CreatePostComponent {
           content: value.content.trim(),
           tags,
         },
-        this.files(),
+        this.previews().map((preview) => preview.file),
       )
       .subscribe({
         next: (post) => {
           this.isSubmitting.set(false);
+          this.toastService.success('Post published.');
           this.router.navigate(['/posts', post.slug]);
         },
         error: (err) => {
@@ -83,5 +128,9 @@ export class CreatePostComponent {
           this.errorMessage.set(err.error || 'Could not create the post. Please try again.');
         },
       });
+  }
+
+  ngOnDestroy() {
+    this.previews().forEach((preview) => URL.revokeObjectURL(preview.url));
   }
 }

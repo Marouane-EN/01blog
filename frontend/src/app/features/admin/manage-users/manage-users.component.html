@@ -1,0 +1,56 @@
+<h1 class="admin-section-title">Users</h1>
+<p class="admin-section-sub">Manage accounts registered on 01.</p>
+
+<div class="table-search">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+  <input type="text" placeholder="Search users…" (input)="onSearchInput($any($event.target).value)" />
+</div>
+
+<div class="data-table">
+  @if (loading()) {
+    <p class="data-empty">Loading users…</p>
+  } @else if (users().length === 0) {
+    <p class="data-empty">No users found.</p>
+  } @else {
+    @for (user of users(); track user.id) {
+      <div class="data-row">
+        <app-avatar [displayName]="user.username" size="sm" />
+        <div class="user-cell-main">
+          <p class="user-name">{{ user.username }}</p>
+          <p class="user-meta">{{ user.email }} &middot; joined {{ user.createdAt | date: 'MMM y' }}</p>
+        </div>
+
+        @if (!user.isActive) {
+          <span class="badge badge-inactive">Deactivated</span>
+        } @else if (user.isBlocked) {
+          <span class="badge badge-banned">Banned</span>
+        } @else {
+          <span class="badge badge-active">Active</span>
+        }
+
+        @if (user.role !== 'ADMIN') {
+          <div class="row-actions">
+            <button class="btn-sm-outline" type="button" (click)="toggleActive(user)">
+              {{ user.isActive ? 'Deactivate' : 'Restore' }}
+            </button>
+            <button
+              [class]="user.isBlocked ? 'btn-sm-danger' : 'btn-sm-outline'"
+              type="button"
+              (click)="toggleBan(user)"
+            >
+              {{ user.isBlocked ? 'Unban' : 'Ban' }}
+            </button>
+          </div>
+        }
+      </div>
+    }
+
+    @if (!isLast()) {
+      <div class="load-more-row">
+        <button class="btn-sm-outline" type="button" [disabled]="loadingMore()" (click)="loadMore()">
+          {{ loadingMore() ? 'Loading…' : 'Load more' }}
+        </button>
+      </div>
+    }
+  }
+</div>

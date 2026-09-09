@@ -1,5 +1,5 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,6 +10,12 @@ import { Comment, Post } from '../../../core/models';
 import { CommentService } from '../../../core/services/comment.service';
 import { PostService } from '../../../core/services/post.service';
 import { AuthStore } from '../../../core/store/auth.store';
+import { ReportDialogService } from '../../../shared/services/report-dialog.service';
+import { ToastService } from '../../../core/services/toast.service';
+import {
+  MediaCarouselComponent,
+  MediaCarouselItem,
+} from '../../../shared/components/media-carousel/media-carousel.component';
 
 @Component({
   selector: 'app-post-detail',
@@ -23,6 +29,7 @@ import { AuthStore } from '../../../core/store/auth.store';
     MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
+    MediaCarouselComponent,
   ],
   templateUrl: './post-detail.component.html',
   styleUrls: ['./post-detail.component.scss'],
@@ -33,6 +40,8 @@ export class PostDetailComponent implements OnInit {
   private fb = inject(FormBuilder);
   private postService = inject(PostService);
   private commentService = inject(CommentService);
+  private reportDialog = inject(ReportDialogService);
+  private toastService = inject(ToastService);
   authStore = inject(AuthStore);
 
   post = signal<Post | null>(null);
@@ -143,11 +152,13 @@ export class PostDetailComponent implements OnInit {
           this.patchPostEditForm(updatedPost);
           this.isEditingPost.set(false);
           this.isSavingPost.set(false);
+          this.toastService.success('Post updated.');
         },
         error: (err) => {
           console.error('Error updating post:', err);
           this.errorMessage.set(err.error || 'Could not update this post.');
           this.isSavingPost.set(false);
+          this.toastService.error(err.error || 'Could not update this post.');
         },
       });
   }
@@ -160,10 +171,14 @@ export class PostDetailComponent implements OnInit {
     }
 
     this.postService.deletePost(post.id).subscribe({
-      next: () => this.router.navigate(['/']),
+      next: () => {
+        this.toastService.success('Post deleted.');
+        this.router.navigate(['/']);
+      },
       error: (err) => {
         console.error('Error deleting post:', err);
         this.errorMessage.set(err.error || 'Could not delete this post.');
+        this.toastService.error(err.error || 'Could not delete this post.');
       },
     });
   }
@@ -232,6 +247,28 @@ export class PostDetailComponent implements OnInit {
 
   isOwnComment(comment: Comment) {
     return this.authStore.user()?.id === comment.author.id;
+  }
+
+  reportPost() {
+    const post = this.post();
+
+    if (!post) {
+      return;
+    }
+
+    this.reportDialog.open({
+      targetType: 'post',
+      targetId: post.id,
+      label: `"${post.title}"`,
+    });
+  }
+
+  reportComment(comment: Comment) {
+    this.reportDialog.open({
+      targetType: 'comment',
+      targetId: comment.id,
+      label: `${comment.author.username}'s comment`,
+    });
   }
 
   startCommentEdit(comment: Comment) {
@@ -325,6 +362,13 @@ export class PostDetailComponent implements OnInit {
   isVideoUrl(url: string) {
     return /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url);
   }
+
+  mediaItems = computed<readonly MediaCarouselItem[]>(() =>
+    (this.post()?.mediaUrls ?? []).map((url) => ({
+      url,
+      kind: this.isVideoUrl(url) ? 'video' : 'image',
+    })),
+  );
 
   private patchPostEditForm(post: Post) {
     this.postEditForm.setValue({

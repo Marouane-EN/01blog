@@ -1,0 +1,47 @@
+<h1 class="admin-section-title">Posts</h1>
+<p class="admin-section-sub">Manage posts published on 01.</p>
+
+<div class="table-search">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+  <input type="text" placeholder="Search posts…" (input)="onSearchInput($any($event.target).value)" />
+</div>
+
+<div class="data-table">
+  @if (loading()) {
+    <p class="data-empty">Loading posts…</p>
+  } @else if (posts().length === 0) {
+    <p class="data-empty">No posts found.</p>
+  } @else {
+    @for (post of posts(); track post.id) {
+      <div class="data-row">
+        <app-avatar [displayName]="post.authorUsername" [src]="post.authorProfilePictureUrl" size="sm" />
+        <div class="post-cell-main">
+          <p class="post-row-title">{{ post.title }}</p>
+          <p class="post-row-meta">
+            {{ post.authorUsername }} &middot; {{ post.likesCount }} likes &middot;
+            {{ post.commentsCount }} comments &middot; {{ post.createdAt | date: 'MMM d, y' }}
+          </p>
+        </div>
+
+        @if (post.isHidden) {
+          <span class="badge badge-dismissed">Hidden</span>
+        }
+
+        <div class="row-actions">
+          <button class="btn-sm-outline" type="button" (click)="toggleVisibility(post)">
+            {{ post.isHidden ? 'Restore' : 'Hide' }}
+          </button>
+          <button class="btn-sm-danger" type="button" (click)="deletePost(post)">Delete</button>
+        </div>
+      </div>
+    }
+
+    @if (!isLast()) {
+      <div class="load-more-row">
+        <button class="btn-sm-outline" type="button" [disabled]="loadingMore()" (click)="loadMore()">
+          {{ loadingMore() ? 'Loading…' : 'Load more' }}
+        </button>
+      </div>
+    }
+  }
+</div>

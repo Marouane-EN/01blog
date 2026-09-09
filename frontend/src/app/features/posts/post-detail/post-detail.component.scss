@@ -95,21 +95,9 @@
   }
 }
 
-/* Media Grid */
-.media-grid {
-  display: grid;
-  gap: 12px;
+/* Media Carousel */
+.media-carousel-wrap {
   margin-bottom: var(--space-6, 24px);
-  border-radius: var(--radius-lg, 12px);
-  overflow: hidden;
-  background: #f9fafb;
-}
-.post-media {
-  display: block;
-  width: 100%;
-  max-height: 520px;
-  object-fit: contain;
-  background: #111827;
 }
 
 /* Byline */

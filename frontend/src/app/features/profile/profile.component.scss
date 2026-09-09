@@ -195,6 +195,21 @@
   background: var(--accent-ink, #14503a);
 }
 
+.btn-report-profile {
+  background: var(--surface, #ffffff);
+  color: var(--ink-secondary, #6b6a61);
+  border: 1px solid var(--hairline-strong, #dbd9cd);
+  border-radius: var(--radius-md, 10px);
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-report-profile:hover {
+  border-color: #c6563f;
+  color: #c6563f;
+}
+
 /* The Unfollow Hover Trick */
 .btn-follow-lg.is-following {
   background: var(--surface, #ffffff);

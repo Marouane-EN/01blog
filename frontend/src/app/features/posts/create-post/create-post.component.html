@@ -32,16 +32,14 @@
       <input type="file" accept="image/*,video/*" multiple (change)="onFilesSelected($event)" />
     </label>
 
-    @if (files().length) {
-      <div class="file-list">
-        @for (file of files(); track file.name + file.size) {
-          <button type="button" class="file-pill" (click)="removeFile(file)">
-            <mat-icon>close</mat-icon>
-            {{ file.name }}
-          </button>
-        }
-      </div>
-    }
+    <app-media-carousel
+      style="--carousel-height: 260px"
+      [items]="mediaItems()"
+      [activeIndex]="activeIndex()"
+      (activeIndexChange)="activeIndex.set($event)"
+      [removable]="true"
+      (remove)="removePreviewAt($event)"
+    />
 
     @if (errorMessage()) {
       <p class="form-error">{{ errorMessage() }}</p>

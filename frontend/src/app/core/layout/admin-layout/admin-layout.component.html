@@ -1,0 +1,87 @@
+<header class="admin-topbar">
+  <div class="admin-topbar-inner">
+    <div class="admin-brand">
+      <img src="/Group 1(2).svg" alt="DevBlog Logo" />
+      <span class="dot">.</span><span class="admin-brand-tag">Admin</span>
+    </div>
+    <div class="admin-topbar-actions">
+      <a class="btn-outline-sm" routerLink="/">Exit to site</a>
+      <app-avatar [displayName]="authStore.displayName()" [src]="authStore.avatarUrl()" size="sm" />
+    </div>
+  </div>
+</header>
+
+<div class="admin-shell">
+  <nav class="admin-sidebar">
+    <a class="admin-nav-item" routerLink="/admin/dashboard" routerLinkActive="active">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <rect x="3" y="3" width="7" height="7" rx="1" />
+        <rect x="14" y="3" width="7" height="7" rx="1" />
+        <rect x="3" y="14" width="7" height="7" rx="1" />
+        <rect x="14" y="14" width="7" height="7" rx="1" />
+      </svg>
+      Overview
+    </a>
+    <a class="admin-nav-item" routerLink="/admin/reports" routerLinkActive="active">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M6 3v18" />
+        <path d="M6 4h11l-2 4 2 4H6" />
+      </svg>
+      Reports
+      @if (ui.pendingReportsCount() > 0) {
+        <span class="admin-nav-badge">{{ ui.pendingReportsCount() }}</span>
+      }
+    </a>
+    <a class="admin-nav-item" routerLink="/admin/users" routerLinkActive="active">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle cx="9" cy="8" r="3" />
+        <path d="M2 20c0-3 3-5 7-5s7 2 7 5" />
+        <path d="M16 4a3 3 0 0 1 0 6" />
+        <path d="M17 14c2.5.4 4.5 2 4.5 4.5" />
+      </svg>
+      Users
+    </a>
+    <a class="admin-nav-item" routerLink="/admin/posts" routerLinkActive="active">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M7 3h7l4 4v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" />
+        <path d="M14 3v4h4" />
+        <path d="M9 13h6M9 17h6" />
+      </svg>
+      Posts
+    </a>
+  </nav>
+
+  <main class="admin-main">
+    <router-outlet />
+  </main>
+</div>
+
+<app-admin-overlays />

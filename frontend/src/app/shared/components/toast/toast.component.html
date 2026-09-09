@@ -1,0 +1,5 @@
+@if (toastService.toast(); as toast) {
+  <div class="app-toast is-visible" [class]="'variant-' + toast.variant" role="status">
+    {{ toast.message }}
+  </div>
+}

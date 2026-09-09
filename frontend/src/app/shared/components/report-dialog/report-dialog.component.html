@@ -1,0 +1,54 @@
+@if (dialog.target(); as target) {
+  <div class="report-backdrop" (click)="onBackdropClick($event)">
+    <div class="report-box" role="dialog" aria-modal="true" aria-labelledby="reportDialogTitle">
+      <h3 class="report-title" id="reportDialogTitle">Report {{ target.label }}</h3>
+      <p class="report-desc">
+        Tell us what's wrong. Reports are reviewed by moderators — this won't notify the person
+        you're reporting.
+      </p>
+
+      <div class="report-suggestions">
+        @for (suggestion of suggestions(); track suggestion) {
+          <button
+            type="button"
+            class="report-chip"
+            [class.is-selected]="reason() === suggestion"
+            [disabled]="dialog.submitting()"
+            (click)="selectSuggestion(suggestion)"
+          >
+            {{ suggestion }}
+          </button>
+        }
+      </div>
+
+      <textarea
+        class="report-textarea"
+        rows="4"
+        [maxlength]="maxLength"
+        placeholder="Or describe the issue in your own words (minimum {{ minLength }} characters)"
+        [(ngModel)]="reason"
+        [disabled]="dialog.submitting()"
+      ></textarea>
+      <div class="report-char-count">{{ reason().length }}/{{ maxLength }}</div>
+
+      <div class="report-actions">
+        <button
+          class="btn-outline"
+          type="button"
+          [disabled]="dialog.submitting()"
+          (click)="dialog.close()"
+        >
+          Cancel
+        </button>
+        <button
+          class="btn-danger"
+          type="button"
+          [disabled]="reason().trim().length < minLength || dialog.submitting()"
+          (click)="submit()"
+        >
+          {{ dialog.submitting() ? 'Submitting…' : 'Submit report' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
