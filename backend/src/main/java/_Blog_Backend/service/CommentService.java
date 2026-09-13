@@ -35,13 +35,16 @@ public class CommentService {
     public CommentDto createComment(CommentRequest request, Long postId, User user) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
+        if (post.isHidden()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
+        }
 
         Comment comment = Comment.builder().content(request.content()).post(post).author(user).build();
         if (request.parentId() != null) {
             Comment parentComment = commentRepository.findById(request.parentId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Parent comment not found"));
             if (parentComment.isDeleted()) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You cannot reply to a deleted comment.");
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Parent comment not found");
             }
             if (!parentComment.getPost().getId().equals(postId)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -56,7 +59,7 @@ public class CommentService {
 
     @Transactional(readOnly = true)
     public CursorResponse<CommentDto> getCommentsForPost(Long postId, Long cursor, Long currentUserId) {
-        if (!postRepository.existsById(postId)) {
+        if (!postRepository.existsByIdAndIsHiddenFalse(postId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
         }
         List<Comment> comments;
@@ -89,9 +92,12 @@ public class CommentService {
         if (!comment.getAuthor().getId().equals(currentUser.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to edit this comment.");
         }
+        if (comment.getPost().isHidden()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
+        }
 
         if (comment.isDeleted()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You can not edit a deleted comment");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Comment not found");
         }
 
         try {
@@ -116,9 +122,12 @@ public class CommentService {
         if (!comment.getAuthor().getId().equals(currentUser.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only delete your own comments.");
         }
+        if (comment.getPost().isHidden()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
+        }
 
         if (comment.isDeleted()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The comment is already deleted");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Comment not found");
         }
 
         try {

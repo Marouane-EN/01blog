@@ -58,8 +58,8 @@ public class PostService {
         Post post = postRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Article not found"));
 
-        if (post.getAuthor().isBlocked() || !post.getAuthor().isActive()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "This article is no longer available.");
+        if (post.isHidden()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Article not found");
         }
         List<Long> likedPostIds = (currentUserId != null)
                 ? likeRepository.findLikedPostIdsByUser(currentUserId, List.of(post.getId()))
@@ -72,6 +72,10 @@ public class PostService {
 
         Post existingPost = postRepository.findById(postId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
+
+        if (existingPost.isHidden()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
+        }
 
         if (!existingPost.getAuthor().getId().equals(currentUser.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to edit this post.");
@@ -243,6 +247,9 @@ public class PostService {
     public void deletePost(Long postId, User currentUser) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
+        if (post.isHidden()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
+        }
 
         boolean isAuthor = post.getAuthor().getId().equals(currentUser.getId());
 
@@ -257,6 +264,9 @@ public class PostService {
     public FileUploadResponse addFileToPost(Long postId, MultipartFile file, User currentUser) throws IOException {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
+        if (post.isHidden()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
+        }
 
         if (!post.getAuthor().getId().equals(currentUser.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to edit this post.");
@@ -276,6 +286,9 @@ public class PostService {
     public void deleteFileFromPost(Long postId, Long mediaId, User currentUser) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
+        if (post.isHidden()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
+        }
 
         if (!post.getAuthor().getId().equals(currentUser.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to edit this post.");

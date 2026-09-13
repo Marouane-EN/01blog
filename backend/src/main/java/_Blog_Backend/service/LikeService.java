@@ -57,10 +57,12 @@ public class LikeService {
     public LikeResponse toggleCommentLike(Long commentId, User currentUser) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Comment not found"));
+        if (comment.getPost().isHidden()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
+        }
 
         if (comment.isDeleted()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You can not react on deleted comment");
-
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Comment not found");
         }
 
         try {

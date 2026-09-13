@@ -33,6 +33,9 @@ public class SubscriptionService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Current user not found"));
         User targetUser = userRepository.findByUsername(targetUsername)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        if (targetUser.isBlocked() || !targetUser.isActive()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
 
         if (targetUser.getId().equals(currentUser.getId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You cannot subscribe to yourself.");
@@ -71,7 +74,7 @@ public class SubscriptionService {
     @Transactional(readOnly = true)
     public CursorResponse<UserDto> getFollowers(Long userId, Long cursor) {
 
-        if (!userRepository.existsById(userId)) {
+        if (!(userRepository.existsByIdAndIsBlockedFalseAndIsActiveTrue(userId))) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
         }
 
@@ -103,7 +106,7 @@ public class SubscriptionService {
     @Transactional(readOnly = true)
     public CursorResponse<UserDto> getFollowing(Long userId, Long cursor) {
 
-        if (!userRepository.existsById(userId)) {
+        if (!(userRepository.existsByIdAndIsBlockedFalseAndIsActiveTrue(userId))) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
         }
 

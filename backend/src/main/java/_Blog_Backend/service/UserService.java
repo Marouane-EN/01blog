@@ -30,10 +30,6 @@ public class UserService {
         User user = userRepository.findById(currentUser.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        if (user.isBlocked() || !user.isActive()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
-        }
-
         return new UserDto(
                 user.getId(),
                 user.getUsername(),

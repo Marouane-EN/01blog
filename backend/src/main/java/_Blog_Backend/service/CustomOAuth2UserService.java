@@ -30,8 +30,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String profilePictureUrl = null;
         if ("GITHUB".equals(provider)) {
             profilePictureUrl = oAuth2User.getAttribute("avatar_url");
+            email = email + "+github.com"; // Append domain to email for uniqueness
         } else if ("GOOGLE".equals(provider)) {
             profilePictureUrl = oAuth2User.getAttribute("picture");
+            email = email + "+google.com"; // Append domain to email for uniqueness
         }
 
         if (username == null) {

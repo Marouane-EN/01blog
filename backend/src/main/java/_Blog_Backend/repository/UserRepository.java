@@ -26,6 +26,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
         boolean existsByEmail(String email);
 
+        boolean existsByIdAndIsBlockedFalseAndIsActiveTrue(Long id);
+
         @Query(value = "SELECT * FROM users ORDER BY created_at DESC", countQuery = "SELECT count(*) FROM users", nativeQuery = true)
         Page<User> findAllForAdmin(Pageable pageable);
 

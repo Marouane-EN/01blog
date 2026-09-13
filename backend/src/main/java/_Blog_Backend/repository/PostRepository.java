@@ -82,30 +82,30 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                         "WHERE p.user_id = :authorId ORDER BY p.created_at DESC", countQuery = "SELECT count(*) FROM posts WHERE user_id = :authorId", nativeQuery = true)
         Page<AdminPostProjection> findByAuthorIdForAdmin(@Param("authorId") Long authorId, Pageable pageable);
 
-        @Query("SELECT p FROM Post p WHERE p.author.id = :authorId ORDER BY p.id DESC")
+        @Query("SELECT p FROM Post p WHERE p.author.id = :authorId AND p.is_hidden = false ORDER BY p.id DESC")
         List<Post> findByAuthorId(@Param("authorId") Long authorId, Pageable pageable);
 
-        @Query("SELECT p FROM Post p WHERE p.author.id = :authorId AND p.id < :cursor ORDER BY p.id DESC")
+        @Query("SELECT p FROM Post p WHERE p.author.id = :authorId AND p.is_hidden = false AND p.id < :cursor ORDER BY p.id DESC")
         List<Post> findByAuthorIdAndCursor(@Param("authorId") Long authorId, @Param("cursor") Long cursor,
                         Pageable pageable);
 
-        @Query("SELECT p FROM Post p WHERE p.author.id IN " +
+        @Query("SELECT p FROM Post p WHERE p.is_hidden = false AND p.author.id IN " +
                         "(SELECT s.targetUser.id FROM Subscription s WHERE s.subscriber.id = :userId) " +
                         "ORDER BY p.id DESC")
         List<Post> findSubscriptionsFeed(@Param("userId") Long userId, Pageable pageable);
 
         @Query("SELECT p FROM Post p WHERE p.author.id IN " +
                         "(SELECT s.targetUser.id FROM Subscription s WHERE s.subscriber.id = :userId) " +
-                        "AND p.id < :cursor ORDER BY p.id DESC")
+                        "AND p.is_hidden = false AND p.id < :cursor ORDER BY p.id DESC")
         List<Post> findSubscriptionsFeedByCursor(@Param("userId") Long userId, @Param("cursor") Long cursor,
                         Pageable pageable);
 
-        @Query("SELECT p FROM Post p WHERE " +
+        @Query("SELECT p FROM Post p WHERE p.is_hidden = false AND " +
                         "(p.title ILIKE %:keyword% OR p.description ILIKE %:keyword%) " +
                         "ORDER BY p.id DESC")
         List<Post> searchPublicPosts(@Param("keyword") String keyword, Pageable pageable);
 
-        @Query("SELECT p FROM Post p WHERE " +
+        @Query("SELECT p FROM Post p WHERE p.is_hidden = false AND " +
                         "(p.title ILIKE %:keyword% OR p.description ILIKE %:keyword%) " +
                         "AND p.id < :cursor ORDER BY p.id DESC")
         List<Post> searchPublicPostsByCursor(@Param("keyword") String keyword, @Param("cursor") Long cursor,
@@ -121,4 +121,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                         +
                         "FROM posts p WHERE p.id = :postId", nativeQuery = true)
         Optional<Post> findPostEntityByIdForAdmin(@Param("postId") Long postId);
+
+        boolean existsByIdAndIsHiddenFalse(Long postId);
 }
