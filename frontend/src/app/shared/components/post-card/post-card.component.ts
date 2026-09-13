@@ -3,7 +3,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatMenuModule } from '@angular/material/menu';
+import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { Post } from '../../../core/models';
 import { AuthStore } from '../../../core/store/auth.store';
 import { ReportDialogService } from '../../services/report-dialog.service';
@@ -11,7 +11,15 @@ import { ReportDialogService } from '../../services/report-dialog.service';
 @Component({
   selector: 'app-post-card',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatIconModule, MatButtonModule, MatMenuModule, DatePipe],
+  imports: [
+    CommonModule,
+    RouterModule,
+    MatIconModule,
+    MatButtonModule,
+    MatMenuModule,
+    MatMenuTrigger,
+    DatePipe,
+  ],
   templateUrl: './post-card.component.html',
   styleUrls: ['./post-card.component.scss'],
 })
@@ -20,11 +28,11 @@ export class PostCardComponent {
   private reportDialog = inject(ReportDialogService);
 
   @Input({ required: true }) post!: Post;
-  
+
   @Output() likeClick = new EventEmitter<void>();
   @Output() deleteClick = new EventEmitter<void>();
   @Output() tagClick = new EventEmitter<string>();
-  
+
   constructor(private router: Router) {}
 
   toggleLike(event: Event) {

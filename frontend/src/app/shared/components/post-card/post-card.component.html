@@ -112,6 +112,7 @@
     } @else if (authStore.isAuthenticated()) {
       <button
         #reportMenuTrigger
+        #reportMenuTriggerRef="matMenuTrigger"
         class="item-menu"
         [matMenuTriggerFor]="reportMenu"
         aria-label="More"
@@ -135,7 +136,7 @@
           disableRipple
           type="button"
           class="danger-item"
-          (click)="reportPost($event)"
+          (click)="reportPost($event); reportMenuTriggerRef.closeMenu()"
         >
           <svg
             viewBox="0 0 24 24"
