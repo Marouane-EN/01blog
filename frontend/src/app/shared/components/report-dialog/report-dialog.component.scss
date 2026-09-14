@@ -24,6 +24,9 @@
   font-weight: 600;
   margin: 0 0 8px;
   color: var(--ink, #1b1b18);
+  max-width: 100%;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .report-desc {

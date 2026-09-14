@@ -358,10 +358,10 @@
     <div class="panel">
       <p class="panel-label">Trending tags</p>
       @for (tag of trendingTags(); track tag.id) {
-        <a class="trend-row" [routerLink]="['/']" [queryParams]="{ q: tag.name }">
+        <div class="trend-row">
           <span class="trend-tag">#{{ tag.name }}</span>
           <span class="trend-count">{{ tag.postCount }} post{{ tag.postCount === 1 ? '' : 's' }}</span>
-        </a>
+        </div>
       } @empty {
         <p class="empty-text">No tags yet.</p>
       }

@@ -193,6 +193,9 @@
   font-weight: 700;
   font-size: 36px;
   line-height: 1.25;
+  max-width: 100%;
+  word-break: break-word;
+  overflow-wrap: anywhere;
   margin: 0 0 var(--space-4, 16px);
   color: var(--ink, #1b1b18);
 }
@@ -226,9 +229,16 @@
   font-size: 18px;
   line-height: 1.78;
   color: var(--ink, #1b1b18);
+  max-width: 100%;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  overflow: hidden;
 
   p {
     margin: 0 0 var(--space-5, 20px);
+    max-width: 100%;
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 }
 
@@ -427,6 +437,10 @@
   color: var(--ink, #1b1b18);
   line-height: 1.6;
   margin: 0 0 var(--space-2, 8px);
+  max-width: 100%;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
 }
 
 .comment-actions {

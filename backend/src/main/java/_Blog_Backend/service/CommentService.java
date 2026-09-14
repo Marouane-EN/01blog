@@ -86,7 +86,7 @@ public class CommentService {
     }
 
     @Transactional
-    public CommentDto updateComment(Long commentId, String content, User currentUser) {
+    public CommentDto updateComment(Long commentId, CommentRequest content, User currentUser) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Comment not found"));
         if (!comment.getAuthor().getId().equals(currentUser.getId())) {
@@ -107,7 +107,7 @@ public class CommentService {
                     "This discussion is locked. Comments cannot be edited.");
         }
 
-        comment.setContent(content);
+        comment.setContent(content.content());
         Comment savedComment = commentRepository.save(comment);
 
         return mapToDto(savedComment, currentUser.getId());

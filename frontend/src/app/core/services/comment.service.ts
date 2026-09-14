@@ -23,7 +23,7 @@ export class CommentService {
     return this.http.post<Comment>(`${this.API_URL}/posts/${postId}/comments`, request);
   }
 
-  updateComment(postId: number, commentId: number, content: string): Observable<Comment> {
+  updateComment(postId: number, commentId: number, content: CreateCommentRequest): Observable<Comment> {
     return this.http.put<Comment>(`${this.API_URL}/posts/${postId}/comments/${commentId}`, content);
   }
 

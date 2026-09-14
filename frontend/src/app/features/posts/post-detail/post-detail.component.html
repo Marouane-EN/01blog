@@ -158,6 +158,7 @@
             <textarea
               class="custom-input body-input"
               rows="12"
+              maxlength="1000"
               formControlName="content"
               placeholder="Write your post here..."
             ></textarea>
@@ -174,7 +175,7 @@
 
         <div class="post-tags">
           @for (tag of post.tag; track tag) {
-            <a [routerLink]="['/tags', tag]" class="pill-tag">#{{ tag }}</a>
+            <div class="pill-tag">#{{ tag }}</div>
           }
         </div>
 
@@ -265,7 +266,7 @@
                       (ngSubmit)="saveCommentEdit(comment)"
                     >
                       <div class="composer-input-wrap">
-                        <textarea formControlName="content" maxlength="200"></textarea>
+                        <textarea rows="3" formControlName="content" maxlength="200"></textarea>
                         <div class="composer-footer form-actions">
                           <button class="btn-secondary" type="button" (click)="cancelCommentEdit()">
                             Cancel

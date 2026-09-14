@@ -130,6 +130,7 @@ export class PostDetailComponent implements OnInit {
     const post = this.post();
 
     if (!post || this.postEditForm.invalid || this.isSavingPost()) {
+      console.warn('Post edit form is invalid or already saving.');
       this.postEditForm.markAllAsTouched();
       return;
     }
@@ -297,7 +298,9 @@ export class PostDetailComponent implements OnInit {
 
     this.savingCommentId.set(comment.id);
     this.commentService
-      .updateComment(post.id, comment.id, this.commentEditForm.controls.content.value.trim())
+      .updateComment(post.id, comment.id, {
+        content: this.commentForm.controls.content.value.trim(),
+      })
       .subscribe({
         next: (updatedComment) => {
           this.comments.update((comments) =>
@@ -390,9 +393,7 @@ export class PostDetailComponent implements OnInit {
           current ? { ...current, media: [...current.media, ...newMedia] } : current,
         );
         this.isUploadingMedia.set(false);
-        this.toastService.success(
-          newMedia.length > 1 ? 'Files added.' : 'File added.',
-        );
+        this.toastService.success(newMedia.length > 1 ? 'Files added.' : 'File added.');
       },
       error: (err) => {
         console.error('Error adding file to post:', err);

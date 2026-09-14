@@ -162,9 +162,9 @@
 
   <div class="item-tags">
     @for (tag of post.tag; track tag) {
-      <a [routerLink]="['/tags', tag]" (click)="$event.stopPropagation()" class="pill-tag">{{
+      <div class="pill-tag">{{
         tag
-      }}</a>
+      }}</div>
     }
   </div>
 
