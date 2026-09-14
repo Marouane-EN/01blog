@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -33,14 +34,20 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             Authentication authentication) throws IOException, ServletException {
 
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+        String provider = ((OAuth2AuthenticationToken) authentication).getAuthorizedClientRegistrationId()
+                .toUpperCase();
 
         String email = oAuth2User.getAttribute("email");
+        String providerId = oAuth2User.getName();
+        String login = oAuth2User.getAttribute("login");
         if (email == null) {
-            String providerId = oAuth2User.getName();
-            String login = oAuth2User.getAttribute("login");
             email = providerId + "+" + login + "@users.noreply.github.com";
         }
-
+        if ("GITHUB".equals(provider)) {
+            email = email + "+github.com"; // Append domain to email for uniqueness
+        } else if ("GOOGLE".equals(provider)) {
+            email = email + "+google.com"; // Append domain to email for uniqueness
+        }
         User dbUser = userRepository.findByEmail(email)
                 .orElseThrow(
                         () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found after OAuth2 login"));

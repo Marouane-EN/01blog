@@ -26,8 +26,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String email = oAuth2User.getAttribute("email");
         String username = oAuth2User.getAttribute("login");
         String providerId = oAuth2User.getName();
-
+        
         String profilePictureUrl = null;
+        if (email == null) {
+            email = providerId + "+" + username + "@users.noreply.github.com";
+        }
         if ("GITHUB".equals(provider)) {
             profilePictureUrl = oAuth2User.getAttribute("avatar_url");
             email = email + "+github.com"; // Append domain to email for uniqueness
@@ -40,9 +43,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             username = oAuth2User.getAttribute("name");
         }
 
-        if (email == null) {
-            email = providerId + "+" + username + "@users.noreply.github.com";
-        }
 
         Optional<User> existingUser = userRepository.findByEmail(email);
         String cleanUsername = username.replaceAll("\\s+", "").toLowerCase(); // Fixed regex for whitespace

@@ -77,6 +77,7 @@ public class NotificationService {
                         n.getSender().getProfilePictureUrl(),
                         n.getType().name(),
                         n.getPost() != null ? n.getPost().getId() : null,
+                        n.getPost() != null ? n.getPost().getSlug() : null,
                         n.isRead(),
                         n.getCreatedAt()))
                 .toList();

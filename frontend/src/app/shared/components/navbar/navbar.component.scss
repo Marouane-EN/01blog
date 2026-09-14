@@ -136,15 +136,22 @@
   padding: 0;
 }
 
-/* Base size for the avatar in the nav */
 .avatar-nav {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
+  background: #efeee6;
+  color: #adab9c; /* The SVG will use this for fill="currentColor" */
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
 }
-div.avatar-nav {
-  background: linear-gradient(135deg, #e5a05c, #c6563f);
+
+.avatar-nav svg {
+  width: 15px;
+  height: 15px;
 }
 img.avatar-nav {
   object-fit: cover;
@@ -405,6 +412,9 @@ img.avatar-nav {
   .notif-body {
     flex: 1;
     min-width: 0;
+    /* Reserves room so text never sits under the mark-read control, read or not,
+       so the layout doesn't shift width when a notification becomes read. */
+    padding-right: 28px;
   }
 
   .notif-text {
@@ -432,14 +442,57 @@ img.avatar-nav {
     white-space: nowrap;
   }
 
-  .unread-dot {
+  .mark-read-btn {
     position: absolute;
-    top: 16px;
-    right: 14px;
+    top: 10px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+
+    &:hover,
+    &:focus-visible {
+      background: var(--tag-bg, #e3e1d5);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--accent, #1e6b4e);
+      outline-offset: 1px;
+    }
+  }
+
+  .unread-dot {
     width: 7px;
     height: 7px;
     border-radius: 50%;
     background: var(--accent, #1e6b4e);
     flex-shrink: 0;
+    transition: opacity 0.12s ease;
+  }
+
+  .check-icon {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    color: var(--accent-ink, #14503a);
+    opacity: 0;
+    transform: scale(0.6);
+    transition: opacity 0.12s ease, transform 0.12s ease;
+  }
+
+  .mark-read-btn:hover,
+  .mark-read-btn:focus-visible {
+    .unread-dot {
+      opacity: 0;
+    }
+    .check-icon {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 }

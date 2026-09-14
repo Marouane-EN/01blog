@@ -81,17 +81,44 @@ export class NavbarComponent implements OnInit {
     });
   }
 
-  markNotification(notification: AppNotification) {
-    if (!notification.isRead) {
-      this.notificationService.toggleRead(notification.id).subscribe({
-        next: () => {
-          this.unreadCount.update((count) => Math.max(0, count - 1));
-          this.notifications.update((items) =>
-            items.map((item) => (item.id === notification.id ? { ...item, isRead: true } : item)),
-          );
-        },
-        error: (err) => console.error('Error marking notification:', err),
-      });
+  /** Marks a single notification as read. Call with an event to stop it from
+   *  bubbling up to the parent row click (which navigates to the notification's target). */
+  markNotification(notification: AppNotification, event?: Event) {
+    event?.stopPropagation();
+
+    if (notification.isRead) {
+      return;
+    }
+
+    this.notificationService.toggleRead(notification.id).subscribe({
+      next: () => {
+        this.unreadCount.update((count) => Math.max(0, count - 1));
+        this.notifications.update((items) =>
+          items.map((item) => (item.id === notification.id ? { ...item, isRead: true } : item)),
+        );
+      },
+      error: (err) => console.error('Error marking notification:', err),
+    });
+  }
+
+  /** Marks the notification as read (if needed) and navigates to whatever it refers to. */
+  openNotification(notification: AppNotification) {
+    this.markNotification(notification);
+
+    const link = this.getNotificationLink(notification);
+    if (link) {
+      this.router.navigate(link);
+    }
+  }
+
+  private getNotificationLink(notification: AppNotification): string[] | null {
+    switch (notification.type) {
+      case 'NEW_POST':
+        return notification.postSlug ? ['/posts', notification.postSlug] : null;
+      case 'FOLLOW':
+        return ['/profile', notification.senderUsername];
+      default:
+        return null;
     }
   }
 

@@ -110,9 +110,9 @@
         disableRipple
         class="notif-item"
         [class.is-unread]="!notification.isRead"
-        (click)="markNotification(notification)"
+        (click)="openNotification(notification)"
       >
-        
+
         <!-- EXPLICIT FLEX ROW WRAPPER -->
         <div class="notif-layout-row">
           @if (notification.senderProfilePictureUrl) {
@@ -143,7 +143,31 @@
         <!-- END EXPLICIT FLEX ROW -->
 
         @if (!notification.isRead) {
-          <span class="unread-dot"></span>
+          <!-- role="button" + a <span> (not a <button>) because this sits inside the
+               row's own mat-menu-item <button> — nested <button> elements are invalid HTML. -->
+          <span
+            class="mark-read-btn"
+            role="button"
+            tabindex="0"
+            title="Mark as read"
+            aria-label="Mark notification as read"
+            (click)="markNotification(notification, $event)"
+            (keydown.enter)="markNotification(notification, $event)"
+            (keydown.space)="$event.preventDefault(); markNotification(notification, $event)"
+          >
+            <svg
+              class="check-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M5 13l4 4L19 7" />
+            </svg>
+            <span class="unread-dot"></span>
+          </span>
         }
       </button>
     } @empty {

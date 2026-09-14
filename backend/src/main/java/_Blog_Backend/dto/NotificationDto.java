@@ -8,6 +8,7 @@ public record NotificationDto(
         String senderProfilePictureUrl,
         String type,
         Long postId,
+        String postSlug,
         boolean isRead,
         LocalDateTime createdAt) {
 }
