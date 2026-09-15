@@ -13,6 +13,8 @@ import { PostService } from '../../../core/services/post.service';
 import { AuthStore } from '../../../core/store/auth.store';
 import { ReportDialogService } from '../../../shared/services/report-dialog.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
+import { extractErrorMessage } from '../../../core/utils/http-error.utils';
 import {
   MediaCarouselComponent,
   MediaCarouselItem,
@@ -43,6 +45,7 @@ export class PostDetailComponent implements OnInit {
   private commentService = inject(CommentService);
   private reportDialog = inject(ReportDialogService);
   private toastService = inject(ToastService);
+  private confirmDialog = inject(ConfirmDialogService);
   authStore = inject(AuthStore);
 
   post = signal<Post | null>(null);
@@ -95,8 +98,10 @@ export class PostDetailComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error loading post:', err);
-        this.errorMessage.set('Could not load this post.');
+        const message = extractErrorMessage(err, 'Could not load this post.');
+        this.errorMessage.set(message);
         this.isLoading.set(false);
+        this.toastService.error(message);
       },
     });
   }
@@ -159,17 +164,28 @@ export class PostDetailComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error updating post:', err);
-          this.errorMessage.set(err.error || 'Could not update this post.');
+          const message = extractErrorMessage(err, 'Could not update this post.');
+          this.errorMessage.set(message);
           this.isSavingPost.set(false);
-          this.toastService.error(err.error || 'Could not update this post.');
+          this.toastService.error(message);
         },
       });
   }
 
-  deletePost() {
+  async deletePost() {
     const post = this.post();
 
-    if (!post || !this.isOwnPost(post) || !confirm('Delete this post? This cannot be undone.')) {
+    if (!post || !this.isOwnPost(post)) {
+      return;
+    }
+
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Delete this post?',
+      description: 'This post will be permanently removed. This cannot be undone.',
+      confirmLabel: 'Delete post',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -180,8 +196,9 @@ export class PostDetailComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error deleting post:', err);
-        this.errorMessage.set(err.error || 'Could not delete this post.');
-        this.toastService.error(err.error || 'Could not delete this post.');
+        const message = extractErrorMessage(err, 'Could not delete this post.');
+        this.errorMessage.set(message);
+        this.toastService.error(message);
       },
     });
   }
@@ -201,7 +218,10 @@ export class PostDetailComponent implements OnInit {
           totalLikes: response.totalLikes,
         });
       },
-      error: (err) => console.error('Error toggling post like:', err),
+      error: (err) => {
+        console.error('Error toggling post like:', err);
+        this.toastService.error(extractErrorMessage(err, 'Could not update like status.'));
+      },
     });
   }
 
@@ -234,8 +254,10 @@ export class PostDetailComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error creating comment:', err);
-          this.errorMessage.set(err.error || 'Could not add your comment.');
+          const message = extractErrorMessage(err, 'Could not add your comment.');
+          this.errorMessage.set(message);
           this.isSubmittingComment.set(false);
+          this.toastService.error(message);
         },
       });
   }
@@ -308,19 +330,32 @@ export class PostDetailComponent implements OnInit {
           );
           this.cancelCommentEdit();
           this.savingCommentId.set(null);
+          this.toastService.success('Comment updated.');
         },
         error: (err) => {
           console.error('Error updating comment:', err);
-          this.errorMessage.set(err.error || 'Could not update this comment.');
+          const message = extractErrorMessage(err, 'Could not update this comment.');
+          this.errorMessage.set(message);
           this.savingCommentId.set(null);
+          this.toastService.error(message);
         },
       });
   }
 
-  deleteComment(comment: Comment) {
+  async deleteComment(comment: Comment) {
     const post = this.post();
 
-    if (!post || !this.isOwnComment(comment) || !confirm('Delete this comment?')) {
+    if (!post || !this.isOwnComment(comment)) {
+      return;
+    }
+
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Delete this comment?',
+      description: 'This comment will be permanently removed. This cannot be undone.',
+      confirmLabel: 'Delete comment',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -331,10 +366,13 @@ export class PostDetailComponent implements OnInit {
           ...post,
           totalComments: Math.max(0, post.totalComments - 1),
         });
+        this.toastService.success('Comment deleted.');
       },
       error: (err) => {
         console.error('Error deleting comment:', err);
-        this.errorMessage.set(err.error || 'Could not delete this comment.');
+        const message = extractErrorMessage(err, 'Could not delete this comment.');
+        this.errorMessage.set(message);
+        this.toastService.error(message);
       },
     });
   }
@@ -360,7 +398,10 @@ export class PostDetailComponent implements OnInit {
           ),
         );
       },
-      error: (err) => console.error('Error toggling comment like:', err),
+      error: (err) => {
+        console.error('Error toggling comment like:', err);
+        this.toastService.error(extractErrorMessage(err, 'Could not update like status.'));
+      },
     });
   }
 
@@ -398,7 +439,7 @@ export class PostDetailComponent implements OnInit {
       error: (err) => {
         console.error('Error adding file to post:', err);
         this.isUploadingMedia.set(false);
-        this.toastService.error(err.error || 'Could not upload this file.');
+        this.toastService.error(extractErrorMessage(err, 'Could not upload this file.'));
       },
     });
 
@@ -424,7 +465,7 @@ export class PostDetailComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error removing file from post:', err);
-        this.toastService.error(err.error || 'Could not remove this file.');
+        this.toastService.error(extractErrorMessage(err, 'Could not remove this file.'));
       },
     });
   }
@@ -452,6 +493,7 @@ export class PostDetailComponent implements OnInit {
       error: (err) => {
         console.error('Error loading comments:', err);
         this.commentsLoading.set(false);
+        this.toastService.error(extractErrorMessage(err, 'Could not load comments.'));
       },
     });
   }

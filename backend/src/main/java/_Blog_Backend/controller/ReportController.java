@@ -16,6 +16,7 @@ import _Blog_Backend.service.ReportService;
 import _Blog_Backend.types.ReportType;
 import io.github.bucket4j.Bucket;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -29,7 +30,7 @@ public class ReportController {
     @PostMapping("/posts/{postId}/reports")
     public ResponseEntity<?> reportPost(
             @PathVariable Long postId,
-            @RequestBody ReportRequest request,
+            @Valid @RequestBody ReportRequest request,
             @AuthenticationPrincipal User currentUser, HttpServletRequest httpRequest) {
         String ipAddress = rateLimiter.getClientIp(httpRequest);
 
@@ -46,7 +47,7 @@ public class ReportController {
     @PostMapping("/comments/{commentId}/reports")
     public ResponseEntity<?> reportComment(
             @PathVariable Long commentId,
-            @RequestBody ReportRequest request,
+            @Valid @RequestBody ReportRequest request,
             @AuthenticationPrincipal User currentUser, HttpServletRequest httpRequest) {
         String ipAddress = rateLimiter.getClientIp(httpRequest);
 
@@ -63,7 +64,7 @@ public class ReportController {
     @PostMapping("/users/{userId}/reports")
     public ResponseEntity<?> reportUser(
             @PathVariable Long userId,
-            @RequestBody ReportRequest request,
+            @Valid @RequestBody ReportRequest request,
             @AuthenticationPrincipal User currentUser, HttpServletRequest httpRequest) {
         String ipAddress = rateLimiter.getClientIp(httpRequest);
 

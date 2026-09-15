@@ -64,7 +64,7 @@ public class CommentController {
     }
 
     @PutMapping("/{commentId}")
-    public ResponseEntity<?> updateComment(@RequestBody CommentRequest content,
+    public ResponseEntity<?> updateComment(@Valid @RequestBody CommentRequest content,
             @PathVariable Long commentId,
             @AuthenticationPrincipal User currentUser, HttpServletRequest httpRequest) {
         String ipAddress = rateLimiter.getClientIp(httpRequest);

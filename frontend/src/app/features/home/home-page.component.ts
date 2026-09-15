@@ -11,6 +11,8 @@ import { UserService } from '../../core/services/user.service';
 import { PostService } from '../../core/services/post.service';
 import { TagService } from '../../core/services/tag.service';
 import { ToastService } from '../../core/services/toast.service';
+import { ConfirmDialogService } from '../../core/services/confirm-dialog.service';
+import { extractErrorMessage } from '../../core/utils/http-error.utils';
 import { FeedTab, PopularUser, PublicProfile, TagTrend, UserDto } from '../../core/models/index';
 import { PostCardComponent } from '../../shared/components/post-card/post-card.component';
 
@@ -39,6 +41,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
   private postService = inject(PostService);
   private tagService = inject(TagService);
   private toastService = inject(ToastService);
+  private confirmDialog = inject(ConfirmDialogService);
   private subscriptions = new Subscription();
   private loadedConnectionsFor: number | null = null;
   following = signal<readonly UserDto[]>([]);
@@ -78,12 +81,18 @@ export class HomePageComponent implements OnInit, OnDestroy {
 
     this.tagService.getTrendingTags(5).subscribe({
       next: (tags) => this.trendingTags.set(tags),
-      error: (err) => console.error('Error loading trending tags:', err),
+      error: (err) => {
+        console.error('Error loading trending tags:', err);
+        this.toastService.error(extractErrorMessage(err, 'Could not load trending tags.'));
+      },
     });
 
     this.userService.getPopularUsers(5).subscribe({
       next: (users) => this.popularUsers.set(users),
-      error: (err) => console.error('Error loading popular users:', err),
+      error: (err) => {
+        console.error('Error loading popular users:', err);
+        this.toastService.error(extractErrorMessage(err, 'Could not load popular users.'));
+      },
     });
   }
 
@@ -120,12 +129,21 @@ export class HomePageComponent implements OnInit, OnDestroy {
           totalLikes: response.totalLikes,
         });
       },
-      error: (err) => console.error('Error toggling post like:', err),
+      error: (err) => {
+        console.error('Error toggling post like:', err);
+        this.toastService.error(extractErrorMessage(err, 'Could not update like status.'));
+      },
     });
   }
 
-  deletePost(postId: number) {
-    if (!confirm('Delete this post? This cannot be undone.')) {
+  async deletePost(postId: number) {
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Delete this post?',
+      description: 'This post will be permanently removed. This cannot be undone.',
+      confirmLabel: 'Delete post',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -136,7 +154,7 @@ export class HomePageComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Error deleting post:', err);
-        this.toastService.error(err.error || 'Could not delete this post.');
+        this.toastService.error(extractErrorMessage(err, 'Could not delete this post.'));
       },
     });
   }
@@ -169,11 +187,13 @@ export class HomePageComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Error fetching user connections:', err);
+          const message = extractErrorMessage(err, 'Could not load people right now.');
           this.profile.set(null);
           this.following.set([]);
           this.followers.set([]);
-          this.connectionsError.set('Could not load people right now.');
+          this.connectionsError.set(message);
           this.connectionsLoading.set(false);
+          this.toastService.error(message);
         },
       }),
     );

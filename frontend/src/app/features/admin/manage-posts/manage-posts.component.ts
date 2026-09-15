@@ -3,7 +3,9 @@ import { Component, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
 import { AdminPost } from '../../../core/models';
 import { AdminService } from '../../../core/services/admin.service';
 import { AvatarComponent } from '../../../shared/components/avatar/avatar.component';
-import { AdminUiService } from '../shared/admin-ui.service';
+import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
+import { ToastService } from '../../../core/services/toast.service';
+import { extractErrorMessage } from '../../../core/utils/http-error.utils';
 
 const PAGE_SIZE = 20;
 
@@ -16,7 +18,8 @@ const PAGE_SIZE = 20;
 })
 export class ManagePostsComponent implements OnInit {
   private adminService = inject(AdminService);
-  private ui = inject(AdminUiService);
+  private confirmDialog = inject(ConfirmDialogService);
+  private toastService = inject(ToastService);
   private platformId = inject(PLATFORM_ID);
   private searchDebounce?: ReturnType<typeof setTimeout>;
 
@@ -52,7 +55,7 @@ export class ManagePostsComponent implements OnInit {
 
   toggleVisibility(post: AdminPost): void {
     const isHide = !post.isHidden;
-    this.ui
+    this.confirmDialog
       .confirm({
         title: `${isHide ? 'Hide' : 'Restore'} this post?`,
         description: isHide
@@ -68,15 +71,16 @@ export class ManagePostsComponent implements OnInit {
         this.adminService.togglePostVisibility(post.id).subscribe({
           next: (res) => {
             this.updatePost(post.id, { isHidden: isHide });
-            this.ui.showToast(res.message);
+            this.toastService.success(res.message);
           },
-          error: () => this.ui.showToast('Something went wrong. Please try again.'),
+          error: (err) =>
+            this.toastService.error(extractErrorMessage(err, 'Something went wrong. Please try again.')),
         });
       });
   }
 
   deletePost(post: AdminPost): void {
-    this.ui
+    this.confirmDialog
       .confirm({
         title: 'Delete this post?',
         description: `"${post.title}" will be permanently removed from 01. This can't be undone.`,
@@ -89,9 +93,10 @@ export class ManagePostsComponent implements OnInit {
         this.adminService.hardDeletePost(post.id).subscribe({
           next: (res) => {
             this.posts.update((items) => items.filter((p) => p.id !== post.id));
-            this.ui.showToast(res.message);
+            this.toastService.success(res.message);
           },
-          error: () => this.ui.showToast('Something went wrong. Please try again.'),
+          error: (err) =>
+            this.toastService.error(extractErrorMessage(err, 'Something went wrong. Please try again.')),
         });
       });
   }
@@ -114,9 +119,10 @@ export class ManagePostsComponent implements OnInit {
         this.loading.set(false);
         this.loadingMore.set(false);
       },
-      error: () => {
+      error: (err) => {
         this.loading.set(false);
         this.loadingMore.set(false);
+        this.toastService.error(extractErrorMessage(err, 'Could not load posts. Please try again.'));
       },
     });
   }

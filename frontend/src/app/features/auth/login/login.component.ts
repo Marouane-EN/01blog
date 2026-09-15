@@ -2,8 +2,8 @@ import { Component, inject, PLATFORM_ID, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
-// CHANGE 1: inject AuthStore so the signal updates immediately on login
-import { AuthStore } from '../../../core/store/auth.store';
+import { ToastService } from '../../../core/services/toast.service';
+import { extractErrorMessage } from '../../../core/utils/http-error.utils';
 
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -32,8 +32,8 @@ export class LoginComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
   isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
-  // CHANGE 1: inject AuthStore
-  private authStore = inject(AuthStore);
+
+  private toastService = inject(ToastService);
 
   loginForm = this.fb.nonNullable.group({
     identifier: ['', [Validators.required]],
@@ -68,12 +68,12 @@ export class LoginComponent {
       },
       error: (err) => {
         this.isLoading.set(false);
-
-        if (err.status === 401 || err.status === 403) {
-          this.errorMessage.set('Invalid username or password.');
-        } else {
-          this.errorMessage.set('An unexpected error occurred. Please try again later.');
-        }
+        const message = extractErrorMessage(
+          err,
+          'An unexpected error occurred. Please try again later.',
+        );
+        this.errorMessage.set(message);
+        this.toastService.error(message);
       },
     });
   }

@@ -2,14 +2,22 @@ import { isPlatformBrowser } from '@angular/common';
 import { Component, inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthStore } from '../../store/auth.store';
-import { AdminOverlaysComponent } from '../../../features/admin/shared/admin-overlays/admin-overlays.component';
 import { AdminUiService } from '../../../features/admin/shared/admin-ui.service';
 import { AvatarComponent } from '../../../shared/components/avatar/avatar.component';
+import { ToastComponent } from '../../../shared/components/toast/toast.component';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-admin-layout',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, AdminOverlaysComponent, AvatarComponent],
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+    RouterOutlet,
+    AvatarComponent,
+    ToastComponent,
+    ConfirmDialogComponent,
+  ],
   templateUrl: './admin-layout.component.html',
   styleUrl: './admin-layout.component.scss',
 })

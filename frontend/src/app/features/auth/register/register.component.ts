@@ -2,6 +2,9 @@ import { Component, inject, PLATFORM_ID, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { ToastService } from '../../../core/services/toast.service';
+import { ToastComponent } from '../../../shared/components/toast/toast.component';
+import { extractErrorMessage } from '../../../core/utils/http-error.utils';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -23,6 +26,7 @@ import { RegistrationRequest } from '../../../core/models';
     MatDatepickerModule,
     MatNativeDateModule,
     MatProgressSpinnerModule,
+    ToastComponent,
   ],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss'],
@@ -31,6 +35,7 @@ export class RegisterComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private toastService = inject(ToastService);
   isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   registerForm = this.fb.nonNullable.group({
@@ -60,9 +65,9 @@ export class RegisterComponent {
       },
       error: (err) => {
         this.isLoading.set(false);
-        this.errorMessage.set(
-          'Registration failed: ' + (err.error || 'Please check your details.'),
-        );
+        const message = extractErrorMessage(err, 'Please check your details.');
+        this.errorMessage.set(message);
+        this.toastService.error(message);
       },
     });
   }

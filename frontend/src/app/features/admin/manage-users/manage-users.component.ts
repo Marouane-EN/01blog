@@ -3,7 +3,9 @@ import { Component, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
 import { AdminUser } from '../../../core/models';
 import { AdminService } from '../../../core/services/admin.service';
 import { AvatarComponent } from '../../../shared/components/avatar/avatar.component';
-import { AdminUiService } from '../shared/admin-ui.service';
+import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
+import { ToastService } from '../../../core/services/toast.service';
+import { extractErrorMessage } from '../../../core/utils/http-error.utils';
 
 const PAGE_SIZE = 20;
 
@@ -16,7 +18,8 @@ const PAGE_SIZE = 20;
 })
 export class ManageUsersComponent implements OnInit {
   private adminService = inject(AdminService);
-  private ui = inject(AdminUiService);
+  private confirmDialog = inject(ConfirmDialogService);
+  private toastService = inject(ToastService);
   private platformId = inject(PLATFORM_ID);
   private searchDebounce?: ReturnType<typeof setTimeout>;
 
@@ -52,7 +55,7 @@ export class ManageUsersComponent implements OnInit {
 
   toggleBan(user: AdminUser): void {
     const isBan = !user.isBlocked;
-    this.ui
+    this.confirmDialog
       .confirm({
         title: `${isBan ? 'Ban' : 'Unban'} ${user.username}?`,
         description: isBan
@@ -68,16 +71,17 @@ export class ManageUsersComponent implements OnInit {
         this.adminService.toggleUserBan(user.id).subscribe({
           next: (res) => {
             this.updateUser(user.id, { isBlocked: isBan });
-            this.ui.showToast(res.message);
+            this.toastService.success(res.message);
           },
-          error: () => this.ui.showToast('Something went wrong. Please try again.'),
+          error: (err) =>
+            this.toastService.error(extractErrorMessage(err, 'Something went wrong. Please try again.')),
         });
       });
   }
 
   toggleActive(user: AdminUser): void {
     const isDeactivate = user.isActive;
-    this.ui
+    this.confirmDialog
       .confirm({
         title: `${isDeactivate ? 'Deactivate' : 'Restore'} ${user.username}'s account?`,
         description: isDeactivate
@@ -93,9 +97,10 @@ export class ManageUsersComponent implements OnInit {
         this.adminService.toggleUserDelete(user.id).subscribe({
           next: (res) => {
             this.updateUser(user.id, { isActive: !isDeactivate });
-            this.ui.showToast(res.message);
+            this.toastService.success(res.message);
           },
-          error: () => this.ui.showToast('Something went wrong. Please try again.'),
+          error: (err) =>
+            this.toastService.error(extractErrorMessage(err, 'Something went wrong. Please try again.')),
         });
       });
   }
@@ -120,9 +125,10 @@ export class ManageUsersComponent implements OnInit {
         this.loading.set(false);
         this.loadingMore.set(false);
       },
-      error: () => {
+      error: (err) => {
         this.loading.set(false);
         this.loadingMore.set(false);
+        this.toastService.error(extractErrorMessage(err, 'Could not load users. Please try again.'));
       },
     });
   }

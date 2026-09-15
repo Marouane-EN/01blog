@@ -1,7 +1,7 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { ReportService } from '../../core/services/report.service';
 import { ToastService } from '../../core/services/toast.service';
+import { extractErrorMessage } from '../../core/utils/http-error.utils';
 
 export type ReportTargetType = 'post' | 'comment' | 'user';
 
@@ -54,7 +54,7 @@ export class ReportDialogService {
       },
       error: (err) => {
         this.submitting.set(false);
-        this.toastService.error(this.extractErrorMessage(err));
+        this.toastService.error(extractErrorMessage(err, 'Could not submit this report. Please try again.'));
       },
     });
   }
@@ -68,18 +68,5 @@ export class ReportDialogService {
       case 'user':
         return this.reportService.reportUser(target.targetId, reason);
     }
-  }
-
-  private extractErrorMessage(err: HttpErrorResponse): string {
-    if (err.status === 0) {
-      return "Couldn't reach the server. Check your connection and try again.";
-    }
-    if (typeof err.error === 'string' && err.error.trim()) {
-      return err.error;
-    }
-    if (err.error?.message) {
-      return err.error.message;
-    }
-    return 'Could not submit this report. Please try again.';
   }
 }

@@ -3,6 +3,9 @@ import { Component, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
 import { AdminAction, AdminReport } from '../../../core/models';
 import { AdminService } from '../../../core/services/admin.service';
 import { AdminUiService } from '../shared/admin-ui.service';
+import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
+import { ToastService } from '../../../core/services/toast.service';
+import { extractErrorMessage } from '../../../core/utils/http-error.utils';
 
 const PAGE_SIZE = 20;
 
@@ -16,6 +19,8 @@ const PAGE_SIZE = 20;
 export class ReportsComponent implements OnInit {
   private adminService = inject(AdminService);
   private ui = inject(AdminUiService);
+  private confirmDialog = inject(ConfirmDialogService);
+  private toastService = inject(ToastService);
   private platformId = inject(PLATFORM_ID);
 
   reports = signal<readonly AdminReport[]>([]);
@@ -51,7 +56,7 @@ export class ReportsComponent implements OnInit {
   }
 
   dismiss(report: AdminReport): void {
-    this.ui
+    this.confirmDialog
       .confirm({
         title: 'Dismiss this report?',
         description: 'This report will be marked as reviewed with no action taken.',
@@ -76,7 +81,7 @@ export class ReportsComponent implements OnInit {
           ? 'This comment will be removed and replaced with a moderation notice.'
           : 'This post will be hidden from the public.';
 
-    this.ui
+    this.confirmDialog
       .confirm({
         title: `${label}?`,
         description,
@@ -98,9 +103,10 @@ export class ReportsComponent implements OnInit {
       next: () => {
         this.reports.update((items) => items.filter((r) => r.reportId !== report.reportId));
         this.ui.decrementPendingCount();
-        this.ui.showToast(toastMessage);
+        this.toastService.success(toastMessage);
       },
-      error: () => this.ui.showToast('Something went wrong. Please try again.'),
+      error: (err) =>
+        this.toastService.error(extractErrorMessage(err, 'Something went wrong. Please try again.')),
     });
   }
 
@@ -118,9 +124,10 @@ export class ReportsComponent implements OnInit {
         this.loading.set(false);
         this.loadingMore.set(false);
       },
-      error: () => {
+      error: (err) => {
         this.loading.set(false);
         this.loadingMore.set(false);
+        this.toastService.error(extractErrorMessage(err, 'Could not load reports. Please try again.'));
       },
     });
   }

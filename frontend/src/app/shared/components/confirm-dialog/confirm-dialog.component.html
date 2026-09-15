@@ -1,0 +1,18 @@
+@if (state(); as state) {
+  <div class="modal-backdrop" (click)="onBackdropClick($event)">
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="confirmDialogTitle">
+      <h3 class="modal-title" id="confirmDialogTitle">{{ state.title }}</h3>
+      <p class="modal-desc">{{ state.description }}</p>
+      <div class="modal-actions">
+        <button class="btn-sm-outline" type="button" (click)="resolve(false)">Cancel</button>
+        <button
+          [class]="state.danger === false ? 'btn-sm-outline' : 'btn-sm-danger'"
+          type="button"
+          (click)="resolve(true)"
+        >
+          {{ state.confirmLabel }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

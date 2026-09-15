@@ -3,11 +3,14 @@ import { forkJoin } from 'rxjs';
 import { PostService } from '../services/post.service';
 import { UserService } from '../services/user.service';
 import { Post, FeedTab, PostSearchResult, UserDto } from '../models';
+import { ToastService } from '../services/toast.service';
+import { extractErrorMessage } from '../utils/http-error.utils';
 
 @Injectable({ providedIn: 'root' })
 export class FeedStore {
   private postService = inject(PostService);
   private userService = inject(UserService);
+  private toastService = inject(ToastService);
 
   // ── Private Writable Signals ──
   readonly #posts = signal<readonly Post[]>([]);
@@ -57,13 +60,15 @@ export class FeedStore {
       },
       error: (err) => {
         console.error('Error fetching feed:', err);
-        this.#error.set('Failed to load posts. Please try again later.');
+        const message = extractErrorMessage(err, 'Failed to load posts. Please try again later.');
+        this.#error.set(message);
         this.#posts.set([]);
         this.#searchResults.set([]);
         this.#userSearchResults.set([]);
         this.#nextCursor.set(null);
         this.#hasMore.set(false);
         this.#isLoading.set(false);
+        this.toastService.error(message);
       },
     });
   }
@@ -101,7 +106,8 @@ export class FeedStore {
       },
       error: (err) => {
         console.error('Error searching posts:', err);
-        this.#error.set('Failed to search posts. Please try again later.');
+        const message = extractErrorMessage(err, 'Failed to search posts. Please try again later.');
+        this.#error.set(message);
         this.#searchResults.set([]);
         this.#userSearchResults.set([]);
         this.#nextCursor.set(null);
@@ -109,6 +115,7 @@ export class FeedStore {
         this.#hasMore.set(false);
         this.#hasMoreUsers.set(false);
         this.#isLoading.set(false);
+        this.toastService.error(message);
       },
     });
   }
@@ -156,8 +163,13 @@ export class FeedStore {
         },
         error: (err) => {
           console.error('Error fetching more search results:', err);
-          this.#error.set('Failed to load more search results. Please try again later.');
+          const message = extractErrorMessage(
+            err,
+            'Failed to load more search results. Please try again later.',
+          );
+          this.#error.set(message);
           this.#isLoadingMore.set(false);
+          this.toastService.error(message);
         },
       });
       return;
@@ -172,8 +184,10 @@ export class FeedStore {
       },
       error: (err) => {
         console.error('Error fetching more posts:', err);
-        this.#error.set('Failed to load more posts. Please try again later.');
+        const message = extractErrorMessage(err, 'Failed to load more posts. Please try again later.');
+        this.#error.set(message);
         this.#isLoadingMore.set(false);
+        this.toastService.error(message);
       },
     });
   }

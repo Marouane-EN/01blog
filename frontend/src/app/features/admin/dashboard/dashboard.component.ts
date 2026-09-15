@@ -4,6 +4,8 @@ import { RouterLink } from '@angular/router';
 import { AdminReport } from '../../../core/models';
 import { AdminService } from '../../../core/services/admin.service';
 import { AdminUiService } from '../shared/admin-ui.service';
+import { ToastService } from '../../../core/services/toast.service';
+import { extractErrorMessage } from '../../../core/utils/http-error.utils';
 
 @Component({
   selector: 'app-dashboard',
@@ -15,6 +17,7 @@ import { AdminUiService } from '../shared/admin-ui.service';
 export class DashboardComponent implements OnInit {
   private adminService = inject(AdminService);
   private platformId = inject(PLATFORM_ID);
+  private toastService = inject(ToastService);
   ui = inject(AdminUiService);
 
   totalUsers = signal<number | null>(null);
@@ -31,12 +34,12 @@ export class DashboardComponent implements OnInit {
 
     this.adminService.getUsers(0, 1).subscribe({
       next: (page) => this.totalUsers.set(page.totalElements),
-      error: () => {},
+      error: (err) => this.toastService.error(extractErrorMessage(err, 'Could not load total users.')),
     });
 
     this.adminService.getPosts(0, 1).subscribe({
       next: (page) => this.totalPosts.set(page.totalElements),
-      error: () => {},
+      error: (err) => this.toastService.error(extractErrorMessage(err, 'Could not load total posts.')),
     });
 
     this.adminService.getPendingReports(0, 5).subscribe({
@@ -44,7 +47,10 @@ export class DashboardComponent implements OnInit {
         this.attentionReports.set(page.content);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false),
+      error: (err) => {
+        this.loading.set(false);
+        this.toastService.error(extractErrorMessage(err, 'Could not load the dashboard.'));
+      },
     });
   }
 }

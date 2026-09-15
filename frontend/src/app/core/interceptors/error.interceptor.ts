@@ -3,10 +3,12 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { ToastService } from '../services/toast.service';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const authService = inject(AuthService);
+  const toastService = inject(ToastService);
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
@@ -27,8 +29,13 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         // 3. Apply your exact logic: Skip the redirect if they are logging in!
         if (!isActivelyLoggingIn) {
           console.warn('[Interceptor] Invalid token detected. Forcing logout.');
+          const hadToken = authService.hasToken();
           authService.logout(); // Clears localStorage
           router.navigate(['/login']);
+
+          if (hadToken) {
+            toastService.error('Your session has expired. Please log in again.');
+          }
         } else {
           console.log('[Interceptor] 401 ignored because user is actively authenticating.');
         }

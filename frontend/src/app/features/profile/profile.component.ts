@@ -12,6 +12,8 @@ import { Post, PublicProfile, UserDto } from '../../core/models';
 import { PostCardComponent } from '../../shared/components/post-card/post-card.component';
 import { ReportDialogService } from '../../shared/services/report-dialog.service';
 import { ToastService } from '../../core/services/toast.service';
+import { ConfirmDialogService } from '../../core/services/confirm-dialog.service';
+import { extractErrorMessage } from '../../core/utils/http-error.utils';
 
 @Component({
   selector: 'app-profile',
@@ -35,6 +37,7 @@ export class ProfileComponent implements OnInit {
   private authService = inject(AuthService);
   private reportDialog = inject(ReportDialogService);
   private toastService = inject(ToastService);
+  private confirmDialog = inject(ConfirmDialogService);
   authStore = inject(AuthStore);
 
   private requestedUsername = signal<string | null>(null);
@@ -105,8 +108,10 @@ export class ProfileComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error uploading avatar:', err);
-        this.errorMessage.set(err.error || 'Could not update your profile picture.');
+        const message = extractErrorMessage(err, 'Could not update your profile picture.');
+        this.errorMessage.set(message);
         this.avatarUploading.set(false);
+        this.toastService.error(message);
       },
     });
   }
@@ -143,9 +148,10 @@ export class ProfileComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error toggling follow:', err);
-        this.errorMessage.set(err.error || 'Could not update follow status.');
+        const message = extractErrorMessage(err, 'Could not update follow status.');
+        this.errorMessage.set(message);
         this.followLoading.set(false);
-        this.toastService.error(err.error || 'Could not update follow status.');
+        this.toastService.error(message);
       },
     });
   }
@@ -220,12 +226,21 @@ export class ProfileComponent implements OnInit {
           ),
         );
       },
-      error: (err) => console.error('Error toggling post like:', err),
+      error: (err) => {
+        console.error('Error toggling post like:', err);
+        this.toastService.error(extractErrorMessage(err, 'Could not update like status.'));
+      },
     });
   }
 
-  deletePost(postId: number) {
-    if (!confirm('Delete this post? This cannot be undone.')) {
+  async deletePost(postId: number) {
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Delete this post?',
+      description: 'This post will be permanently removed. This cannot be undone.',
+      confirmLabel: 'Delete post',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -245,7 +260,7 @@ export class ProfileComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error deleting post:', err);
-        this.toastService.error(err.error || 'Could not delete this post.');
+        this.toastService.error(extractErrorMessage(err, 'Could not delete this post.'));
       },
     });
   }
@@ -267,8 +282,10 @@ export class ProfileComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error loading profile:', err);
-        this.errorMessage.set('Could not load this profile.');
+        const message = extractErrorMessage(err, 'Could not load this profile.');
+        this.errorMessage.set(message);
         this.isLoading.set(false);
+        this.toastService.error(message);
       },
     });
   }
@@ -286,6 +303,7 @@ export class ProfileComponent implements OnInit {
       error: (err) => {
         console.error('Error loading profile posts:', err);
         this.postsLoading.set(false);
+        this.toastService.error(extractErrorMessage(err, 'Could not load posts.'));
       },
     });
   }
@@ -303,7 +321,10 @@ export class ProfileComponent implements OnInit {
       next: (response) => {
         this.isFollowing.set(response.data.some((user) => user.username === profile.username));
       },
-      error: (err) => console.error('Error loading follow state:', err),
+      error: (err) => {
+        console.error('Error loading follow state:', err);
+        this.toastService.error(extractErrorMessage(err, 'Could not check follow status.'));
+      },
     });
   }
 
@@ -327,6 +348,7 @@ export class ProfileComponent implements OnInit {
       error: (err) => {
         console.error('Error loading connections:', err);
         this.connectionsLoading.set(false);
+        this.toastService.error(extractErrorMessage(err, 'Could not load this list.'));
       },
     });
   }

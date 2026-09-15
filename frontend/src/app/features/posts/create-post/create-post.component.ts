@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { PostService } from '../../../core/services/post.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { extractErrorMessage } from '../../../core/utils/http-error.utils';
 import {
   MediaCarouselComponent,
   MediaCarouselItem,
@@ -111,7 +112,9 @@ export class CreatePostComponent implements OnDestroy {
         error: (err) => {
           console.error('Error creating post:', err);
           this.isSubmitting.set(false);
-          this.errorMessage.set(err.error || 'Could not create the post. Please try again.');
+          const message = extractErrorMessage(err, 'Could not create the post. Please try again.');
+          this.errorMessage.set(message);
+          this.toastService.error(message);
         },
       });
   }

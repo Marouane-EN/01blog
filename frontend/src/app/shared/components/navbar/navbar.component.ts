@@ -10,6 +10,8 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { AuthStore } from '../../../core/store/auth.store';
 import { Notification as AppNotification } from '../../../core/models';
 import { NotificationService } from '../../../core/services/notification.service';
+import { ToastService } from '../../../core/services/toast.service';
+import { extractErrorMessage } from '../../../core/utils/http-error.utils';
 import { MatSpinner } from '@angular/material/progress-spinner';
 
 @Component({
@@ -35,6 +37,7 @@ export class NavbarComponent implements OnInit {
   authStore = inject(AuthStore);
   private router = inject(Router);
   private notificationService = inject(NotificationService);
+  private toastService = inject(ToastService);
 
   searchValue = '';
   notifications = signal<readonly AppNotification[]>([]);
@@ -77,6 +80,7 @@ export class NavbarComponent implements OnInit {
       error: (err) => {
         console.error('Error loading notifications:', err);
         this.notificationsLoading.set(false);
+        this.toastService.error(extractErrorMessage(err, 'Could not load notifications.'));
       },
     });
   }
@@ -97,7 +101,10 @@ export class NavbarComponent implements OnInit {
           items.map((item) => (item.id === notification.id ? { ...item, isRead: true } : item)),
         );
       },
-      error: (err) => console.error('Error marking notification:', err),
+      error: (err) => {
+        console.error('Error marking notification:', err);
+        this.toastService.error(extractErrorMessage(err, 'Could not update this notification.'));
+      },
     });
   }
 
@@ -125,7 +132,10 @@ export class NavbarComponent implements OnInit {
   private loadUnreadCount() {
     this.notificationService.getUnreadCount().subscribe({
       next: (count) => this.unreadCount.set(count),
-      error: (err) => console.error('Error loading unread notifications:', err),
+      error: (err) => {
+        console.error('Error loading unread notifications:', err);
+        this.toastService.error(extractErrorMessage(err, 'Could not load unread notifications.'));
+      },
     });
   }
 }
