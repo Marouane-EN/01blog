@@ -109,9 +109,9 @@ public class AdminController {
     }
 
     @DeleteMapping("/comments/{commentId}")
-    public ResponseEntity<String> deleteComment(@PathVariable Long commentId) {
+    public ResponseEntity<?> deleteComment(@PathVariable Long commentId) {
         adminService.deleteCommentAsAdmin(commentId);
-        return ResponseEntity.ok("Comment has been scrubbed.");
+        return ResponseEntity.ok(Map.of("message", "Comment deleted successfully."));
     }
 
 }

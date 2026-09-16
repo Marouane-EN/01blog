@@ -2,6 +2,7 @@ package _Blog_Backend.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -86,7 +87,7 @@ public class NotificationService {
     }
 
     @Transactional
-    public String markAsReadOrUnread(Long notificationId, User currentUser) {
+    public Map<String, Object> markAsReadOrUnread(Long notificationId, User currentUser) {
 
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notification not found"));
@@ -100,9 +101,11 @@ public class NotificationService {
 
         notificationRepository.save(notification);
 
-        return notification.isRead()
-                ? "Notification marked as read successfully."
-                : "Notification marked as unread successfully.";
+        String message = notification.isRead() ? "Notification marked as read." : "Notification marked as unread.";
+
+        return Map.of(
+                "message", message,
+                "isRead", notification.isRead());
     }
 
     @Transactional

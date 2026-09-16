@@ -137,6 +137,7 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
+  gap: var(--space-1);
   padding: var(--space-2) 0;
   text-decoration: none;
   color: inherit;
@@ -146,10 +147,14 @@
 .trend-tag {
   font-size: 13.5px;
   font-weight: 500;
+  width: 80%;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 .trend-count {
   font-size: 11px;
   color: var(--ink-muted);
+  width: 20%;
 }
 
 /* ================= FEED COLUMN ================= */
