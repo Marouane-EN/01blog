@@ -24,12 +24,10 @@ export class AdminService {
     return this.http.get<PageResponse<AdminReport>>(`${this.API_URL}/admin/reports`, { params });
   }
 
-  resolveReport(reportId: number, action: AdminAction): Observable<string> {
-    return this.http.put(
-      `${this.API_URL}/admin/reports/${reportId}/resolve`,
-      { action },
-      { responseType: 'text' },
-    );
+  resolveReport(reportId: number, action: AdminAction): Observable<{ message: string }> {
+    return this.http.put<{ message: string }>(`${this.API_URL}/admin/reports/${reportId}/resolve`, {
+      action,
+    });
   }
 
   getUsers(page = 0, size = 20, search?: string): Observable<PageResponse<AdminUser>> {
@@ -83,9 +81,7 @@ export class AdminService {
     return this.http.delete<{ message: string }>(`${this.API_URL}/admin/posts/${postId}`);
   }
 
-  deleteComment(commentId: number): Observable<string> {
-    return this.http.delete(`${this.API_URL}/admin/comments/${commentId}`, {
-      responseType: 'text',
-    });
+  deleteComment(commentId: number): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.API_URL}/admin/comments/${commentId}`);
   }
 }

@@ -1,5 +1,7 @@
 package _Blog_Backend.controller;
 
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -34,7 +36,7 @@ public class NotificationController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message","Too many attempts. Please try again in 15 minutes."));
         }
 
         return ResponseEntity.ok(notificationService.getUserNotifications(currentUser, cursor));
@@ -48,7 +50,7 @@ public class NotificationController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message","Too many attempts. Please try again in 15 minutes."));
         }
         int unreadCount = notificationService.getUnreadNotificationsCount(currentUser);
         return ResponseEntity.ok(unreadCount);
@@ -62,7 +64,7 @@ public class NotificationController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message","Too many attempts. Please try again in 15 minutes."));
         }
         return ResponseEntity.ok(notificationService.markAsReadOrUnread(id, currentUser));
     }

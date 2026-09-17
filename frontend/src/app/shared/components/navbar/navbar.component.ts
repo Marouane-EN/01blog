@@ -78,7 +78,6 @@ export class NavbarComponent implements OnInit {
         this.notificationsLoading.set(false);
       },
       error: (err) => {
-        console.error('Error loading notifications:', err);
         this.notificationsLoading.set(false);
         this.toastService.error(extractErrorMessage(err, 'Could not load notifications.'));
       },
@@ -102,7 +101,6 @@ export class NavbarComponent implements OnInit {
         );
       },
       error: (err) => {
-        console.error('Error marking notification:', err);
         this.toastService.error(extractErrorMessage(err, 'Could not update this notification.'));
       },
     });
@@ -133,7 +131,6 @@ export class NavbarComponent implements OnInit {
     this.notificationService.getUnreadCount().subscribe({
       next: (count) => this.unreadCount.set(count),
       error: (err) => {
-        console.error('Error loading unread notifications:', err);
         this.toastService.error(extractErrorMessage(err, 'Could not load unread notifications.'));
       },
     });

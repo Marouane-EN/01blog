@@ -107,7 +107,6 @@ export class ProfileComponent implements OnInit {
         this.avatarUploading.set(false);
       },
       error: (err) => {
-        console.error('Error uploading avatar:', err);
         const message = extractErrorMessage(err, 'Could not update your profile picture.');
         this.errorMessage.set(message);
         this.avatarUploading.set(false);
@@ -147,7 +146,6 @@ export class ProfileComponent implements OnInit {
         );
       },
       error: (err) => {
-        console.error('Error toggling follow:', err);
         const message = extractErrorMessage(err, 'Could not update follow status.');
         this.errorMessage.set(message);
         this.followLoading.set(false);
@@ -227,7 +225,6 @@ export class ProfileComponent implements OnInit {
         );
       },
       error: (err) => {
-        console.error('Error toggling post like:', err);
         this.toastService.error(extractErrorMessage(err, 'Could not update like status.'));
       },
     });
@@ -259,7 +256,6 @@ export class ProfileComponent implements OnInit {
         this.toastService.success('Post deleted.');
       },
       error: (err) => {
-        console.error('Error deleting post:', err);
         this.toastService.error(extractErrorMessage(err, 'Could not delete this post.'));
       },
     });
@@ -281,7 +277,6 @@ export class ProfileComponent implements OnInit {
         this.loadPosts(profile.id);
       },
       error: (err) => {
-        console.error('Error loading profile:', err);
         const message = extractErrorMessage(err, 'Could not load this profile.');
         this.errorMessage.set(message);
         this.isLoading.set(false);
@@ -301,7 +296,6 @@ export class ProfileComponent implements OnInit {
         this.postsLoading.set(false);
       },
       error: (err) => {
-        console.error('Error loading profile posts:', err);
         this.postsLoading.set(false);
         this.toastService.error(extractErrorMessage(err, 'Could not load posts.'));
       },
@@ -322,7 +316,6 @@ export class ProfileComponent implements OnInit {
         this.isFollowing.set(response.data.some((user) => user.username === profile.username));
       },
       error: (err) => {
-        console.error('Error loading follow state:', err);
         this.toastService.error(extractErrorMessage(err, 'Could not check follow status.'));
       },
     });
@@ -346,7 +339,6 @@ export class ProfileComponent implements OnInit {
         this.connectionsLoading.set(false);
       },
       error: (err) => {
-        console.error('Error loading connections:', err);
         this.connectionsLoading.set(false);
         this.toastService.error(extractErrorMessage(err, 'Could not load this list.'));
       },

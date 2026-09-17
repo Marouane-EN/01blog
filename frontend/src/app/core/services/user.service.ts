@@ -31,11 +31,11 @@ export class UserService {
     return this.http.post<SubscriptionResponse>(`${this.API_URL}/users/${username}/subscribe`, {});
   }
 
-  uploadAvatar(file: File): Observable<string> {
+  uploadAvatar(file: File): Observable<{ avatarUrl: string }> {
     const formData = new FormData();
     formData.append('file', file);
 
-    return this.http.post(`${this.API_URL}/users/me/avatar`, formData, { responseType: 'text' });
+    return this.http.post<{ avatarUrl: string }>(`${this.API_URL}/users/me/avatar`, formData);
   }
 
   searchUsers(query: string, cursor?: number | null): Observable<CursorResponse<UserDto>> {

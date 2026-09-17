@@ -110,7 +110,6 @@ export class CreatePostComponent implements OnDestroy {
           this.router.navigate(['/posts', post.slug]);
         },
         error: (err) => {
-          console.error('Error creating post:', err);
           this.isSubmitting.set(false);
           const message = extractErrorMessage(err, 'Could not create the post. Please try again.');
           this.errorMessage.set(message);

@@ -36,12 +36,12 @@ public class AdminController {
     }
 
     @PutMapping("/reports/{reportId}/resolve")
-    public ResponseEntity<String> resolveReport(
+    public ResponseEntity<?> resolveReport(
             @PathVariable Long reportId,
             @Valid @RequestBody ResolveRequest request) {
 
         adminService.resolveReport(reportId, request.action());
-        return ResponseEntity.ok("Report resolved successfully.");
+        return ResponseEntity.ok(Map.of("message", "Report resolved successfully."));
     }
 
     @GetMapping("/users")

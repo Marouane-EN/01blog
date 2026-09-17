@@ -1,5 +1,7 @@
 package _Blog_Backend.controller;
 
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,7 +32,7 @@ public class TagController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message","Too many attempts. Please try again in 15 minutes."));
         }
 
         int cappedLimit = Math.min(Math.max(limit, 1), 20);

@@ -65,8 +65,8 @@ export class PostService {
     });
   }
 
-  deletePost(postId: number): Observable<string> {
-    return this.http.delete(`${this.API_URL}/posts/${postId}`, { responseType: 'text' });
+  deletePost(postId: number): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.API_URL}/posts/${postId}`);
   }
 
   toggleLike(postId: number): Observable<LikeResponse> {
@@ -89,9 +89,9 @@ export class PostService {
       .pipe(map((response) => ({ id: response.mediaId, url: response.url })));
   }
 
-  deleteFileFromPost(postId: number, mediaId: number): Observable<string> {
-    return this.http.delete(`${this.API_URL}/posts/${postId}/files/${mediaId}`, {
-      responseType: 'text',
-    });
+  deleteFileFromPost(postId: number, mediaId: number): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(
+      `${this.API_URL}/posts/${postId}/files/${mediaId}`,
+    );
   }
 }

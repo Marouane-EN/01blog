@@ -1,5 +1,7 @@
 package _Blog_Backend.controller;
 
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +29,7 @@ public class AuthController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message","Too many attempts. Please try again in 15 minutes."));
         }
         authService.registerLocalUser(request);
         AuthResponse authResponse = authService.loginLocalUser(request.username(), request.password());
@@ -44,7 +46,7 @@ public class AuthController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message","Too many attempts. Please try again in 15 minutes."));
         }
         AuthResponse authResponse = authService.loginLocalUser(request.identifier(), request.password());
         return ResponseEntity.ok(authResponse);

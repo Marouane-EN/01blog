@@ -1,6 +1,7 @@
 package _Blog_Backend.controller;
 
 import java.io.IOException;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,7 +42,7 @@ public class UserController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message", "Too many attempts. Please try again in 15 minutes."));
         }
         UserDto userDto = userService.getCurrentUser(currentUser);
         return ResponseEntity.ok(userDto);
@@ -56,9 +57,9 @@ public class UserController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message", "Too many attempts. Please try again in 15 minutes."));
         }
-        return ResponseEntity.ok(userService.updateAvatar(file, currentUser));
+        return ResponseEntity.ok(Map.of("avatarUrl", userService.updateAvatar(file, currentUser)));
     }
 
     @PostMapping("/{username}/subscribe")
@@ -70,7 +71,7 @@ public class UserController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message", "Too many attempts. Please try again in 15 minutes."));
         }
 
         SubscriptionResponse response = subscriptionService.toggleSubscription(username, currentUser);
@@ -86,7 +87,7 @@ public class UserController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message", "Too many attempts. Please try again in 15 minutes."));
         }
 
         CursorResponse<UserDto> response = subscriptionService.getFollowers(userId, cursor);
@@ -103,7 +104,7 @@ public class UserController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message", "Too many attempts. Please try again in 15 minutes."));
         }
 
         CursorResponse<UserDto> response = subscriptionService.getFollowing(userId, cursor);
@@ -118,7 +119,7 @@ public class UserController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message", "Too many attempts. Please try again in 15 minutes."));
         }
 
         return ResponseEntity.ok(userService.getPublicProfile(username));
@@ -132,7 +133,7 @@ public class UserController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message", "Too many attempts. Please try again in 15 minutes."));
         }
 
         int cappedLimit = Math.min(Math.max(limit, 1), 20);
@@ -147,7 +148,7 @@ public class UserController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message", "Too many attempts. Please try again in 15 minutes."));
         }
 
         if (keyword == null || keyword.trim().isEmpty()) {

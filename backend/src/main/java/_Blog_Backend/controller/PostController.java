@@ -2,6 +2,7 @@ package _Blog_Backend.controller;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.*;
 
@@ -39,7 +40,7 @@ public class PostController {
 
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message","Too many attempts. Please try again in 15 minutes."));
         }
 
         PostDto createdPost = postService.createPost(request, files, author);
@@ -54,7 +55,7 @@ public class PostController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message","Too many attempts. Please try again in 15 minutes."));
         }
         Long currentUserId = (currentUser != null) ? currentUser.getId() : null;
         return ResponseEntity.ok(postService.getPostFeed(cursor, currentUserId));
@@ -68,7 +69,7 @@ public class PostController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message","Too many attempts. Please try again in 15 minutes."));
         }
         Long currentUserId = (currentUser != null) ? currentUser.getId() : null;
         PostDto postDto = postService.getPostBySlug(slug, currentUserId);
@@ -85,7 +86,7 @@ public class PostController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message","Too many attempts. Please try again in 15 minutes."));
         }
 
         Long currentUserId = (currentUser != null) ? currentUser.getId() : null;
@@ -101,7 +102,7 @@ public class PostController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message","Too many attempts. Please try again in 15 minutes."));
         }
 
         return ResponseEntity.ok(postService.getSubscriptionsFeed(cursor, currentUser.getId()));
@@ -116,7 +117,7 @@ public class PostController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message","Too many attempts. Please try again in 15 minutes."));
         }
 
         if (keyword == null || keyword.trim().isEmpty()) {
@@ -134,11 +135,11 @@ public class PostController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message","Too many attempts. Please try again in 15 minutes."));
         }
 
         postService.deletePost(id, currentUser);
-        return ResponseEntity.ok("Post deleted successfully");
+        return ResponseEntity.ok(Map.of("message", "Post deleted successfully"));
     }
 
     @PutMapping("/{id}")
@@ -151,7 +152,7 @@ public class PostController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message","Too many attempts. Please try again in 15 minutes."));
         }
 
         PostDto updatedPost = postService.updatePost(id, request, currentUser);
@@ -169,7 +170,7 @@ public class PostController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message","Too many attempts. Please try again in 15 minutes."));
         }
         FileUploadResponse mediaResponse = postService.addFileToPost(postId, file, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(mediaResponse);
@@ -185,10 +186,10 @@ public class PostController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message","Too many attempts. Please try again in 15 minutes."));
         }
         postService.deleteFileFromPost(postId, mediaId, currentUser);
-        return ResponseEntity.ok("Media deleted successfully");
+        return ResponseEntity.ok(Map.of("message", "Media deleted successfully"));
     }
 
     @PostMapping("/{postId}/like")
@@ -199,7 +200,7 @@ public class PostController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message","Too many attempts. Please try again in 15 minutes."));
         }
 
         return ResponseEntity.ok(likeService.togglePostLike(postId, currentUser));

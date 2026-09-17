@@ -97,7 +97,6 @@ export class PostDetailComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.error('Error loading post:', err);
         const message = extractErrorMessage(err, 'Could not load this post.');
         this.errorMessage.set(message);
         this.isLoading.set(false);
@@ -135,7 +134,6 @@ export class PostDetailComponent implements OnInit {
     const post = this.post();
 
     if (!post || this.postEditForm.invalid || this.isSavingPost()) {
-      console.warn('Post edit form is invalid or already saving.');
       this.postEditForm.markAllAsTouched();
       return;
     }
@@ -163,7 +161,6 @@ export class PostDetailComponent implements OnInit {
           this.toastService.success('Post updated.');
         },
         error: (err) => {
-          console.error('Error updating post:', err);
           const message = extractErrorMessage(err, 'Could not update this post.');
           this.errorMessage.set(message);
           this.isSavingPost.set(false);
@@ -195,7 +192,6 @@ export class PostDetailComponent implements OnInit {
         this.router.navigate(['/']);
       },
       error: (err) => {
-        console.error('Error deleting post:', err);
         const message = extractErrorMessage(err, 'Could not delete this post.');
         this.errorMessage.set(message);
         this.toastService.error(message);
@@ -219,7 +215,6 @@ export class PostDetailComponent implements OnInit {
         });
       },
       error: (err) => {
-        console.error('Error toggling post like:', err);
         this.toastService.error(extractErrorMessage(err, 'Could not update like status.'));
       },
     });
@@ -253,7 +248,6 @@ export class PostDetailComponent implements OnInit {
           this.isSubmittingComment.set(false);
         },
         error: (err) => {
-          console.error('Error creating comment:', err);
           const message = extractErrorMessage(err, 'Could not add your comment.');
           this.errorMessage.set(message);
           this.isSubmittingComment.set(false);
@@ -333,7 +327,6 @@ export class PostDetailComponent implements OnInit {
           this.toastService.success('Comment updated.');
         },
         error: (err) => {
-          console.error('Error updating comment:', err);
           const message = extractErrorMessage(err, 'Could not update this comment.');
           this.errorMessage.set(message);
           this.savingCommentId.set(null);
@@ -369,7 +362,6 @@ export class PostDetailComponent implements OnInit {
         this.toastService.success('Comment deleted.');
       },
       error: (err) => {
-        console.error('Error deleting comment:', err);
         const message = extractErrorMessage(err, 'Could not delete this comment.');
         this.errorMessage.set(message);
         this.toastService.error(message);
@@ -399,7 +391,6 @@ export class PostDetailComponent implements OnInit {
         );
       },
       error: (err) => {
-        console.error('Error toggling comment like:', err);
         this.toastService.error(extractErrorMessage(err, 'Could not update like status.'));
       },
     });
@@ -437,7 +428,6 @@ export class PostDetailComponent implements OnInit {
         this.toastService.success(newMedia.length > 1 ? 'Files added.' : 'File added.');
       },
       error: (err) => {
-        console.error('Error adding file to post:', err);
         this.isUploadingMedia.set(false);
         this.toastService.error(extractErrorMessage(err, 'Could not upload this file.'));
       },
@@ -464,7 +454,6 @@ export class PostDetailComponent implements OnInit {
         this.toastService.success('File removed.');
       },
       error: (err) => {
-        console.error('Error removing file from post:', err);
         this.toastService.error(extractErrorMessage(err, 'Could not remove this file.'));
       },
     });
@@ -491,7 +480,6 @@ export class PostDetailComponent implements OnInit {
         this.commentsLoading.set(false);
       },
       error: (err) => {
-        console.error('Error loading comments:', err);
         this.commentsLoading.set(false);
         this.toastService.error(extractErrorMessage(err, 'Could not load comments.'));
       },

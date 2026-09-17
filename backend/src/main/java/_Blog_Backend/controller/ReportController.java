@@ -1,5 +1,7 @@
 package _Blog_Backend.controller;
 
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -37,11 +39,11 @@ public class ReportController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message", "Too many attempts. Please try again in 15 minutes."));
         }
 
         reportService.submitReport(currentUser, postId, ReportType.POST, request.reason());
-        return ResponseEntity.ok("Post reported successfully.");
+        return ResponseEntity.ok(Map.of("message", "Post reported successfully."));
     }
 
     @PostMapping("/comments/{commentId}/reports")
@@ -54,11 +56,11 @@ public class ReportController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message", "Too many attempts. Please try again in 15 minutes."));
         }
 
         reportService.submitReport(currentUser, commentId, ReportType.COMMENT, request.reason());
-        return ResponseEntity.ok("Comment reported successfully.");
+        return ResponseEntity.ok(Map.of("message", "Comment reported successfully."));
     }
 
     @PostMapping("/users/{userId}/reports")
@@ -71,11 +73,11 @@ public class ReportController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message", "Too many attempts. Please try again in 15 minutes."));
         }
 
         reportService.submitReport(currentUser, userId, ReportType.USER, request.reason());
-        return ResponseEntity.ok("Profile reported successfully.");
+        return ResponseEntity.ok(Map.of("message", "Profile reported successfully."));
     }
 
 }

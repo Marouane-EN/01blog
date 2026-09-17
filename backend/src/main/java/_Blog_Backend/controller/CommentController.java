@@ -1,5 +1,7 @@
 package _Blog_Backend.controller;
 
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -40,7 +42,7 @@ public class CommentController {
 
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message","Too many attempts. Please try again in 15 minutes."));
         }
 
         CommentDto createdComment = commentService.createComment(request, postId, currentUser);
@@ -57,7 +59,7 @@ public class CommentController {
 
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message","Too many attempts. Please try again in 15 minutes."));
         }
         Long currentUserId = (currentUser != null) ? currentUser.getId() : null;
         return ResponseEntity.ok(commentService.getCommentsForPost(postId, cursor, currentUserId));
@@ -71,7 +73,7 @@ public class CommentController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message","Too many attempts. Please try again in 15 minutes."));
         }
 
         return ResponseEntity.ok(commentService.updateComment(commentId, content, currentUser));
@@ -83,7 +85,7 @@ public class CommentController {
             @AuthenticationPrincipal User currentUser) {
 
         commentService.deleteComment(commentId, currentUser);
-        return ResponseEntity.ok("Comment deleted successfully");
+        return ResponseEntity.ok(Map.of("message", "Comment deleted successfully"));
     }
 
     @PostMapping("/{commentId}/likes")
@@ -93,7 +95,7 @@ public class CommentController {
         Bucket bucket = rateLimiter.resolveBucket(ipAddress);
         if (!bucket.tryConsume(1)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Too many attempts. Please try again in 15 minutes.");
+                    .body(Map.of("message","Too many attempts. Please try again in 15 minutes."));
         }
 
         return ResponseEntity.ok(likeService.toggleCommentLike(commentId, currentUser));

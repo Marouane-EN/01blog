@@ -26,6 +26,5 @@ export const adminGuard: CanMatchFn = (): boolean | UrlTree => {
     return true;
   }
 
-  console.warn('[AdminGuard] Unauthorized access detected. Redirecting to home.');
   return router.createUrlTree(['/']);
 };

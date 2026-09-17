@@ -28,7 +28,6 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
         // 3. Apply your exact logic: Skip the redirect if they are logging in!
         if (!isActivelyLoggingIn) {
-          console.warn('[Interceptor] Invalid token detected. Forcing logout.');
           const hadToken = authService.hasToken();
           authService.logout(); // Clears localStorage
           router.navigate(['/login']);
@@ -36,8 +35,6 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           if (hadToken) {
             toastService.error('Your session has expired. Please log in again.');
           }
-        } else {
-          console.log('[Interceptor] 401 ignored because user is actively authenticating.');
         }
       }
 

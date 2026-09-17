@@ -21,6 +21,5 @@ export const authGuard: CanActivateFn = (route, state): boolean | UrlTree => {
 
   // 3. THE FIX: Return a UrlTree instead of false!
   // This physically forces the browser to dump the current page and redirect.
-  console.warn('[AuthGuard] Unauthorized access detected. Redirecting to login.');
   return router.createUrlTree(['/login']);
 };

@@ -27,10 +27,10 @@ export class CommentService {
     return this.http.put<Comment>(`${this.API_URL}/posts/${postId}/comments/${commentId}`, content);
   }
 
-  deleteComment(postId: number, commentId: number): Observable<string> {
-    return this.http.delete(`${this.API_URL}/posts/${postId}/comments/${commentId}`, {
-      responseType: 'text',
-    });
+  deleteComment(postId: number, commentId: number): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(
+      `${this.API_URL}/posts/${postId}/comments/${commentId}`,
+    );
   }
 
   toggleLike(postId: number, commentId: number): Observable<LikeResponse> {

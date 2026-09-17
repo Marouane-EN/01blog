@@ -59,7 +59,6 @@ export class FeedStore {
         this.#isLoading.set(false);
       },
       error: (err) => {
-        console.error('Error fetching feed:', err);
         const message = extractErrorMessage(err, 'Failed to load posts. Please try again later.');
         this.#error.set(message);
         this.#posts.set([]);
@@ -105,7 +104,6 @@ export class FeedStore {
         this.#isLoading.set(false);
       },
       error: (err) => {
-        console.error('Error searching posts:', err);
         const message = extractErrorMessage(err, 'Failed to search posts. Please try again later.');
         this.#error.set(message);
         this.#searchResults.set([]);
@@ -162,7 +160,6 @@ export class FeedStore {
           this.#isLoadingMore.set(false);
         },
         error: (err) => {
-          console.error('Error fetching more search results:', err);
           const message = extractErrorMessage(
             err,
             'Failed to load more search results. Please try again later.',
@@ -183,7 +180,6 @@ export class FeedStore {
         this.#isLoadingMore.set(false);
       },
       error: (err) => {
-        console.error('Error fetching more posts:', err);
         const message = extractErrorMessage(err, 'Failed to load more posts. Please try again later.');
         this.#error.set(message);
         this.#isLoadingMore.set(false);

@@ -82,7 +82,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
     this.tagService.getTrendingTags(5).subscribe({
       next: (tags) => this.trendingTags.set(tags),
       error: (err) => {
-        console.error('Error loading trending tags:', err);
         this.toastService.error(extractErrorMessage(err, 'Could not load trending tags.'));
       },
     });
@@ -90,7 +89,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
     this.userService.getPopularUsers(5).subscribe({
       next: (users) => this.popularUsers.set(users),
       error: (err) => {
-        console.error('Error loading popular users:', err);
         this.toastService.error(extractErrorMessage(err, 'Could not load popular users.'));
       },
     });
@@ -130,7 +128,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
         });
       },
       error: (err) => {
-        console.error('Error toggling post like:', err);
         this.toastService.error(extractErrorMessage(err, 'Could not update like status.'));
       },
     });
@@ -153,7 +150,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
         this.toastService.success('Post deleted.');
       },
       error: (err) => {
-        console.error('Error deleting post:', err);
         this.toastService.error(extractErrorMessage(err, 'Could not delete this post.'));
       },
     });
@@ -186,7 +182,6 @@ export class HomePageComponent implements OnInit, OnDestroy {
           this.connectionsLoading.set(false);
         },
         error: (err) => {
-          console.error('Error fetching user connections:', err);
           const message = extractErrorMessage(err, 'Could not load people right now.');
           this.profile.set(null);
           this.following.set([]);
