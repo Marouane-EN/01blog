@@ -1,14 +1,16 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
+import { inject, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { ToastService } from '../services/toast.service';
+import { isPlatformBrowser } from '@angular/common';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const authService = inject(AuthService);
   const toastService = inject(ToastService);
+  const platformId = inject(PLATFORM_ID);
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
@@ -20,7 +22,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         let isActivelyLoggingIn = false;
 
         // 2. Safely check the URL (SSR Safe)
-        if (typeof window !== 'undefined') {
+        if (isPlatformBrowser(platformId)) {
           const currentUrl = window.location.href;
           // Check if they are on the OAuth redirect page or if the URL has a token
           isActivelyLoggingIn = currentUrl.includes('token=') || currentUrl.includes('oauth2');

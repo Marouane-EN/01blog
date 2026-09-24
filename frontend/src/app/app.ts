@@ -54,8 +54,8 @@ export class AppComponent implements OnInit {
         // Success: AuthService updates currentUserSubject → AuthStore signal updates → Navbar re-renders
         error: () => {
           // Token is expired or invalid — clean up
-          this.#authService.logout();
-          this.isCheckingAuth.set(false);
+          // this.#authService.logout();
+          // this.isCheckingAuth.set(false);
         },
       });
     } else {

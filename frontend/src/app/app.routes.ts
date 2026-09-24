@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './core/layout/main-layout/main-layout.component';
 import { guestGuard } from './core/guards/guest.guard';
 import { adminGuard } from './core/guards/admin.guard';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   // ── 1. App Shell (Pages that HAVE a Navbar and Footer) ──
@@ -30,6 +31,7 @@ export const routes: Routes = [
       },
       {
         path: 'profile',
+        canActivate: [authGuard],
         loadComponent: () =>
           import('./features/profile/profile.component').then((m) => m.ProfileComponent),
       },
