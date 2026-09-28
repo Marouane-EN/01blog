@@ -315,7 +315,7 @@ export class PostDetailComponent implements OnInit {
     this.savingCommentId.set(comment.id);
     this.commentService
       .updateComment(post.id, comment.id, {
-        content: this.commentForm.controls.content.value.trim(),
+        content: this.commentEditForm.controls.content.value.trim(),
       })
       .subscribe({
         next: (updatedComment) => {

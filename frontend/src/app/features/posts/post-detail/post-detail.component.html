@@ -134,6 +134,50 @@
         }
       </div>
 
+      <!-- Mobile-only action bar: the sticky reaction-rail is hidden below 900px -->
+      <div class="mobile-post-actions">
+        <button
+          class="mobile-action"
+          type="button"
+          [class.is-liked]="post.likedByCurrentUser"
+          aria-label="Like post"
+          (click)="togglePostLike()"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            [attr.fill]="post.likedByCurrentUser ? 'currentColor' : 'none'"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M12 21s-7-4.6-9.5-9A5.5 5.5 0 0 1 12 5a5.5 5.5 0 0 1 9.5 7c-2.5 4.4-9.5 9-9.5 9z"
+            />
+          </svg>
+          {{ post.totalLikes }}
+        </button>
+
+        <button
+          class="mobile-action"
+          type="button"
+          aria-label="Go to comments"
+          (click)="scrollToComments()"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+          {{ post.totalComments }}
+        </button>
+      </div>
+
       <!-- Editing vs Viewing State -->
       @if (isEditingPost()) {
         <form class="post-edit-form" [formGroup]="postEditForm" (ngSubmit)="savePostEdit()">

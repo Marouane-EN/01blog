@@ -247,6 +247,39 @@
   margin: var(--space-7, 28px) 0;
 }
 
+/* ---- Mobile action bar (fallback for the sticky reaction-rail, hidden below 900px) ---- */
+.mobile-post-actions {
+  display: none;
+}
+
+.mobile-action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink-secondary, #6b6a61);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s ease;
+
+  svg {
+    width: 19px;
+    height: 19px;
+    transition: fill 0.15s ease;
+  }
+
+  &.is-liked {
+    color: #e0245e;
+
+    svg {
+      fill: currentColor;
+    }
+  }
+}
+
 /* ---- Inline Editing Form ---- */
 .post-edit-form,
 .comment-edit-form {
@@ -513,6 +546,12 @@
   }
   .reaction-rail {
     display: none;
+  }
+  .mobile-post-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5, 20px);
+    margin-bottom: var(--space-5, 20px);
   }
 }
 

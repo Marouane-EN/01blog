@@ -1,4 +1,4 @@
-import { Component, OnInit, effect, inject, signal } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, effect, inject, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -39,7 +39,10 @@ export class NavbarComponent implements OnInit {
   private notificationService = inject(NotificationService);
   private toastService = inject(ToastService);
 
+  @ViewChild('searchInput') private searchInputRef?: ElementRef<HTMLInputElement>;
+
   searchValue = '';
+  mobileSearchOpen = signal(false);
   notifications = signal<readonly AppNotification[]>([]);
   unreadCount = signal(0);
   notificationsLoading = signal(false);
@@ -64,6 +67,18 @@ export class NavbarComponent implements OnInit {
     this.router.navigate(['/'], {
       queryParams: query ? { q: query } : {},
     });
+    this.mobileSearchOpen.set(false);
+  }
+
+  openMobileSearch() {
+    this.mobileSearchOpen.set(true);
+    if (typeof window !== 'undefined') {
+      setTimeout(() => this.searchInputRef?.nativeElement.focus());
+    }
+  }
+
+  closeMobileSearch() {
+    this.mobileSearchOpen.set(false);
   }
 
   loadNotifications() {

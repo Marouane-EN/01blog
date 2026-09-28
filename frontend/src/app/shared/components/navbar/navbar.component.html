@@ -6,7 +6,11 @@
     </a>
 
     <!-- Search Form -->
-    <form class="nav-search" (submit)="$event.preventDefault(); submitSearch()">
+    <form
+      class="nav-search"
+      [class.is-open]="mobileSearchOpen()"
+      (submit)="$event.preventDefault(); submitSearch()"
+    >
       <svg
         viewBox="0 0 24 24"
         fill="none"
@@ -19,16 +23,55 @@
         <path d="M21 21l-4.3-4.3" />
       </svg>
       <input
+        #searchInput
         type="text"
         placeholder="Search"
         aria-label="Search posts"
         [value]="searchValue"
         (input)="searchValue = $any($event.target).value"
       />
+      <button
+        class="search-close"
+        type="button"
+        aria-label="Close search"
+        (click)="closeMobileSearch()"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M18 6 6 18" />
+          <path d="M6 6l12 12" />
+        </svg>
+      </button>
     </form>
 
     <!-- Actions -->
     <div class="nav-actions">
+      <!-- Mobile-only search trigger: the search form above is hidden below 600px
+           until this opens it as a full-width overlay. -->
+      <button
+        class="nav-icon-btn search-toggle"
+        type="button"
+        (click)="openMobileSearch()"
+        aria-label="Search"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="11" cy="11" r="7" />
+          <path d="M21 21l-4.3-4.3" />
+        </svg>
+      </button>
       @if (authStore.isAuthenticated()) {
         <!-- Write Button -->
         <a class="nav-write" routerLink="/create-post">
