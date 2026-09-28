@@ -43,7 +43,7 @@ public class UserService {
             fileUploadService.deleteFileByUrl(currentUser.getProfilePictureUrl());
         }
 
-        String secureUrl = fileUploadService.uploadFile(file);
+        String secureUrl = fileUploadService.uploadImageOnly(file);
 
         currentUser.setProfilePictureUrl(secureUrl);
         userRepository.save(currentUser);
