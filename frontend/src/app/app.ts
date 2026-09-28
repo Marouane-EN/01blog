@@ -6,38 +6,8 @@ import { AuthService } from './core/services/auth.service';
   selector: 'app-root',
   standalone: true,
   imports: [RouterOutlet],
-  template: `
-    <a href="#main-content" class="skip-link">Skip to main content</a>
-    @if (isCheckingAuth()) {
-      <div class="boot-screen"></div>
-    } @else {
-      <router-outlet />
-    }
-  `,
-  styles: [
-    `
-      .skip-link {
-        position: absolute;
-        top: -40px;
-        left: 8px;
-        z-index: 9999;
-        padding: 8px 16px;
-        background: #4f46e5;
-        color: #ffffff;
-        border-radius: 0 0 6px 6px;
-        font-size: 14px;
-        text-decoration: none;
-        transition: top 0.1s ease;
-      }
-      .skip-link:focus {
-        top: 0;
-      }
-      .boot-screen {
-        min-height: 100vh;
-        background: #f5f5f5;
-      }
-    `,
-  ],
+  templateUrl: './app.html',
+  styleUrl: './app.scss',
 })
 export class AppComponent implements OnInit {
   // Use YOUR existing AuthService — not AuthStore — for the boot call
