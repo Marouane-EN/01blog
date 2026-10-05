@@ -17,7 +17,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
@@ -28,9 +27,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "users", indexes = {
-        @Index(name = "idx_profile_pic", columnList = "profile_picture_url")
-})
+@Table(name = "users")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -134,18 +131,6 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return isActive;
-    }
-
-    public int getPostsCount() {
-        return postsCount;
-    }
-
-    public int getFollowersCount() {
-        return followersCount;
-    }
-
-    public int getFollowingCount() {
-        return followingCount;
     }
 
     public void addSubscription(Subscription subscription) {
