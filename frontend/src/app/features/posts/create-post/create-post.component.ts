@@ -79,8 +79,13 @@ export class CreatePostComponent implements OnDestroy {
   }
 
   submit() {
-    if (this.form.invalid || this.isSubmitting()) {
+    if (this.isSubmitting()) {
+      return;
+    }
+
+    if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.toastService.error('Please add a title and content before publishing.');
       return;
     }
 

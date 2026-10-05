@@ -92,7 +92,8 @@ public class CommentService {
         if (!comment.getAuthor().getId().equals(currentUser.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to edit this comment.");
         }
-        if (comment.getPost().isHidden()) {
+        long postId = comment.getPost().getId();
+        if (!postRepository.existsByIdAndIsHiddenFalse(postId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
         }
 
@@ -122,7 +123,8 @@ public class CommentService {
         if (!comment.getAuthor().getId().equals(currentUser.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only delete your own comments.");
         }
-        if (comment.getPost().isHidden()) {
+        Long postId = comment.getPost().getId();
+        if (!postRepository.existsByIdAndIsHiddenFalse(postId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
         }
 

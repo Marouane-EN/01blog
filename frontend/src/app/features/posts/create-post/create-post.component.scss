@@ -96,6 +96,19 @@
     border-color: var(--accent, #1e6b4e);
     box-shadow: 0 0 0 3px var(--accent-soft, #e7f1ec);
   }
+
+  &.has-error {
+    border-color: #c62828;
+    &:focus {
+      box-shadow: 0 0 0 3px #ffebee;
+    }
+  }
+}
+
+.field-error {
+  color: #c62828;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .title-input {

@@ -2,7 +2,6 @@ package _Blog_Backend.service;
 
 import java.util.Optional;
 
-import org.hibernate.Hibernate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,7 +15,6 @@ import _Blog_Backend.entity.User;
 import _Blog_Backend.repository.CommentRepository;
 import _Blog_Backend.repository.LikeRepository;
 import _Blog_Backend.repository.PostRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -57,20 +55,14 @@ public class LikeService {
     public LikeResponse toggleCommentLike(Long commentId, User currentUser) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Comment not found"));
-        if (comment.getPost().isHidden()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
-        }
 
         if (comment.isDeleted()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Comment not found");
         }
 
-        try {
-            Hibernate.initialize(comment.getPost());
-
-        } catch (EntityNotFoundException e) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "Cannot like a comment that belongs to a banned or deleted post.");
+        Long postId = comment.getPost().getId();
+        if (!postRepository.existsByIdAndIsHiddenFalse(postId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found");
         }
 
         Optional<Like> existingLike = likeRepository.findByCommentIdAndUserId(comment.getId(), currentUser.getId());
@@ -92,6 +84,5 @@ public class LikeService {
         long newTotalLikes = likeRepository.countByCommentId(commentId);
 
         return new LikeResponse(isNowLiked, newTotalLikes);
-
     }
 }

@@ -29,7 +29,11 @@
         formControlName="title"
         maxlength="128"
         placeholder="Give your post a title"
+        [class.has-error]="form.controls.title.invalid && form.controls.title.touched"
       />
+      @if (form.controls.title.hasError('required') && form.controls.title.touched) {
+        <span class="field-error">Title is required.</span>
+      }
     </div>
 
     <div class="field">
@@ -44,7 +48,11 @@
         formControlName="content"
         maxlength="1000"
         placeholder="Write your post here..."
+        [class.has-error]="form.controls.content.invalid && form.controls.content.touched"
       ></textarea>
+      @if (form.controls.content.hasError('required') && form.controls.content.touched) {
+        <span class="field-error">Content is required.</span>
+      }
     </div>
 
     <div class="field">
