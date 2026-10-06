@@ -31,7 +31,7 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "posts", indexes = {
-        @Index(name = "idx_post_slug", columnList = "slug", unique = true)
+        @Index(name = "idx_post_slug", columnList = "slug")
 })
 @Getter
 @Setter
