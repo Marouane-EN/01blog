@@ -1,444 +1,273 @@
-## API Reference
+# 01Blog
 
-Base URL: `http://localhost:8080`
+A full-stack social blogging platform where users publish posts with images and videos, follow other users, like and comment, and report content. Administrators moderate the platform from a dedicated dashboard.
 
-Authentication:
+- **Backend:** Spring Boot REST API secured with JWT, plus Google and GitHub OAuth2 login
+- **Frontend:** Angular single-page app with server-side rendering (SSR)
+- **Database:** PostgreSQL (run through Docker Compose)
+- **Media storage:** Cloudinary
 
-- Public routes: `/api/auth/**`, `/oauth2/**`, `/error`
-- All other routes require `Authorization: Bearer <jwt>`
-- Admin routes under `/api/admin/**` require an admin user
-- Rate-limited routes may return `429` with the text body `Too many attempts. Please try again in 15 minutes.`
+---
 
-Dates are returned as ISO-8601 strings, for example `2026-06-29T10:15:30`.
+## Features
 
-### Auth Endpoints
+- Local registration/login (username or email + password) and OAuth2 login with **Google** and **GitHub**
+- Create, edit and delete posts with tags and multiple images/videos
+- Likes on posts and comments, threaded comments (replies)
+- Follow / unfollow users, followers and following lists, user search
+- Notifications with an unread counter
+- Profile pages with avatar upload and bio
+- Report posts or users
+- Admin dashboard: review reports, ban/unban users, deactivate accounts, hide or permanently delete posts, remove comments
+- Cursor-based pagination for feeds, comments, followers and notifications
+- Upload validation: only real images (JPEG, PNG, GIF, WebP) and videos (MP4, WebM, MOV) are accepted, checked by file content and not only by file name
+- Rate limiting on the API
 
-| Method | Endpoint | Request DTO | Response DTO |
-| --- | --- | --- | --- |
-| `POST` | `/api/auth/register` | `RegisterRequest` | `201 AuthResponse` |
-| `POST` | `/api/auth/login` | `LoginRequest` | `200 AuthResponse` |
+---
 
-### Post Endpoints
+## Technologies
 
-| Method | Endpoint | Request DTO | Response DTO |
-| --- | --- | --- | --- |
-| `POST` | `/api/posts` | Multipart form: `postData: PostRequest`, optional `files: File[]` | `201 PostDto` |
-| `GET` | `/api/posts?cursor={postId}` | None | `CursorResponse<PostDto>` |
-| `GET` | `/api/posts/{slug}` | None | `201 PostDto` |
-| `GET` | `/api/posts/user/{authorId}?cursor={postId}` | None | `CursorResponse<PostDto>` |
-| `GET` | `/api/posts/subscriptions?cursor={postId}` | None | `CursorResponse<PostDto>` |
-| `GET` | `/api/posts/search?q={keyword}&cursor={postId}` | None | `CursorResponse<PostSearchDto>` |
-| `PUT` | `/api/posts/{id}` | `PostRequest` | `PostDto` |
-| `DELETE` | `/api/posts/{id}` | None | Text: `Post deleted successfully` |
-| `POST` | `/api/posts/{postId}/files` | Multipart form: `file: File` | `201 FileUploadResponse` |
-| `DELETE` | `/api/posts/{postId}/files/{mediaId}` | None | Text: `Media deleted successfully` |
-| `POST` | `/api/posts/{postId}/like` | None | `LikeResponse` |
+### Backend
 
-### Comment Endpoints
+| Technology | Purpose |
+| --- | --- |
+| Java 17 | Language |
+| Spring Boot 4.0.5 | Application framework |
+| Spring Web MVC | REST API |
+| Spring Data JPA + Hibernate | ORM and database access |
+| Spring Security | Authentication and authorization |
+| Spring Security OAuth2 Client | Google / GitHub login |
+| JJWT 0.11.5 | JSON Web Token creation and validation |
+| Bean Validation | Request validation |
+| Bucket4j 8.3.0 | Rate limiting |
+| Cloudinary SDK 1.36.0 | Image and video storage |
+| Apache Tika | Detects the real file type from file content |
+| PostgreSQL 15 | Relational database |
+| Lombok | Boilerplate reduction |
+| Maven (wrapper included) | Build tool |
+| GitHub Actions | CI (build on push / pull request to `main`) |
 
-| Method | Endpoint | Request DTO | Response DTO |
-| --- | --- | --- | --- |
-| `POST` | `/api/posts/{postId}/comments` | `CommentRequest` | `201 CommentDto` |
-| `GET` | `/api/posts/{postId}/comments?cursor={commentId}` | None | `CursorResponse<CommentDto>` |
-| `PUT` | `/api/posts/{postId}/comments/{commentId}` | Raw string content | `CommentDto` |
-| `DELETE` | `/api/posts/{postId}/comments/{commentId}` | None | Text: `Comment deleted successfully` |
-| `POST` | `/api/posts/{postId}/comments/{commentId}/likes` | None | `LikeResponse` |
+### Frontend
 
-### User Endpoints
+| Technology | Purpose |
+| --- | --- |
+| Angular 21 | SPA framework (standalone components, signals) |
+| Angular Material + CDK | UI components |
+| Angular SSR (`@angular/ssr`) with Express 5 | Server-side rendering |
+| RxJS 7.8 | Reactive programming / HTTP streams |
+| TypeScript 5.9 | Language |
+| Sass (SCSS) | Styling |
+| Prettier | Code formatting |
 
-| Method | Endpoint | Request DTO | Response DTO |
-| --- | --- | --- | --- |
-| `GET` | `/api/users/me` | None | `UserDto` |
-| `POST` | `/api/users/me/avatar` | Multipart form: `file: File` | Text: avatar URL |
-| `POST` | `/api/users/{username}/subscribe` | None | `SubscriptionResponse` |
-| `GET` | `/api/users/{userId}/followers?cursor={subscriptionId}` | None | `CursorResponse<UserDto>` |
-| `GET` | `/api/users/{userId}/following?cursor={subscriptionId}` | None | `CursorResponse<UserDto>` |
-| `GET` | `/api/users/{username}` | None | `PublicProfileDto` |
-| `GET` | `/api/users/search?q={keyword}&cursor={userId}` | None | `CursorResponse<UserDto>` |
+### Infrastructure
 
-### Notification Endpoints
+- **Docker / Docker Compose** for the PostgreSQL container
+- **Cloudinary** for media hosting
 
-| Method | Endpoint | Request DTO | Response DTO |
-| --- | --- | --- | --- |
-| `GET` | `/api/notifications?cursor={notificationId}` | None | `CursorResponse<NotificationDto>` |
-| `GET` | `/api/notifications/unreadcount` | None | Number |
-| `PUT` | `/api/notifications/{id}/readOrUnread` | None | Text message |
+---
 
-### Report Endpoints
+## Prerequisites
 
-| Method | Endpoint | Request DTO | Response DTO |
-| --- | --- | --- | --- |
-| `POST` | `/api/posts/{postId}/reports` | `ReportRequest` | Text: `Post reported successfully.` |
-| `POST` | `/api/comments/{commentId}/reports` | `ReportRequest` | Text: `Comment reported successfully.` |
-| `POST` | `/api/users/{userId}/reports` | `ReportRequest` | Text: `Profile reported successfully.` |
+Install these before starting:
 
-### Admin Endpoints
+| Tool | Version |
+| --- | --- |
+| JDK | 17 or newer |
+| Node.js | `^20.19`, `^22.12` or `>=24` |
+| npm | 10.x (the project pins `npm@10.8.2`) |
+| Docker + Docker Compose | recent |
+| Git | any |
 
-| Method | Endpoint | Request DTO | Response DTO |
-| --- | --- | --- | --- |
-| `GET` | `/api/admin/reports?page={page}&size={size}` | None | `Page<AdminReportDto>` |
-| `PUT` | `/api/admin/reports/{reportId}/resolve` | `ResolveRequest` | Text: `Report resolved successfully.` |
-| `GET` | `/api/admin/users?search={keyword}&page={page}&size={size}` | None | `Page<AdminUserDto>` |
-| `GET` | `/api/admin/users/{userId}?page={page}&size={size}` | None | `Page<AdminPostDto>` |
-| `GET` | `/api/admin/posts?search={keyword}&page={page}&size={size}` | None | `Page<AdminPostDto>` |
-| `GET` | `/api/admin/posts/{postId}` | None | `AdminPostDetailsDto` |
-| `GET` | `/api/admin/posts/{postId}/comments?page={page}&size={size}` | None | `Page<AdminCommentDto>` |
-| `PUT` | `/api/admin/users/{userId}/ban` | None | `MessageResponse` |
-| `DELETE` | `/api/admin/users/{userId}` | None | `MessageResponse` |
-| `PUT` | `/api/admin/posts/{postId}/hide` | None | `MessageResponse` |
-| `DELETE` | `/api/admin/posts/{postId}` | None | `MessageResponse` |
-| `DELETE` | `/api/admin/comments/{commentId}` | None | Text: `Comment has been scrubbed.` |
+You also need free accounts / credentials for:
 
-### Request DTOs
+1. **Cloudinary**: https://cloudinary.com (for the `cloudinary://...` URL)
+2. **Google OAuth client**: https://console.cloud.google.com/apis/credentials
+3. **GitHub OAuth app**: https://github.com/settings/developers
 
-#### RegisterRequest
+---
 
-```json
-{
-  "username": "student01",
-  "email": "student@example.com",
-  "password": "password123",
-  "bio": "Learning Java and Angular.",
-  "birthDate": "2000-01-31"
-}
+## Setup
+
+### 1. Clone the repository
+
+```bash
+git clone <your-repository-url>
+cd <repository-folder>
 ```
 
-Validation:
+### 2. Start the database
 
-- `username`: required, 3-20 characters
-- `email`: required, valid email
-- `password`: required, minimum 8 characters
-- `bio`: optional, maximum 500 characters
-- `birthDate`: optional, must be in the past
+From the `backend/` folder:
 
-#### LoginRequest
-
-```json
-{
-  "identifier": "student01",
-  "password": "password123"
-}
+```bash
+cd backend
+docker compose up -d
 ```
 
-Validation:
+This starts a PostgreSQL 15 container named `01blog_postgres` with the settings defined in `backend/compose.yaml`:
 
-- `identifier`: required, 3-50 characters; can be username or email
-- `password`: required, minimum 8 characters
+| Setting | Value |
+| --- | --- |
+| Host port | `5433` (mapped to the container's `5432`) |
+| Database | `blog_db` |
+| User | `admin` |
+| Password | see `POSTGRES_PASSWORD` in `compose.yaml` |
 
-#### PostRequest
+Data is stored in the `postgres_data` Docker volume, so it survives container restarts.
 
-```json
-{
-  "title": "My first post",
-  "content": "Today I learned how Spring controllers work.",
-  "tags": ["spring", "angular"]
-}
+### 3. Configure the OAuth2 providers
+
+**Google**
+
+1. Create an OAuth 2.0 Client ID (type: *Web application*).
+2. Add this **Authorized redirect URI**: `http://localhost:8080/login/oauth2/code/google`
+
+**GitHub**
+
+1. Create a new OAuth App.
+2. Set **Homepage URL** to `http://localhost:4200`
+3. Set **Authorization callback URL** to `http://localhost:8080/login/oauth2/code/github`
+
+Keep the client ID and client secret of each for the next step.
+
+### 4. Create the backend configuration
+
+The backend reads its settings from two files in `backend/src/main/resources/`:
+
+| File | Committed? | Contains |
+| --- | --- | --- |
+| `application.properties` | yes (it holds no secrets) | Spring settings, with placeholders such as `${DB_URL}` |
+| `application-secret.properties` | **no** (git-ignored) | The real values for every placeholder |
+
+`application.properties` loads the secret file with `spring.profiles.include=secret`. Create your own secret file from the provided example:
+
+```bash
+cd backend/src/main/resources
+cp application-secret.properties.example application-secret.properties
 ```
 
-Validation:
+Then open `application-secret.properties` and fill in every value:
 
-- `title`: required, 1-128 characters
-- `content`: required, 1-1000 characters
-- `tags`: optional, maximum 5 tags; each saved tag must be 1-30 characters
+| Variable | What to put |
+| --- | --- |
+| `DB_URL` | `jdbc:postgresql://localhost:5433/blog_db` |
+| `DB_USERNAME` / `DB_PASSWORD` | Same as `POSTGRES_USER` / `POSTGRES_PASSWORD` in `compose.yaml` |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | From the Google OAuth client (step 3) |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | From the GitHub OAuth app (step 3) |
+| `JWT_SECRET_KEY` | Base64 string of at least 32 bytes: `openssl rand -base64 32` |
+| `JWT_EXPIRATION` | Token lifetime in milliseconds (`86400000` = 1 day) |
+| `ADMIN_USERNAME` / `ADMIN_EMAIL` / `ADMIN_PASSWORD` | The administrator account created at first start |
+| `CLOUDINARY_URL` | `cloudinary://<api_key>:<api_secret>@<cloud_name>` |
 
-For `POST /api/posts`, send this DTO as the multipart part named `postData`.
+> **Never commit `application-secret.properties`.** If a secret is ever pushed by accident, rotate it (generate a new key or password) instead of only deleting the commit.
 
-#### CommentRequest
+The same variable names also work as **environment variables**, which is handy for Docker, CI or production.
 
-```json
-{
-  "content": "Great explanation!",
-  "parentId": null
-}
+### 5. Run the backend
+
+```bash
+cd backend
+./mvnw spring-boot:run
 ```
 
-Validation:
+On Windows use `mvnw.cmd spring-boot:run`.
 
-- `content`: required, maximum 200 characters
-- `parentId`: optional; set it to reply to another comment
+The API is now available at **http://localhost:8080**. Hibernate creates the tables on first start (`ddl-auto=update`).
 
-#### ReportRequest
+### 6. Run the frontend
 
-```json
-{
-  "reason": "This content contains inappropriate language."
-}
+In a second terminal:
+
+```bash
+cd frontend
+npm install
+npm start
 ```
 
-Validation:
+Open **http://localhost:4200**.
 
-- `reason`: required, 10-500 characters
+The frontend expects the API at `http://localhost:8080/api` (set in `frontend/src/environments/environment.ts`). After a Google/GitHub login, the backend redirects the browser to `http://localhost:4200/oauth2/redirect` with the JWT.
 
-#### ResolveRequest
+## Useful commands
 
-```json
-{
-  "action": "BAN_USER"
-}
+### Backend
+
+```bash
+./mvnw spring-boot:run            # run the API
+./mvnw clean package -DskipTests  # build the JAR (same command CI runs)
+./mvnw test                       # run tests
 ```
 
-Allowed `action` values:
+### Frontend
 
-- `BAN_USER`
-- `HIDE_CONTENT`
-- `DISMISS`
-
-### Response DTOs
-
-#### AuthResponse
-
-```json
-{
-  "token": "jwt-token",
-  "userProfile": {
-    "id": 1,
-    "username": "student01",
-    "profileImageUrl": "https://example.com/avatar.png"
-  }
-}
+```bash
+npm start            # dev server on http://localhost:4200
+npm run build        # production build
+npm test             # unit tests (Vitest)
+npm run serve:ssr:frontend   # run the SSR server after a build
 ```
 
-#### UserDto
+### Database
 
-```json
-{
-  "id": 1,
-  "username": "student01",
-  "profileImageUrl": "https://example.com/avatar.png"
-}
+```bash
+# Open an interactive SQL shell
+docker exec -it 01blog_postgres psql -U admin -d blog_db
+
+# Look at the users table
+docker exec -it 01blog_postgres psql -U admin -d blog_db -c "SELECT id, username, email, role, is_blocked FROM users;"
+
+# Stop the database (data is kept)
+docker compose down
+
+# Stop and DELETE all data
+docker compose down -v
 ```
 
-#### PublicProfileDto
+---
 
-```json
-{
-  "id": 1,
-  "username": "student01",
-  "bio": "Learning Java and Angular.",
-  "profilePictureUrl": "https://example.com/avatar.png",
-  "postsCount": 7,
-  "followersCount": 25,
-  "followingCount": 10,
-  "joinedAt": "2026-06-29T10:15:30"
-}
+## Project structure
+
+```
+.
+├── backend/
+│   ├── compose.yaml                 # PostgreSQL container
+│   ├── pom.xml
+│   └── src/main/java/_Blog_Backend/
+│       ├── config/                  # Security, JWT filter, CORS, Cloudinary, OAuth2 success handler
+│       ├── controller/              # REST endpoints
+│       ├── service/                 # Business logic (auth, posts, uploads, admin, ...)
+│       ├── repository/              # Spring Data JPA repositories
+│       ├── entity/                  # JPA entities (User, Post, Comment, Like, Subscription, ...)
+│       ├── dto/                     # Request / response objects
+│       └── exception/               # Global error handling
+└── frontend/
+    ├── package.json
+    └── src/app/
+        ├── core/                    # Services, guards, interceptors, utilities
+        ├── features/                # auth, posts, profile, admin, ...
+        └── shared/                  # Reusable components (e.g. media carousel)
 ```
 
-#### PostDto
+---
 
-```json
-{
-  "id": 10,
-  "slug": "my-first-post-a1b2c3",
-  "author": {
-    "id": 1,
-    "username": "student01",
-    "profileImageUrl": "https://example.com/avatar.png"
-  },
-  "title": "My first post",
-  "content": "Today I learned how Spring controllers work.",
-  "tag": ["spring", "angular"],
-  "mediaUrls": ["https://example.com/media.png"],
-  "totalLikes": 4,
-  "totalComments": 2,
-  "likedByCurrentUser": true,
-  "createAt": "2026-06-29T10:15:30",
-  "updatedAt": "2026-06-29T11:00:00"
-}
-```
+## Security notes
 
-#### PostSearchDto
+- Passwords are hashed with BCrypt.
+- Authentication is stateless: every request carries a `Bearer` JWT.
+- Blocked or deactivated users are rejected even if their token is still valid.
+- Uploaded files are validated by their real content (magic bytes) before being sent to Cloudinary.
+- `/api/admin/**` is restricted to the `ADMIN` role.
 
-```json
-{
-  "author": "student01",
-  "title": "My first post",
-  "createAt": "2026-06-29T10:15:30"
-}
-```
+---
 
-#### CommentDto
+## Troubleshooting
 
-```json
-{
-  "id": 50,
-  "content": "Great explanation!",
-  "author": {
-    "id": 2,
-    "username": "reader01",
-    "profileImageUrl": "https://example.com/avatar.png"
-  },
-  "replies": [],
-  "likeCount": 3,
-  "likedByCurrentUser": false,
-  "createdAt": "2026-06-29T10:30:00",
-  "updatedAt": "2026-06-29T10:45:00"
-}
-```
-
-#### CursorResponse<T>
-
-```json
-{
-  "data": [],
-  "nextCursor": 42,
-  "hasMore": true
-}
-```
-
-`data` contains the DTO named by the endpoint, such as `PostDto`, `CommentDto`, `UserDto`, `NotificationDto`, or `PostSearchDto`.
-
-#### LikeResponse
-
-```json
-{
-  "isLiked": true,
-  "totalLikes": 5
-}
-```
-
-#### FileUploadResponse
-
-```json
-{
-  "mediaId": 99,
-  "url": "https://example.com/media.png"
-}
-```
-
-#### SubscriptionResponse
-
-```json
-{
-  "isSubscribed": true,
-  "totalSubscribers": 26
-}
-```
-
-#### NotificationDto
-
-```json
-{
-  "id": 15,
-  "senderUsername": "student01",
-  "senderProfilePictureUrl": "https://example.com/avatar.png",
-  "type": "NEW_POST",
-  "postId": 10,
-  "isRead": false,
-  "createdAt": "2026-06-29T10:15:30"
-}
-```
-
-Allowed `type` values:
-
-- `FOLLOW`
-- `NEW_POST`
-
-#### AdminReportDto
-
-```json
-{
-  "reportId": 1,
-  "reporterUsername": "reader01",
-  "reportedUsername": "student01",
-  "reportType": "POST",
-  "targetId": 10,
-  "reason": "This content contains inappropriate language.",
-  "createdAt": "2026-06-29T10:15:30"
-}
-```
-
-Allowed `reportType` values:
-
-- `USER`
-- `POST`
-- `COMMENT`
-
-#### AdminUserDto
-
-```json
-{
-  "id": 1,
-  "username": "student01",
-  "email": "student@example.com",
-  "isBlocked": false,
-  "isActive": true,
-  "createdAt": "2026-06-29T10:15:30"
-}
-```
-
-#### AdminPostDto
-
-```json
-{
-  "id": 10,
-  "title": "My first post",
-  "authorUsername": "student01",
-  "authorProfilePictureUrl": "https://example.com/avatar.png",
-  "isHidden": false,
-  "likesCount": 4,
-  "commentsCount": 2,
-  "createdAt": "2026-06-29T10:15:30"
-}
-```
-
-#### AdminPostDetailsDto
-
-```json
-{
-  "id": 10,
-  "title": "My first post",
-  "description": "Today I learned how Spring controllers work.",
-  "authorUsername": "student01",
-  "authorProfilePictureUrl": "https://example.com/avatar.png",
-  "isHidden": false,
-  "tags": ["spring", "angular"],
-  "mediaUrls": ["https://example.com/media.png"],
-  "likesCount": 4,
-  "createdAt": "2026-06-29T10:15:30"
-}
-```
-
-#### AdminCommentDto
-
-```json
-{
-  "id": 50,
-  "authorUsername": "reader01",
-  "authorProfilePictureUrl": "https://example.com/avatar.png",
-  "content": "Great explanation!",
-  "isDeleted": false,
-  "createdAt": "2026-06-29T10:30:00"
-}
-```
-
-#### Page<T>
-
-Admin list endpoints return the default Spring `Page` wrapper:
-
-```json
-{
-  "content": [],
-  "pageable": {},
-  "totalPages": 1,
-  "totalElements": 1,
-  "last": true,
-  "size": 20,
-  "number": 0,
-  "sort": {},
-  "numberOfElements": 1,
-  "first": true,
-  "empty": false
-}
-```
-
-`content` contains the admin DTO named by the endpoint, such as `AdminReportDto`, `AdminUserDto`, `AdminPostDto`, or `AdminCommentDto`.
-
-#### MessageResponse
-
-Some admin toggle endpoints return a JSON message:
-
-```json
-{
-  "message": "User has been banned."
-}
-```
+| Problem | Likely cause / fix |
+| --- | --- |
+| `Connection refused` on startup | The database container is not running. Run `docker compose up -d` in `backend/`. |
+| `password authentication failed` | `DB_PASSWORD` in `application-secret.properties` does not match `POSTGRES_PASSWORD` in `compose.yaml`. If you changed it after the first start, run `docker compose down -v` once so PostgreSQL re-initialises. |
+| `Could not resolve placeholder 'DB_URL'` (or another variable) | `application-secret.properties` is missing, or one of its variables is not set. |
+| Google/GitHub login shows `redirect_uri_mismatch` | The callback URL in the provider's settings does not match `http://localhost:8080/login/oauth2/code/<provider>`. |
+| `Unsupported file type` when uploading | Only JPEG, PNG, GIF, WebP images and MP4, WebM, MOV videos are accepted. |
+| Upload fails with a size error | The file is larger than the limit (100 MB here). Cloudinary's free plan has lower per-file limits. |
+| `npm install` fails with an engine error | Use a supported Node.js version (see Prerequisites). |
