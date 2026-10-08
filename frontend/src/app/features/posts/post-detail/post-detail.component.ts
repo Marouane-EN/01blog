@@ -1,12 +1,13 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { forkJoin } from 'rxjs';
+import { EMPTY, catchError, distinctUntilChanged, forkJoin, map, switchMap, tap } from 'rxjs';
 import { Comment, Post } from '../../../core/models';
 import { CommentService } from '../../../core/services/comment.service';
 import { PostService } from '../../../core/services/post.service';
@@ -46,6 +47,7 @@ export class PostDetailComponent implements OnInit {
   private reportDialog = inject(ReportDialogService);
   private toastService = inject(ToastService);
   private confirmDialog = inject(ConfirmDialogService);
+  private destroyRef = inject(DestroyRef);
   authStore = inject(AuthStore);
 
   post = signal<Post | null>(null);
@@ -77,16 +79,33 @@ export class PostDetailComponent implements OnInit {
   });
 
   ngOnInit() {
-    const slug = this.route.snapshot.paramMap.get('slug');
+    // The component is reused when navigating between posts (e.g. from a notification),
+    // so react to every slug change instead of reading the snapshot once.
+    this.route.paramMap
+      .pipe(
+        map((params) => params.get('slug')),
+        distinctUntilChanged(),
+        tap(() => this.resetState()),
+        switchMap((slug) => {
+          if (!slug) {
+            this.errorMessage.set('Post not found.');
+            this.isLoading.set(false);
+            return EMPTY;
+          }
 
-    if (!slug) {
-      this.errorMessage.set('Post not found.');
-      this.isLoading.set(false);
-      return;
-    }
-
-    this.postService.getPostBySlug(slug).subscribe({
-      next: (post) => {
+          return this.postService.getPostBySlug(slug).pipe(
+            catchError((err) => {
+              const message = extractErrorMessage(err, 'Could not load this post.');
+              this.errorMessage.set(message);
+              this.isLoading.set(false);
+              this.toastService.error(message);
+              return EMPTY;
+            }),
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((post) => {
         this.post.set(post);
         this.patchPostEditForm(post);
         this.isLoading.set(false);
@@ -95,14 +114,20 @@ export class PostDetailComponent implements OnInit {
         if (this.route.snapshot.queryParamMap.get('edit') === 'true' && this.isOwnPost(post)) {
           this.isEditingPost.set(true);
         }
-      },
-      error: (err) => {
-        const message = extractErrorMessage(err, 'Could not load this post.');
-        this.errorMessage.set(message);
-        this.isLoading.set(false);
-        this.toastService.error(message);
-      },
-    });
+      });
+  }
+
+  private resetState() {
+    this.post.set(null);
+    this.comments.set([]);
+    this.commentsCursor.set(null);
+    this.hasMoreComments.set(false);
+    this.isLoading.set(true);
+    this.isEditingPost.set(false);
+    this.editingCommentId.set(null);
+    this.errorMessage.set('');
+    this.commentForm.reset();
+    window.scrollTo({ top: 0 });
   }
 
   isOwnPost(post = this.post()) {
